@@ -20,7 +20,9 @@ main = Test
 
 -- name of executable
 executable = mvect2
--- opts =
+
+--opts = "opts = "--codegen node"
+
 sourcedir = "src"
 -- builddir =
 -- outputdir =

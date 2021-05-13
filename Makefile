@@ -1,7 +1,7 @@
 all: mvect2
 
 mvect2: mvect2.ipkg 
-	idris2 --build mvect2.ipkg 
+	idris2 --codegen node --build mvect2.ipkg 
 
 #ws: hs_server.ipkg
 #	idris --build hs_server.ipkg 
