@@ -55,7 +55,6 @@ public export
 data Relation : Type -> Type where
   M2O : (ty1:type) -> (ty2:type) -> Relation type
   M2M : (ty1:type) -> (ty2:type) -> Relation type
-  --X : (ty1:type) -> (ty2:type) -> Relation type
   (.|.) : (ty1:type) -> (ty2:type) -> Relation type
   ISO : (ty1:type) -> (ty2:type) -> Relation type
 
@@ -80,44 +79,30 @@ data Ring : Type -> Type where
   InvP :  (ty1:type) -> Ring type
   IntCarrier : Ring type
 
+--data Vector : Type where
+  --Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
+  
+
     
 public export
 data Schema :  Type where
   Var : (x:NSVar) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
   Seq : (x:NSVar) -> (seq:Sequence Schema ) ->  Schema 
   Rel : (x:NSVar) -> (rel:Relation Schema )  -> Schema   
-  Si  : (x:NSVar) -> (si:SimpleT )   -> Schema 
+  Si  : (x:NSVar) -> (si:SimpleT )   -> Schema   
+  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Schema ) -> Schema
   OP  : Schema  --Create Or Delete
 
 public export
 s : List Schema
 s = [Rel cy (M2O (Var a) (Var cy_ty)),
      Rel sku (M2O (Var a) (Var sku_ty)),
-     Rel items ( (Var cy) .|. (Var sku)) ]
-
-data Vector : Type where
-  --Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
-  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Vector ) -> Vector
-
-public export
-v : List Vector
-v = [(VRing (VN "qty") items IntCarrier),
-     (VRing (VN "price") items IntCarrier), 
-     (VRing (VN "sub") items (Mult (VRing (VN "qty") items IntCarrier) (VRing (VN "price") items IntCarrier) ) )   ]
-
-{-
-public export
-data Env : Schema -> Type
-  Nil : Env tm
-  (::)  :  (s:Schema) -> Env 
--}
-
---public export
---data Env : (tm : Schema) -> List NSVar -> Type where
---     Nil : Env tm []
---     (::) : (s:Schema) -> Env tm vars -> Env tm (x :: vars)
-
-
+     Rel items ( (Var cy) .|. (Var sku)),
+     VRing (VN "qty") items IntCarrier,
+     VRing (VN "price") items IntCarrier,
+     VRing (VN "sub") items (Mult (VRing (VN "qty") items IntCarrier) (VRing (VN "price") items IntCarrier) )
+--     VRing (VN "tot") cy   "sub" -- can not express without nesting .. hm
+      ]
 
   
 namespace DemoData
