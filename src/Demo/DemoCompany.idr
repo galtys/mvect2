@@ -10,50 +10,50 @@ data NameType : Type where
   Vn  : NameType  -- vector name
   
 public export
-data NSVar : NameType -> Type where
-  VarMsg : String -> NameSpace-> NSVar Msg
-  VarSt  :String -> NameSpace-> NSVar St
-  V : String -> NSVar Vn 
+data NSVar :  Type where
+  VarMsg : String -> NameSpace-> NSVar
+  VarSt  :String -> NameSpace-> NSVar
+  V : String -> NSVar
 
 public export
-qty : NSVar Vn
+qty : NSVar 
 qty = V "qty"
 
 public export
-unit : NSVar Vn
+unit : NSVar 
 unit = V "unit"
 
 public export
-price : NSVar Vn
+price : NSVar 
 price = V "price"
 
 public export
-tot : NSVar Vn
+tot : NSVar 
 tot = V "total"
 
 
 public export
-sku : NSVar Msg
+sku : NSVar 
 sku = VarMsg "sku" "Asset"
 
 public export
-cy : NSVar Msg
+cy : NSVar 
 cy = VarMsg "cy" "Asset"
 
 public export
-a : NSVar Msg
+a : NSVar 
 a = VarMsg "a" "Asset"
 
 public export
-cy_ty : NSVar Msg 
+cy_ty : NSVar  
 cy_ty = VarMsg "cy_ty" "CurrencyType"
 
 public export
-sku_ty : NSVar Msg
+sku_ty : NSVar 
 sku_ty = VarMsg "sku_ty" "StockType"
 
 public export
-items : NSVar Msg
+items : NSVar 
 items = VarMsg "items" "Items"
 
 public export
@@ -86,18 +86,58 @@ data Ring : Type -> Type where
   InvP :  (ty1:type) -> Ring type
   NTran : (ty1:type) -> Ring type
   IntCarrier : Ring type
-    
+
+{-    
+public export
+data Schema :  List NSVar  -> Type where
+  Ref :  (x:NSVar ) -> Schema  vars
+  RefSt : (x:NSVar ) -> 
+          (y:NSVar ) -> 
+          (scope: Schema (x :: vars))  ->
+          Schema vars
+  Seq : (x:NSVar ) -> 
+        (seq:Sequence (Schema vars) ) ->  
+        (scope: Schema (x :: vars)) -> 
+        Schema vars 
+  Rel : (x:NSVar ) -> 
+        (rel:Relation (Schema vars) ) -> 
+        (scope: Schema (x :: vars)) -> 
+        Schema vars   
+  Si  : (xx:NSVar ) -> 
+        (si:SimpleT )   ->
+        (scope:Schema (xx :: vars)) -> 
+        Schema vars
+  VRing : (q:NSVar ) -> 
+          (x:NSVar ) -> 
+          Ring (Schema vars) -> 
+          (scope: Schema (q :: vars))  -> 
+          Schema vars
+  OP : Schema vars
+-}
+
 public export
 data Schema :  Type where
-  Ref :  (x:NSVar nt) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
-  RefSt : (x:NSVar St) -> (x:NSVar Msg) -> Schema --convert msg to state
-  Seq : (x:NSVar Msg) -> (seq:Sequence Schema ) ->  Schema 
-  Rel : (x:NSVar Msg) -> (rel:Relation Schema )  -> Schema   
-  Si  : (x:NSVar Msg) -> (si:SimpleT )   -> Schema   
-  VRing : (q:NSVar Vn) -> (x:NSVar nt) -> Ring (Schema ) -> Schema
-  OP : Schema
+  Ref :  (x:NSVar ) -> Schema 
+  RefSt : (x:NSVar ) -> 
+          (y:NSVar ) -> 
+          Schema 
+  Seq : (x:NSVar ) -> 
+        (seq:Sequence Schema  ) ->  
+        Schema 
+  Rel : (x:NSVar ) -> 
+        (rel:Relation Schema ) -> 
+        Schema 
+  Si  : (xx:NSVar ) -> 
+        (si:SimpleT )   ->
+        Schema 
+  VRing : (q:NSVar ) -> 
+          (x:NSVar ) -> 
+          Ring Schema -> 
+          Schema 
+  OP : Schema 
 
-  
+
+
 public export
 s : List Schema
 s = [Rel cy (M2O (Ref a) (Ref cy_ty)),
