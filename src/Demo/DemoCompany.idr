@@ -55,29 +55,11 @@ public export
 data VectorName : Type where
   VN : String -> VectorName
 
-public export
-data VOp = Create|Delete --operation
+--public export
+--data VOp = Create|Delete --operation
 
 public export
 data Vuse = Vstate | Vmessage
-
-public export
-data Schema : List NSVar -> Type where
-  Var : (x:NSVar) -> Schema vars -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
-  Seq : (x:NSVar) -> (seq:Sequence (Schema vars)) ->  Schema vars
-  Rel : (x:NSVar) -> (rel:Relation (Schema vars))  -> Schema vars  
-  Si  : (x:NSVar) -> (si:SimpleT )   -> Schema vars
-  OP  : Schema vars --Create Or Delete
-
-public export
-data Env : (tm : List NSVar -> Type) -> List NSVar -> Type where
-     Nil : Env tm []
-     (::) : Relation (tm vars) -> Env tm vars -> Env tm (x :: vars)
-
-public export
-wvars : List NSVar
-wvars = [a,cy,sku]
-
 
 data Ring : Type -> Type where
   Plus : (ty1:type) -> (ty2:type) -> Ring type
@@ -86,9 +68,37 @@ data Ring : Type -> Type where
 
 data Carrier = IntCarrier
 
-data Vector : List VectorName -> Type where
-  Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector vn
-  VAlg : (name:VectorName) -> (x:NSVar) -> Ring (Vector names) -> Vector names
+data Vector : Type where
+  Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
+  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Vector ) -> Vector
+
+public export
+data Schema :  Type where
+  Var : (x:NSVar) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
+  Seq : (x:NSVar) -> (seq:Sequence Schema ) ->  Schema 
+  Rel : (x:NSVar) -> (rel:Relation Schema )  -> Schema   
+  Si  : (x:NSVar) -> (si:SimpleT )   -> Schema 
+  VOp : Schema
+  OP  : Schema  --Create Or Delete
+
+public export
+s : Schema
+s = Rel cy (M2O (Var a) (Var cy_ty)) 
+
+{-
+public export
+data Env : Schema -> Type
+  Nil : Env tm
+  (::)  :  (s:Schema) -> Env 
+-}
+
+--public export
+--data Env : (tm : Schema) -> List NSVar -> Type where
+--     Nil : Env tm []
+--     (::) : (s:Schema) -> Env tm vars -> Env tm (x :: vars)
+
+
+
   
 namespace DemoData
   public export
