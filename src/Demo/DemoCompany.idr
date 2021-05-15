@@ -7,8 +7,9 @@ data NameSpace : Type where
 
 public export
 data NSVar : Type where
-  VarN : String -> NameSpace-> NSVar
-
+  VarMst : String -> NameSpace-> NSVar 
+  VarS : String -> NameSpace-> NSVar  --for state
+  
 public export
 data IsVar : NSVar -> Nat -> List NSVar -> Type where
      First : IsVar n Z (n :: ns)
@@ -17,19 +18,29 @@ data IsVar : NSVar -> Nat -> List NSVar -> Type where
 
 public export
 a : NSVar 
-a = VarN "a" (NS "Asset")
+a = VarMst "a" (NS "Asset")
 
 public export
 cy_ty : NSVar 
-cy_ty = VarN "cy_ty" (NS "CurrencyType")
+cy_ty = VarMst "cy_ty" (NS "CurrencyType")
+
+public export
+sku_ty : NSVar 
+sku_ty = VarMst "sku_ty" (NS "StockType")
+
+public export
+items : NSVar 
+items = VarMst "items" (NS "Items")
+
 
 public export
 cy : NSVar
-cy = VarN "cy" (NS "Asset")
+cy = VarMst "cy" (NS "Asset")
 
 public export
 sku : NSVar 
-sku = VarN "sku" (NS "Asset")
+sku = VarMst "sku" (NS "Asset")
+
 
 public export
 data Sequence : Type -> Type where
@@ -38,11 +49,14 @@ data Sequence : Type -> Type where
   Prev : (ty:Type) -> Sequence ty
   --Fst
   --Last
+infixr 5 .|.  
+  
 public export
 data Relation : Type -> Type where
   M2O : (ty1:type) -> (ty2:type) -> Relation type
   M2M : (ty1:type) -> (ty2:type) -> Relation type
-  X : (ty1:type) -> (ty2:type) -> Relation type
+  --X : (ty1:type) -> (ty2:type) -> Relation type
+  (.|.) : (ty1:type) -> (ty2:type) -> Relation type
   ISO : (ty1:type) -> (ty2:type) -> Relation type
 
 public export
@@ -57,33 +71,39 @@ data VectorName : Type where
 
 --public export
 --data VOp = Create|Delete --operation
-
 public export
 data Vuse = Vstate | Vmessage
 
 data Ring : Type -> Type where
   Plus : (ty1:type) -> (ty2:type) -> Ring type
   Mult : (ty1:type) -> (ty2:type) -> Ring type
-  Inv :  (ty1:type) -> Ring type
+  InvP :  (ty1:type) -> Ring type
+  IntCarrier : Ring type
 
-data Carrier = IntCarrier
-
-data Vector : Type where
-  Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
-  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Vector ) -> Vector
-
+    
 public export
 data Schema :  Type where
   Var : (x:NSVar) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
   Seq : (x:NSVar) -> (seq:Sequence Schema ) ->  Schema 
   Rel : (x:NSVar) -> (rel:Relation Schema )  -> Schema   
   Si  : (x:NSVar) -> (si:SimpleT )   -> Schema 
-  VOp : Schema
   OP  : Schema  --Create Or Delete
 
 public export
-s : Schema
-s = Rel cy (M2O (Var a) (Var cy_ty)) 
+s : List Schema
+s = [Rel cy (M2O (Var a) (Var cy_ty)),
+     Rel sku (M2O (Var a) (Var sku_ty)),
+     Rel items ( (Var cy) .|. (Var sku)) ]
+
+data Vector : Type where
+  --Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
+  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Vector ) -> Vector
+
+public export
+v : List Vector
+v = [(VRing (VN "qty") items IntCarrier),
+     (VRing (VN "price") items IntCarrier), 
+     (VRing (VN "sub") items (Mult (VRing (VN "qty") items IntCarrier) (VRing (VN "price") items IntCarrier) ) )   ]
 
 {-
 public export
