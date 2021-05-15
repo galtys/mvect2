@@ -1,46 +1,60 @@
 module Demo.DemoCompany
 
-
 public export
-data NameSpace : Type where
-  NS : String -> NameSpace
+NameSpace : Type
+NameSpace = String
 
-public export
-data NSVar : Type where
-  VarMst : String -> NameSpace-> NSVar 
-  VarS : String -> NameSpace-> NSVar  --for state
+data NameType : Type where
+  Msg : NameType  -- message 
+  St  : NameType  -- state
+  Vn  : NameType  -- vector name
   
 public export
-data IsVar : NSVar -> Nat -> List NSVar -> Type where
-     First : IsVar n Z (n :: ns)
-     Later : IsVar n i ns -> IsVar n (S i) (m :: ns)
+data NSVar : NameType -> Type where
+  VarMsg : String -> NameSpace-> NSVar Msg
+  VarSt  :String -> NameSpace-> NSVar St
+  V : String -> NSVar Vn 
+
+public export
+qty : NSVar Vn
+qty = V "qty"
+
+public export
+unit : NSVar Vn
+unit = V "unit"
+
+public export
+price : NSVar Vn
+price = V "price"
+
+public export
+tot : NSVar Vn
+tot = V "total"
 
 
 public export
-a : NSVar 
-a = VarMst "a" (NS "Asset")
+sku : NSVar Msg
+sku = VarMsg "sku" "Asset"
 
 public export
-cy_ty : NSVar 
-cy_ty = VarMst "cy_ty" (NS "CurrencyType")
+cy : NSVar Msg
+cy = VarMsg "cy" "Asset"
 
 public export
-sku_ty : NSVar 
-sku_ty = VarMst "sku_ty" (NS "StockType")
+a : NSVar Msg
+a = VarMsg "a" "Asset"
 
 public export
-items : NSVar 
-items = VarMst "items" (NS "Items")
-
-
-public export
-cy : NSVar
-cy = VarMst "cy" (NS "Asset")
+cy_ty : NSVar Msg 
+cy_ty = VarMsg "cy_ty" "CurrencyType"
 
 public export
-sku : NSVar 
-sku = VarMst "sku" (NS "Asset")
+sku_ty : NSVar Msg
+sku_ty = VarMsg "sku_ty" "StockType"
 
+public export
+items : NSVar Msg
+items = VarMsg "items" "Items"
 
 public export
 data Sequence : Type -> Type where
@@ -49,6 +63,7 @@ data Sequence : Type -> Type where
   Prev : (ty:Type) -> Sequence ty
   --Fst
   --Last
+
 infixr 5 .|.  
   
 public export
@@ -57,52 +72,43 @@ data Relation : Type -> Type where
   M2M : (ty1:type) -> (ty2:type) -> Relation type
   (.|.) : (ty1:type) -> (ty2:type) -> Relation type
   ISO : (ty1:type) -> (ty2:type) -> Relation type
-
+--  OP  : Relation type
+  
 public export
 data SimpleT :  Type where
   IntT :  SimpleT 
   BooleanT :  SimpleT 
   DateTimeT :  SimpleT 
 
-public export
-data VectorName : Type where
-  VN : String -> VectorName
-
---public export
---data VOp = Create|Delete --operation
-public export
-data Vuse = Vstate | Vmessage
-
 data Ring : Type -> Type where
   Plus : (ty1:type) -> (ty2:type) -> Ring type
   Mult : (ty1:type) -> (ty2:type) -> Ring type
   InvP :  (ty1:type) -> Ring type
+  NTran : (ty1:type) -> Ring type
   IntCarrier : Ring type
-
---data Vector : Type where
-  --Vcarrier : (name:VectorName) ->  (x:NSVar) -> Carrier -> Vector 
-  
-
     
 public export
 data Schema :  Type where
-  Var : (x:NSVar) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
-  Seq : (x:NSVar) -> (seq:Sequence Schema ) ->  Schema 
-  Rel : (x:NSVar) -> (rel:Relation Schema )  -> Schema   
-  Si  : (x:NSVar) -> (si:SimpleT )   -> Schema   
-  VRing : (name:VectorName) -> (x:NSVar) -> Ring (Schema ) -> Schema
-  OP  : Schema  --Create Or Delete
+  Ref :  (x:NSVar nt) -> Schema  -- add   Vuse ->  idea is to declare a message and then turn it into msg or state in the exec env
+  RefSt : (x:NSVar St) -> (x:NSVar Msg) -> Schema --convert msg to state
+  Seq : (x:NSVar Msg) -> (seq:Sequence Schema ) ->  Schema 
+  Rel : (x:NSVar Msg) -> (rel:Relation Schema )  -> Schema   
+  Si  : (x:NSVar Msg) -> (si:SimpleT )   -> Schema   
+  VRing : (q:NSVar Vn) -> (x:NSVar nt) -> Ring (Schema ) -> Schema
+  OP : Schema
 
+  
 public export
 s : List Schema
-s = [Rel cy (M2O (Var a) (Var cy_ty)),
-     Rel sku (M2O (Var a) (Var sku_ty)),
-     Rel items ( (Var cy) .|. (Var sku)),
-     VRing (VN "qty") items IntCarrier,
-     VRing (VN "price") items IntCarrier,
-     VRing (VN "sub") items (Mult (VRing (VN "qty") items IntCarrier) (VRing (VN "price") items IntCarrier) )
---     VRing (VN "tot") cy   "sub" -- can not express without nesting .. hm
-      ]
+s = [Rel cy (M2O (Ref a) (Ref cy_ty)),
+     Rel sku (M2O (Ref a) (Ref sku_ty)),
+     Rel items ( (Ref cy) .|. (Ref sku) ),
+
+     VRing qty items IntCarrier,
+     VRing unit items IntCarrier,
+     VRing price items (Mult (Ref qty) (Ref unit) ),
+     VRing tot cy (NTran (Ref price))
+     ]
 
   
 namespace DemoData
