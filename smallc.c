@@ -3,11 +3,23 @@
 
 typedef struct mg_mgr MG_MGR;
 typedef struct mg_connection MG_CONNECTION;
+typedef struct mg_http_serve_opts MG_HTTP_SERVE_OPTS;
+typedef struct mg_str MG_STR;
 
-MG_MGR *get_and_malloc_mg_mgr() {
+typedef struct mg_http_message MG_HTTP_MESSAGE;
+
+MG_MGR *get_and_malloc__mg_mgr() {
   MG_MGR *p_mgr;
   p_mgr = malloc( sizeof(MG_MGR) );
   return p_mgr;
+}
+
+MG_HTTP_SERVE_OPTS *get_and_malloc__mg_http_serve_opts(char *r_dir) {
+  MG_HTTP_SERVE_OPTS *p_opts;
+  p_opts = malloc( sizeof(MG_HTTP_SERVE_OPTS) );
+  memset(p_opts, 0, sizeof(MG_HTTP_SERVE_OPTS));  
+  p_opts->root_dir = r_dir;
+  return p_opts;
 }
 
 int is_null_mg_mgr(MG_MGR *p_mgr) {
@@ -27,11 +39,18 @@ int free_mg_mgr(MG_MGR *p_mgr) {
   }
 }
 
+MG_HTTP_MESSAGE *ev_to_http_message(void *ev_data) {
+  MG_HTTP_MESSAGE *p_hm = (MG_HTTP_MESSAGE *) ev_data;
+  return p_hm;
+}
+  
+ 
 void fn_http_handler(MG_CONNECTION *c, int ev, void *ev_data, void *fn_data) {
   struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve local dir
   if (ev == MG_EV_HTTP_MSG) mg_http_serve_dir(c, ev_data, &opts);
 }
 
+ 
 
 int add(int x, int y) {
     return x+y;
