@@ -204,7 +204,7 @@ s1 = [Seq a,
       VRing qty order_k IntCarrier,
       VRing qty order_k1 (Plus order_k order_msg_k ),
       
-      VRing qty order_msg_k (Plus order_k1 (InvP order_k) )      
+      VRing qty order_msg_k (Plus order_k1  order_k )      
 --      VRing qty 
      ]
 

@@ -13,10 +13,10 @@ authors = "Jan Troler"
 -- depends =
 
 -- modules to install
-modules = Test
+modules = Test1
 
 -- main file (i.e. file to load at REPL)
-main = Test
+main = Test1
 
 -- name of executable
 executable = mvect2

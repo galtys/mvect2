@@ -1,8 +1,18 @@
 all: mvect2
 
-mvect2: mvect2.ipkg 
-	idris2 --codegen node --build mvect2.ipkg 
+#mvect2: mvect2.ipkg 
+#	idris2 --codegen node --build mvect2.ipkg
+libs: smallc.c sha256.c
+	#cc -shared sha256.c -o libsha256.so
+	#cc mongoose.c -o mongoose.o
+	cc -shared smallc.c mongoose.c -o libmongoose.so
 
+mvect2: mvect2.ipkg
+	idris2 --build mvect2.ipkg
+
+
+sha:
+	cc -shared smallc.c -o libsmall.so
 #ws: hs_server.ipkg
 #	idris --build hs_server.ipkg 
 
