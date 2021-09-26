@@ -151,8 +151,10 @@ ev_to_http_message : Ptr EV_DATA -> Ptr MG_HTTP_MESSAGE
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> Int -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn ev p_ev p_fn = do
        p_opts <- (get_and_malloc__mg_http_serve_opts  "/home/jan/Desktop")
+       
+       if (ev==8) then mg_http_serve_dir p_conn (ev_to_http_message p_ev) p_opts else pure ()
+          
 
-       if (ev==8) then (mg_http_serve_dir p_conn (ev_to_http_message p_ev)  p_opts) else (pure ())
        
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn ev p_ev p_fn)
