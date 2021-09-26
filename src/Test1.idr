@@ -147,12 +147,31 @@ mg_http_serve_dir p_conn p_ev p_opts = primIO ( prim__mg_http_serve_dir p_conn p
 %foreign "C:ev_to_http_message,libmongoose"
 ev_to_http_message : Ptr EV_DATA -> Ptr MG_HTTP_MESSAGE
 
+%foreign "C:mg_http_match_uri,libmongoose"
+mg_http_match_uri : Ptr MG_HTTP_MESSAGE -> String -> Int
+
+%foreign "C:mg_http_reply,libmongoose"
+prim__mg_http_reply : Ptr MG_CONNECTION -> Int -> String -> String -> PrimIO ()
+
+mg_http_reply : HasIO io => Ptr MG_CONNECTION -> Int -> String -> String -> io ()
+mg_http_reply p_conn status_code headers body_fmt = primIO ( prim__mg_http_reply p_conn status_code headers body_fmt)
+
+json_result : String
+json_result = "{\"result\": 332}"
 
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> Int -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn ev p_ev p_fn = do
-       p_opts <- (get_and_malloc__mg_http_serve_opts  "/home/jan/Desktop")
        
-       if (ev==8) then mg_http_serve_dir p_conn (ev_to_http_message p_ev) p_opts else pure ()
+       
+       if (ev==8) then do
+                  p_opts <- (get_and_malloc__mg_http_serve_opts  "/home/jan/Desktop")                  
+                  let hm = (ev_to_http_message p_ev)
+                  if (mg_http_match_uri hm "/rest")==1 then
+                       mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
+                    else
+                       pure ()
+                  mg_http_serve_dir p_conn hm p_opts 
+                  else pure ()
           
 
        
