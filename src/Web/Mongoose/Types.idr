@@ -87,7 +87,7 @@ namespace MG_EVENT_TYPE
   toBits8 MG_EV_USER = 17
 
   public export
-  fromBits8 : Bits8 -> MG_EVENT_TYPE
+  fromBits8 : Int -> MG_EVENT_TYPE -- make it Bits8
   fromBits8 0 = MG_EV_ERROR
   fromBits8 1 = MG_EV_POLL
   fromBits8 2 = MG_EV_RESOLVE 
@@ -128,7 +128,7 @@ MG_STR : Type
 MG_STR
     = Struct "MG_STR"
             [("ptr", Ptr String),
-             ("len", Int)]
+             ("len", Bits64)]
 
 public export
 MG_HTTP_HEADER : Type
@@ -136,7 +136,32 @@ MG_HTTP_HEADER
     = Struct "MG_HTTP_HEADER"
             [("name", MG_STR),
              ("value", MG_STR)]
-             
+
+namespace MG_HTTP
+  public export
+  record Header where
+     constructor MkH
+     name : String
+     value : String
+     
+  public export
+  record Message where
+     constructor MkHM
+     method : String
+     uri : String
+     query : String     
+     proto : String     
+     headers : List (String,String)
+     body : String
+     message : String
+
+%runElab derive "MG_HTTP.Header" [Generic, Meta, Eq, Ord, Show]
+%runElab derive "MG_HTTP.Message" [Generic, Meta, Eq, Ord, Show]
+
+
+
+
+
 public export             
 MG_HTTP_MESSAGE : Type
 MG_HTTP_MESSAGE
@@ -145,26 +170,46 @@ MG_HTTP_MESSAGE
             ("uri", MG_STR),
             ("query", MG_STR),
             ("proto", MG_STR),
-            ("h1",MG_HTTP_HEADER),
-             ("h2",MG_HTTP_HEADER),
-             ("h3",MG_HTTP_HEADER),
-             ("h4",MG_HTTP_HEADER),
-             ("h5",MG_HTTP_HEADER),
-             ("h6",MG_HTTP_HEADER),
-             ("h7",MG_HTTP_HEADER),
-             ("h8",MG_HTTP_HEADER),
-             ("h9",MG_HTTP_HEADER),
-             ("h10",MG_HTTP_HEADER),
-             ("h11",MG_HTTP_HEADER),
-             ("h12",MG_HTTP_HEADER),
-             ("h13",MG_HTTP_HEADER),
-             ("h14",MG_HTTP_HEADER),
-             ("h15",MG_HTTP_HEADER),
-             ("h16",MG_HTTP_HEADER),
-             ("h17",MG_HTTP_HEADER),
-             ("h18",MG_HTTP_HEADER),
-             ("h19",MG_HTTP_HEADER),
-             ("h20",MG_HTTP_HEADER),
+            ("h0",MG_HTTP_HEADER),
+            ("h1",MG_HTTP_HEADER),            
+            ("h2",MG_HTTP_HEADER),
+            ("h3",MG_HTTP_HEADER),
+            ("h4",MG_HTTP_HEADER),
+            ("h5",MG_HTTP_HEADER),
+            ("h6",MG_HTTP_HEADER),
+            ("h7",MG_HTTP_HEADER),
+            ("h8",MG_HTTP_HEADER),
+            ("h9",MG_HTTP_HEADER),
+            ("h10",MG_HTTP_HEADER),
+            ("h11",MG_HTTP_HEADER),
+            ("h12",MG_HTTP_HEADER),
+            ("h13",MG_HTTP_HEADER),
+            ("h14",MG_HTTP_HEADER),
+            ("h15",MG_HTTP_HEADER),
+            ("h16",MG_HTTP_HEADER),
+            ("h17",MG_HTTP_HEADER),
+            ("h18",MG_HTTP_HEADER),
+            ("h19",MG_HTTP_HEADER),
+            ("h20",MG_HTTP_HEADER),
+            ("h21",MG_HTTP_HEADER),            
+            ("h22",MG_HTTP_HEADER),
+            ("h23",MG_HTTP_HEADER),
+            ("h24",MG_HTTP_HEADER),
+            ("h25",MG_HTTP_HEADER),
+            ("h26",MG_HTTP_HEADER),
+            ("h27",MG_HTTP_HEADER),
+            ("h28",MG_HTTP_HEADER),
+            ("h29",MG_HTTP_HEADER),
+            ("h30",MG_HTTP_HEADER),
+            ("h31",MG_HTTP_HEADER),
+            ("h32",MG_HTTP_HEADER),
+            ("h33",MG_HTTP_HEADER),
+            ("h34",MG_HTTP_HEADER),
+            ("h35",MG_HTTP_HEADER),
+            ("h36",MG_HTTP_HEADER),
+            ("h37",MG_HTTP_HEADER),
+            ("h38",MG_HTTP_HEADER),
+            ("h39",MG_HTTP_HEADER),
             ("body", MG_STR),
             ("message", MG_STR)]
 

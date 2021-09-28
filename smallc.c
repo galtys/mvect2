@@ -51,6 +51,7 @@ int get_len(char* msg) {
   return strlen(msg);
 }
 
+
 /* MG_MGR */
 
 MG_MGR *get_and_malloc__mg_mgr() {
@@ -90,8 +91,90 @@ unsigned int get_MG_MAX_HTTP_HEADERS() {
   return MG_MAX_HTTP_HEADERS;
 }
 
+char *charFromMG_STR( MG_STR mg) {
+  char *p_str;
+  size_t N;
+  
+  N = mg.len;  
+  
+  p_str = (char *) malloc ( (N+1) * sizeof(char) );
+  
+  for (int i=0; i<N ; i++) {
+    *(p_str + i)  = *(mg.ptr + i);
+  }
+  *(p_str + N) = '\0';
+  return p_str;
+}
+
+char *print_hm(MG_HTTP_MESSAGE *p_hm) {
+
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> method);
+  //MG_STR x;
+  
+  printf("-----------------------\n");
+  printf("mX %d \n",(unsigned int) (p_hm->method.len) );
+  printf("mX %s \n", p_m );
+
+  printf("uriX %d \n",(unsigned int) (p_hm->uri.len) );
+  printf("uriX %s \n", charFromMG_STR(p_hm->uri) );
+  
+  printf("-----------------------\n");
+  return p_m;
+}
+
+char *get_hm_method(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> method);
+  return p_m;
+}
+char *get_hm_uri(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> uri);
+  return p_m;
+}
+char *get_hm_query(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> query);
+  return p_m;
+}
+char *get_hm_proto(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> proto);
+  return p_m;
+}
+char *get_hm_body(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> body);
+  return p_m;
+}
+
+char *get_hm_message(MG_HTTP_MESSAGE *p_hm) {
+  char *p_m;
+  p_m = charFromMG_STR( p_hm -> message);
+  return p_m;
+}
+
+char *get_hm_ith_header_name(MG_HTTP_MESSAGE *p_hm, unsigned int i) {
+  //MG_HTTP_HEADER *p_h;
+  char *p_m;  
+  p_m = charFromMG_STR(  (p_hm -> headers)[i].name    );
+  //p_m = charFromMG_STR( p_hm -> );
+  return p_m;
+}
+char *get_hm_ith_header_value(MG_HTTP_MESSAGE *p_hm, unsigned int i) {
+  //MG_HTTP_HEADER *p_h;
+  char *p_m;  
+  p_m = charFromMG_STR(  (p_hm -> headers)[i].value    );
+  //p_m = charFromMG_STR( p_hm -> );
+  return p_m;
+}
+
 MG_HTTP_MESSAGE *ev_to_http_message(void *ev_data) {
-  MG_HTTP_MESSAGE *p_hm = (MG_HTTP_MESSAGE *) ev_data;
+  MG_HTTP_MESSAGE *p_hm;
+  p_hm = (MG_HTTP_MESSAGE *) ev_data;
+
+  //print_hm(p_hm);
   return p_hm;
 }
 
