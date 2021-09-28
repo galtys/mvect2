@@ -185,6 +185,11 @@ MG_WS_MESSAGE *ev_to_ws_message(void *ev_data) {
   return p_ws;
 }
 
+void ws_test_handler(struct mg_connection *c, struct mg_ws_message *wm) {
+  //struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
+  mg_ws_send(c, wm->data.ptr, wm->data.len, WEBSOCKET_OP_TEXT);
+  mg_iobuf_del(&c->recv, 0, c->recv.len);
+}
 
 /* static dir fn handler */
 

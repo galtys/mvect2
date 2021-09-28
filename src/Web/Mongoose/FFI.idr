@@ -84,17 +84,9 @@ public export
 get_and_malloc__mg_http_serve_opts : HasIO io => String -> io (Ptr MG_HTTP_SERVE_OPTS)
 get_and_malloc__mg_http_serve_opts root_dir = primIO $ prim__get_and_malloc__mg_http_serve_opts root_dir
 
-%foreign "C:mg_ws_upgrade,libmongoose"
-prim__mg_ws_upgrade : Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> PrimIO ()
-
-public export
-mg_ws_upgrade : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> io ()
-mg_ws_upgrade p_conn hm p_fmt = primIO $ prim__mg_ws_upgrade p_conn hm p_fmt
-
 public export
 %foreign "C:ev_to_http_message,libmongoose"
 ev_to_http_message : Ptr EV_DATA -> MG_HTTP_MESSAGE
-
 
 %foreign "C:print_hm,libmongoose"
 prim__print_hm : MG_HTTP_MESSAGE -> PrimIO ()
@@ -148,12 +140,18 @@ parse_http_message hm =
           MG_HTTP.MkHM method1 uri1 query1 proto1 h body1 message1
 
 
+||| MG WS MESSAGE
 
+public export
+%foreign "C:ev_to_http_message,libmongoose"
+ev_to_ws_message : Ptr EV_DATA -> Ptr MG_WS_MESSAGE
 
+%foreign "C:ws_test_handler,libmongoose"
+prim__ws_test_handler : Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> PrimIO ()
 
-
-
-
+public export
+ws_test_handler : HasIO io => Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> io ()
+ws_test_handler p_conn p_ws = primIO $ prim__ws_test_handler p_conn p_ws
 
 ||| HTTP
 public export
@@ -178,3 +176,11 @@ mg_http_reply p_conn status_code headers body_fmt = primIO ( prim__mg_http_reply
 public export
 mg_http_serve_dir : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr MG_HTTP_SERVE_OPTS -> io ()
 mg_http_serve_dir p_conn p_ev p_opts = primIO ( prim__mg_http_serve_dir p_conn p_ev p_opts )
+
+%foreign "C:mg_ws_upgrade,libmongoose"
+prim__mg_ws_upgrade : Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> PrimIO ()
+
+public export
+mg_ws_upgrade : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> io ()
+mg_ws_upgrade p_conn hm p_fmt = primIO $ prim__mg_ws_upgrade p_conn hm p_fmt
+

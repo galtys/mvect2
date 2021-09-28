@@ -158,9 +158,8 @@ namespace MG_HTTP
 %runElab derive "MG_HTTP.Header" [Generic, Meta, Eq, Ord, Show]
 %runElab derive "MG_HTTP.Message" [Generic, Meta, Eq, Ord, Show]
 
-
-
-
+public export
+data MG_WS_MESSAGE : Type where
 
 public export             
 MG_HTTP_MESSAGE : Type

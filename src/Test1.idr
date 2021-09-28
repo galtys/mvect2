@@ -26,18 +26,20 @@ x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     p_opts <- (get_and_malloc__mg_http_serve_opts  "/wd4T")
                     let hm = (ev_to_http_message p_ev)
                     --printLn $ (parse_http_message hm)
-                    
-                    
                     if (mg_http_match_uri hm "/rest")==1 then
                          mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
                        else if (mg_http_match_uri hm "/websocket")==1 then
-                         --mg_ws_upgrade p_conn hm get_pchar_NULL
-                         pure ()
+                         mg_ws_upgrade p_conn hm get_pchar_NULL
+                         --pure ()
                          else
                             pure ()
                     mg_http_serve_dir p_conn hm p_opts 
                     
-x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = pure ()
+x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
+                    let p_wm = (ev_to_ws_message p_ev)
+                    ws_test_handler p_conn p_wm
+                    pure ()
+                    
 x_my_http_handler p_conn _ p_ev p_fn = pure ()                    
        
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
