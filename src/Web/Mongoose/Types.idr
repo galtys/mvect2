@@ -108,6 +108,32 @@ namespace MG_EVENT_TYPE
   fromBits8 17 = MG_EV_USER 
   fromBits8 _ = MG_EV_ERROR
 
+
+namespace WEBSOCKET
+  public export
+  data OP = OP_CONTINUE | OP_TEXT | OP_BINARY | OP_CLOSE | OP_PING | OP_PONG
+
+  public export
+  toBits8 : WEBSOCKET.OP -> Bits8
+  toBits8 OP_CONTINUE = 0
+  toBits8 OP_TEXT = 1
+  toBits8 OP_BINARY = 2
+  toBits8 OP_CLOSE = 8
+  toBits8 OP_PING = 9
+  toBits8 OP_PONG = 10
+  
+  
+{-
+#define WEBSOCKET_OP_CONTINUE 0
+#define WEBSOCKET_OP_TEXT 1
+#define WEBSOCKET_OP_BINARY 2
+#define WEBSOCKET_OP_CLOSE 8
+#define WEBSOCKET_OP_PING 9
+#define WEBSOCKET_OP_PONG 10
+-}
+
+
+
 public export
 data MG_MGR : Type where
 

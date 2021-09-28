@@ -2,6 +2,18 @@ module Web.Mongoose.FFI
 
 import Web.Mongoose.Types
 
+||| Logging
+
+||| Set Log level
+%foreign "C:mg_log_set,libmongoose"
+prim__mg_log_set : String -> PrimIO ()
+
+public export
+mg_log_set : HasIO io => String -> io ()
+mg_log_set spec = primIO $ prim__mg_log_set spec
+
+
+
 ||| String Utils
 
 public export
@@ -20,6 +32,15 @@ fromMG_STR mg_str = primIO $ prim__charFromMG_STR mg_str
 public export
 %foreign "C:get_pchar_NULL,libmongoose"
 get_pchar_NULL : Ptr String
+
+%foreign "C:get_size_t,libmongoose"
+get_size_t : Int -> Bits64
+
+%foreign "C:get_size_int,libmongoose"
+get_size_int : Int -> Bits64
+
+%foreign "C:get_MG_MAX_HTTP_HEADERS,libmongoose"
+get_size_x : Bits64
 
 
 ||| MG MGR
@@ -146,12 +167,23 @@ public export
 %foreign "C:ev_to_http_message,libmongoose"
 ev_to_ws_message : Ptr EV_DATA -> Ptr MG_WS_MESSAGE
 
+
+%foreign "C:ws_test_handler,libmongoose"
+prim__ws_test_handler : Ptr MG_CONNECTION -> Ptr EV_DATA -> PrimIO ()
+
+public export
+ws_test_handler : HasIO io => Ptr MG_CONNECTION -> Ptr EV_DATA -> io ()
+ws_test_handler p_conn p_ws = primIO $ prim__ws_test_handler p_conn p_ws
+
+{-
 %foreign "C:ws_test_handler,libmongoose"
 prim__ws_test_handler : Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> PrimIO ()
 
 public export
 ws_test_handler : HasIO io => Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> io ()
 ws_test_handler p_conn p_ws = primIO $ prim__ws_test_handler p_conn p_ws
+-}
+
 
 ||| HTTP
 public export
@@ -177,10 +209,49 @@ public export
 mg_http_serve_dir : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr MG_HTTP_SERVE_OPTS -> io ()
 mg_http_serve_dir p_conn p_ev p_opts = primIO ( prim__mg_http_serve_dir p_conn p_ev p_opts )
 
+-- Websocket
+
+%foreign "C:mg_ws_upgrade,libmongoose"
+prim__mg_ws_upgrade : Ptr MG_CONNECTION -> Ptr EV_DATA -> Ptr String -> PrimIO ()
+
+public export
+mg_ws_upgrade : HasIO io => Ptr MG_CONNECTION -> Ptr EV_DATA -> Ptr String -> io ()
+mg_ws_upgrade p_conn hm p_fmt = primIO $ prim__mg_ws_upgrade p_conn hm p_fmt
+
+%foreign "C:mg_ws_send,libmongoose"
+prim__mg_ws_send : Ptr MG_CONNECTION -> String -> Int -> Bits8 -> PrimIO ()
+
+public export
+mg_ws_send : HasIO io => Ptr MG_CONNECTION -> String -> Int -> WEBSOCKET.OP -> io ()
+mg_ws_send p_conn buf len op = primIO $ prim__mg_ws_send p_conn buf len (WEBSOCKET.toBits8 op)
+
+public export
+mg_ws_send_text : HasIO io => Ptr MG_CONNECTION -> String -> io ()
+mg_ws_send_text p_conn msg = mg_ws_send p_conn msg (get_len msg) OP_TEXT
+
+
+%foreign "C:ws_receive_as_String,libmongoose"
+prim__ws_receive_as_String : Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> PrimIO String
+
+public export
+mg_ws_receive_as_String : HasIO io => Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> io String
+mg_ws_receive_as_String p_conn ws = primIO $ prim__ws_receive_as_String p_conn ws
+
+
+
+{-
+%foreign "C:mg_ws_upgrade,libmongoose"
+prim__mg_ws_upgrade : Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> PrimIO ()
+
+mg_ws_upgrade : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> io ()
+mg_ws_upgrade p_conn p_hm p_s = primIO (prim__mg_ws_upgrade p_conn p_hm p_s)
+-}
+
+{-
 %foreign "C:mg_ws_upgrade,libmongoose"
 prim__mg_ws_upgrade : Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> PrimIO ()
 
 public export
 mg_ws_upgrade : HasIO io => Ptr MG_CONNECTION -> MG_HTTP_MESSAGE -> Ptr String -> io ()
 mg_ws_upgrade p_conn hm p_fmt = primIO $ prim__mg_ws_upgrade p_conn hm p_fmt
-
+-}
