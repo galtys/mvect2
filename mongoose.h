@@ -682,7 +682,7 @@ typedef void (*mg_event_handler_t)(struct mg_connection *, int ev,
 void mg_call(struct mg_connection *c, int ev, void *ev_data);
 void mg_error(struct mg_connection *c, const char *fmt, ...);
 
-enum {
+typedef enum {
   MG_EV_ERROR,       // Error                        char *error_message
   MG_EV_POLL,        // mg_mgr_poll iteration        unsigned long *millis
   MG_EV_RESOLVE,     // Host name is resolved        NULL
@@ -701,7 +701,7 @@ enum {
   MG_EV_MQTT_OPEN,   // MQTT CONNACK received        int *connack_status_code
   MG_EV_SNTP_TIME,   // SNTP time received           struct timeval *
   MG_EV_USER,        // Starting ID for user events
-};
+} EV_EVENT_TYPES;
 
 
 
