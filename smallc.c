@@ -178,7 +178,7 @@ MG_HTTP_MESSAGE *ev_to_http_message(void *ev_data) {
   return p_hm;
 }
 
-/* MG_WS_MESSAGE */
+/* MG_WS  */
 
 MG_WS_MESSAGE *ev_to_ws_message(void *ev_data) {
   MG_WS_MESSAGE *p_ws = (MG_WS_MESSAGE *) ev_data;
@@ -190,6 +190,15 @@ char *ws_receive_as_String(struct mg_connection *c, struct mg_ws_message *wm) {
   p_ch = charFromMG_STR( wm->data);
   mg_iobuf_del(&c->recv, 0, c->recv.len);
   return p_ch;
+}
+
+unsigned int get_is_closing(struct mg_connection *c) {
+  return c -> is_closing;
+}
+
+void *set_is_closing(struct mg_connection *c) {
+  
+  c -> is_closing = 1;
 }
 
 /*

@@ -33,6 +33,15 @@ public export
 %foreign "C:get_pchar_NULL,libmongoose"
 get_pchar_NULL : Ptr String
 
+public export
+%foreign "C:get_pvoid_NULL,libmongoose"
+get_pevoid_NULL : Ptr ()
+
+public export
+%foreign "C:get_pvoid_NULL,libmongoose"
+get_p_fndata_NULL : Ptr FN_DATA
+
+
 %foreign "C:get_size_t,libmongoose"
 get_size_t : Int -> Bits64
 
@@ -237,7 +246,25 @@ public export
 mg_ws_receive_as_String : HasIO io => Ptr MG_CONNECTION -> Ptr MG_WS_MESSAGE -> io String
 mg_ws_receive_as_String p_conn ws = primIO $ prim__ws_receive_as_String p_conn ws
 
+%foreign "C:mg_ws_connect,libmongoose"
+prim__mg_ws_connect : Ptr MG_MGR -> String -> (Ptr MG_CONNECTION -> Int -> Ptr EV_DATA -> Ptr FN_DATA -> PrimIO () ) -> Ptr FN_DATA -> String -> PrimIO (Ptr MG_CONNECTION)
 
+public export
+mg_ws_connect : HasIO io => Ptr MG_MGR -> String -> (Ptr MG_CONNECTION -> Int -> Ptr EV_DATA -> Ptr FN_DATA -> PrimIO ()) -> Ptr FN_DATA -> String -> io (Ptr MG_CONNECTION)
+mg_ws_connect p_mgr url fn fn_d fmt = primIO $ prim__mg_ws_connect p_mgr url fn fn_d fmt
+
+
+%foreign "C:get_is_closing,libmongoose"
+public export
+get_is_closing : Ptr MG_CONNECTION -> Int
+
+%foreign "C:set_is_closing,libmongoose"
+prim__set_is_closing : Ptr MG_CONNECTION -> PrimIO ()
+
+
+public export
+set_is_closing : HasIO io => Ptr MG_CONNECTION -> io ()
+set_is_closing p_conn = primIO $ prim__set_is_closing p_conn
 
 {-
 %foreign "C:mg_ws_upgrade,libmongoose"

@@ -9,7 +9,7 @@ libs: smallc.c sha256.c
 
 mvect2: mvect2.ipkg
 	idris2 --build mvect2.ipkg
-
+	idris2 --build ws_client.ipkg
 
 sha:
 	cc -shared smallc.c -o libsmall.so
