@@ -37,6 +37,14 @@ public export
 Qty : Type
 Qty = Nat
 
+public export
+q1 : Nat
+q1 = 1
+
+public export
+q7 : Nat
+q7 = 7
+
 {-
 public export
 record Product where
@@ -46,63 +54,69 @@ record Product where
 %runElab derive "Product" [Generic, Meta, Eq, Ord, Show]
 -}
 
+ProdKey : Type
+ProdKey = String
+
 Product : Type
-Product = (String, Qty)
+Product = (ProdKey, Qty)
 
-add : Qty -> Qty -> Qty
-add a b = a+b
-
-merge_item_into : (SortedMap String Qty) -> (String, Qty) -> (SortedMap String Qty)
-merge_item_into acc x = mergeWith add acc (fromList [x])
+add : (Qty,Qty) -> (Qty,Qty) -> (Qty,Qty)
+add (a,b) (c,d) = (a+c, b+d)
 
 
-fromProductList : List Product -> SortedMap String Qty
+merge_item_into : (SortedMap ProdKey Qty) -> (ProdKey, Qty) -> (SortedMap ProdKey Qty)
+merge_item_into acc x = mergeWith (+) acc (fromList [x])
+
+
+fromProductList : List Product -> SortedMap ProdKey Qty
 fromProductList xs = foldl merge_item_into empty xs
 
-evalProductList : List Product -> List Product --(SortedMap String Qty)
+evalProductList : List Product -> List Product
 evalProductList xs = toList $ fromProductList xs 
-
-
-eqProductList : List Product -> List Product -> Bool
-
-
-
-{-
-evalListProduct : List (String,Qty) -> State ( SortedMap String Qty ) Qty
-evalListProduct (x::xs) = do
-        sm <- get 
-        let sm_x = fromList [x]
-        put (mergeWith add sm sm_x)
-public export
-add_products : Product -> Product -> Either (Product,Product) Product 
-add_products (n1, q1) (n2, q2) = if (n1==n2) then Right ( n1, (q1+q2))
-                                                   else Left ( (n1, q1),  (n2, q2) )
--}
-
-
 
 public export
 data T a = Debit a | Credit a
 
 %runElab derive "T" [Generic, Meta, Eq, Show]
 
-
-
-
-
 public export
 TProduct : Type
 TProduct = T Product
 
+public export
+add_tproducts : TProduct -> TProduct -> Either (TProduct,TProduct) TProduct 
+add_tproducts x y = ?u
 
+public export
+getKey : TProduct -> ProdKey
+getKey (Debit (k,v)) = k
+getKey (Credit (k,v)) = k
 
+public export
+merge_item_into2 : (SortedMap ProdKey TProduct) -> TProduct -> (SortedMap ProdKey TProduct)
+merge_item_into2 acc x = case (lookup (getKey x) acc) of
+                             Nothing => (insert (getKey x) x acc)
+                             Just v => case (x,v) of 
+                                           (Debit a,Debit b) => (insert (getKey x)  (Debit (getKey x, (snd a) + (snd b)) )  acc)
+                                           (Credit a, Debit b) => if (snd a == snd b) then (delete (getKey x) acc) else (insert (getKey x) x acc)
+                                           (Debit a, Credit b) => if (snd a == snd b) then (delete (getKey x) acc) else (insert (getKey x) x acc)
+                                           (Credit a, Credit b) => (insert (getKey x) (Credit (getKey x, (snd a) + (snd b)) ) acc)
 
+public export                             
+fromTProductList : List TProduct -> SortedMap ProdKey TProduct
+fromTProductList xs = foldl merge_item_into2 empty xs
+
+public export
+evalTProductList : List TProduct -> List TProduct
+evalTProductList xs = toList $ fromTProductList xs 
+                                                                                       
 public export
 Hom1 : Type
 Hom1 = List TProduct
 
---public export
---data Hom1 = MkH1 (List TProduct)
+public export
+Hom1Pro : Type
+Hom1Pro = List (Product,Product)
 
 public export
 id_hom1 : Hom1
