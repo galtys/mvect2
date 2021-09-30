@@ -10,18 +10,6 @@ x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DAT
 x_my_http_handler p_conn MG_EV_ERROR p_ev p_fn = pure ()
 x_my_http_handler p_conn MG_EV_WS_OPEN p_ev p_fn = do
                     mg_ws_send_text p_conn "HELLO"
-{-                    
-x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
-                    let hm = (ev_to_http_message p_ev)
-
-                    if (mg_http_match_uri hm "/rest")==1 then
-                           mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
-                       else if (mg_http_match_uri hm "/websocket")==1 then do
-                           mg_ws_upgrade p_conn p_ev get_pchar_NULL
-                         else do
-                             p_opts <- (get_and_malloc__mg_http_serve_opts  "/wd4T")
-                             mg_http_serve_dir p_conn hm p_opts 
--}                    
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
                     let p_wm = (ev_to_ws_message p_ev)                    
                     msg <- mg_ws_receive_as_String p_conn p_wm                 

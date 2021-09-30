@@ -1,4 +1,4 @@
-all: mvect2
+all: mvect2 #libs
 
 #mvect2: mvect2.ipkg 
 #	idris2 --codegen node --build mvect2.ipkg
@@ -9,10 +9,10 @@ libs: smallc.c sha256.c
 
 mvect2: mvect2.ipkg
 	idris2 --build mvect2.ipkg
-	idris2 --build ws_client.ipkg
+	#idris2 --build ws_client.ipkg
 
 sha:
-	cc -shared smallc.c -o libsmall.so
+	cc -shared sha256.c -o libsha256.so
 #ws: hs_server.ipkg
 #	idris --build hs_server.ipkg 
 

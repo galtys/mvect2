@@ -4,22 +4,17 @@ import Web.Mongoose.Types
 import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
 
+import Category.Transaction.Hom
+
 import System.FFI
------ MG HTTP
---data SIZE_T : Type where
 
 
-showHM : MG_HTTP_MESSAGE -> MG_STR
-showHM hm = getField hm "uri"
-         --let _method:MG_STR =  in
-         --    _method
-         --let _uri:MG_STR = getField hm "uri" 
-         --method <- fromMG_STR _method
-         --uri <- fromMG_STR _uri 
-         
 
 json_result : String
 json_result = "{\"result\": 332}"
+
+WEB_ROOT : String
+WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
 
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
@@ -30,7 +25,7 @@ x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                        else if (mg_http_match_uri hm "/websocket")==1 then do
                            mg_ws_upgrade p_conn p_ev get_pchar_NULL
                          else do
-                             p_opts <- (get_and_malloc__mg_http_serve_opts  "/wd4T")
+                             p_opts <- (get_and_malloc__mg_http_serve_opts  WEB_ROOT)
                              mg_http_serve_dir p_conn hm p_opts 
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
@@ -66,16 +61,7 @@ main = do
   mg_mgr_init p_mgr 
   
   --mg_http_listen p_mgr "0.0.0.0:8000" prim__fn_http_handler p_mgr
-  mg_http_listen p_mgr "0.0.0.0:8000" my_http_handler p_mgr
+  mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler p_mgr
   
   inf_loop p_mgr 1000
-  
-  mg_mgr_poll p_mgr 1000
-  mg_mgr_poll p_mgr 1000
-  mg_mgr_poll p_mgr 1000
-  mg_mgr_poll p_mgr 1000
-  mg_mgr_poll p_mgr 1000
-  
   mg_mgr_free p_mgr 
-  
-  printLn test1  

@@ -199,24 +199,5 @@ unsigned int get_is_closing(struct mg_connection *c) {
 void *set_is_closing(struct mg_connection *c) {
   
   c -> is_closing = 1;
+  return NULL;
 }
-
-/*
-void ws_test_handler(struct mg_connection *c, void *ev_data) {
-  struct mg_ws_message *wm = (struct mg_ws_message *) ev_data;
-  printf("ocas, test handler\n");
-  printf("received: %s\n", charFromMG_STR( wm->data));
-  printf("len: %d\n", (unsigned int) ( wm->data.len) );
-  mg_ws_send(c, wm->data.ptr, wm->data.len, WEBSOCKET_OP_TEXT);
-  mg_iobuf_del(&c->recv, 0, c->recv.len);
-}
-/*
-
-/* static dir fn handler */
-
-/*
-void fn_http_handler(MG_CONNECTION *c, int ev, void *ev_data, void *fn_data) {
-  struct mg_http_serve_opts opts = {.root_dir = "."};   // Serve local dir
-  if (ev == MG_EV_HTTP_MSG) mg_http_serve_dir(c, ev_data, &opts);
-}
-*/
