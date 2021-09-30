@@ -37,6 +37,35 @@ public export
 data Account = L Location | A Address | C Contact
 
 public export
+pjb : Account
+pjb = C (MkC "P.J.Bridgman")
+
+public export
+hilton : Account
+hilton = C (MkC "Hilton")
+
+public export
+pjb_loc : Account
+pjb_loc = L (MkL "Enfield")
+
+public export
+pjb_r : Account
+pjb_r = L (MkL "Reservation")
+
+public export
+hilton_loc : Account
+hilton_loc = L (MkL "Bristol")
+
+
+
+
+%runElab derive "Account" [Generic, Meta, Eq, Ord,Show]
+
+data Journal = MkDate Integer | MkDoc Integer
+
+%runElab derive "Journal" [Generic, Meta, Eq, Ord,Show]
+
+public export
 Qty : Type
 Qty = Integer
 
@@ -73,7 +102,47 @@ public export
 Hom1 : Type
 Hom1 = List TProduct
 
+public export
+data Term : Type where
+     ID : Term
+     Ch : Account -> Account -> Hom1 -> Term
+     
+     --Jn : Journal -> Term -> Term
+     --Pro : Term -> Term -> Term
+     Co : Term -> Term -> Term
 
+
+partial
+evTerm : Term  -> Term
+evTerm (Co (Ch a1 a2 h1)  (Ch b1 b2 h2)  ) = ?xss
+
+%runElab derive "Term" [Generic, Meta, Eq, Show]
+
+public export
+th11 : Hom1
+th11 = [ Debit ("a1",4), Debit ("a2",3), Debit ("a1", 9) ]
+
+public export
+th11' : Hom1
+th11' = [ Debit ("a1",3), Debit ("a1", 6) ]
+
+
+public export
+th12 : Hom1
+th12 = [ Debit ("GBP",38) ]
+
+
+public export
+t1_r : Term
+t1_r = Ch pjb_loc pjb_r th11 --reservation
+
+public export
+t1_d : Term
+t1_d = Ch pjb_r hilton_loc th11' --delivery
+
+public export
+t1 : Term
+t1 = Co t1_r t1_d 
 
 
 
@@ -117,9 +186,12 @@ addTQty (Credit a) (Debit b) = if (a<b) then Debit (b-a)
                                   else if (a>b) then Credit (a-b) 
                                        else Debit 0
 
+unTQty : TQty -> TQty -> TQty 
+unTQty (Debit a) (Debit b) = Debit (min a b)
+unTQty (Credit a) (Credit b) = Credit (min a b)
+unTQty (Debit a) (Credit b) = Debit 0
+unTQty (Credit a) (Debit b) = Debit 0
 
---diffNat : Nat -> Nat -> Nat
---diffNat a b = (cast 
 
 partial
 public export
@@ -130,15 +202,33 @@ merge_item_into2 acc x = case (lookup (getKey x) acc) of
                                            Debit 0 => (delete (getKey x) acc)
                                            Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
                                            Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
+partial
+public export
+merge_as_union : (SortedMap ProdKey TProduct) -> TProduct -> (SortedMap ProdKey TProduct)
+merge_as_union acc x = case (lookup (getKey x) acc) of
+                             Nothing => acc
+                             Just v => case (unTQty (getVal v) (getVal x) ) of 
+                                           Debit 0 => (delete (getKey x) acc)
+                                           Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
+                                           Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
 
 public export                             
 fromTProductList : List TProduct -> SortedMap ProdKey TProduct
 fromTProductList xs = foldl merge_item_into2 empty xs
 
+
+public export 
+unionHom1' : Hom1 -> Hom1 -> SortedMap ProdKey TProduct
+unionHom1' a b = foldl merge_as_union (fromTProductList a) b
+
+public export
+unionHom1 : Hom1 -> Hom1 -> Hom1
+unionHom1 a b = toList $ unionHom1' a b
+
 public export
 evalTProductList : List TProduct -> List TProduct
 evalTProductList xs = toList $ fromTProductList xs 
-                                                                                       
+
 
 public export
 id_hom1 : Hom1
@@ -185,16 +275,14 @@ eqHom1 x y = (evDiffHom1 x y) == id_hom1
 
 
 
-public export
-th1 : Hom1
-th1 = [ Debit ("a1",4), Debit ("a2",3), Debit ("a1", 9) ]
-
-public export
-th2 : Hom1
-th2 = [ Debit ("a1",4), Debit ("a2",3), Credit ("a1", 9) ]
 
 public export
 th3 : Hom1
-th3 = diffHom1 th1 th2
+th3 = diffHom1 th11 th12
 
+partial
+monoTerm : Term -> Term -> Term
+monoTerm ID (Ch a1 a2 h1) = Ch a1 a2 h1
+monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
+monoTerm (Ch a1 a2 h1) (Ch b1 b2 h2) = if (a2==b1) then (Ch a1 b2 (unionHom1 h1 h2 ) ) else ID
 
