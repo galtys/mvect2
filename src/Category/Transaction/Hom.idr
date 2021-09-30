@@ -34,31 +34,48 @@ record Contact where
 %runElab derive "Contact" [Generic, Meta, Eq, Ord,Show]
 
 public export
-Qty : Type
-Qty = Nat
+data Account = L Location | A Address | C Contact
 
 public export
-q1 : Nat
+Qty : Type
+Qty = Integer
+
+public export
+q1 : Qty
 q1 = 1
 
 public export
-q7 : Nat
+q7 : Qty
 q7 = 7
 
-{-
 public export
-record Product where
-  constructor MkP
-  name : String
-  qty : Qty
-%runElab derive "Product" [Generic, Meta, Eq, Ord, Show]
--}
+data T a = Debit a | Credit a
 
+public export
+TQty : Type
+TQty = T Qty
+
+%runElab derive "T" [Generic, Meta, Eq, Show]
+
+public export
 ProdKey : Type
 ProdKey = String
 
+public export
 Product : Type
 Product = (ProdKey, Qty)
+
+public export
+TProduct : Type
+TProduct = T Product
+
+public export
+Hom1 : Type
+Hom1 = List TProduct
+
+
+
+
 
 add : (Qty,Qty) -> (Qty,Qty) -> (Qty,Qty)
 add (a,b) (c,d) = (a+c, b+d)
@@ -74,14 +91,6 @@ fromProductList xs = foldl merge_item_into empty xs
 evalProductList : List Product -> List Product
 evalProductList xs = toList $ fromProductList xs 
 
-public export
-data T a = Debit a | Credit a
-
-%runElab derive "T" [Generic, Meta, Eq, Show]
-
-public export
-TProduct : Type
-TProduct = T Product
 
 public export
 add_tproducts : TProduct -> TProduct -> Either (TProduct,TProduct) TProduct 
@@ -93,14 +102,34 @@ getKey (Debit (k,v)) = k
 getKey (Credit (k,v)) = k
 
 public export
+getVal : TProduct -> TQty
+getVal (Debit (k,v)) = Debit v
+getVal (Credit (k,v)) = Credit v
+
+
+addTQty : TQty -> TQty -> TQty 
+addTQty (Debit a) (Debit b) = Debit (a+b)
+addTQty (Credit a) (Credit b) = Credit (a+b)
+addTQty (Debit a) (Credit b) = if (a<b) then Credit (b-a)
+                                  else if (a>b) then Debit (a-b) 
+                                       else Debit 0
+addTQty (Credit a) (Debit b) = if (a<b) then Debit (b-a)
+                                  else if (a>b) then Credit (a-b) 
+                                       else Debit 0
+
+
+--diffNat : Nat -> Nat -> Nat
+--diffNat a b = (cast 
+
+partial
+public export
 merge_item_into2 : (SortedMap ProdKey TProduct) -> TProduct -> (SortedMap ProdKey TProduct)
 merge_item_into2 acc x = case (lookup (getKey x) acc) of
                              Nothing => (insert (getKey x) x acc)
-                             Just v => case (x,v) of 
-                                           (Debit a,Debit b) => (insert (getKey x)  (Debit (getKey x, (snd a) + (snd b)) )  acc)
-                                           (Credit a, Debit b) => if (snd a == snd b) then (delete (getKey x) acc) else (insert (getKey x) x acc)
-                                           (Debit a, Credit b) => if (snd a == snd b) then (delete (getKey x) acc) else (insert (getKey x) x acc)
-                                           (Credit a, Credit b) => (insert (getKey x) (Credit (getKey x, (snd a) + (snd b)) ) acc)
+                             Just v => case (addTQty (getVal v) (getVal x) ) of 
+                                           Debit 0 => (delete (getKey x) acc)
+                                           Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
+                                           Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
 
 public export                             
 fromTProductList : List TProduct -> SortedMap ProdKey TProduct
@@ -110,13 +139,6 @@ public export
 evalTProductList : List TProduct -> List TProduct
 evalTProductList xs = toList $ fromTProductList xs 
                                                                                        
-public export
-Hom1 : Type
-Hom1 = List TProduct
-
-public export
-Hom1Pro : Type
-Hom1Pro = List (Product,Product)
 
 public export
 id_hom1 : Hom1
@@ -125,8 +147,8 @@ id_hom1 = []
 public export
 invHom1 : Hom1 -> Hom1
 invHom1 [] = []
-invHom1 (Debit x::xs) = [(Credit x)] ++ xs
-invHom1 (Credit x::xs) = [(Debit x)] ++ xs
+invHom1 (Debit x::xs) = [Credit x] ++ (invHom1 xs)
+invHom1 (Credit x::xs) = [Debit x] ++ (invHom1 xs)
 
 public export
 addHom1 : Hom1 -> Hom1 -> Hom1 --optimize later
@@ -146,7 +168,7 @@ creditsHom1 [] = []
 
 public export
 evalHom1 : Hom1 -> Hom1
-evalHom1 xs = [Debit x | x <- (evalProductList (debitsHom1 xs))] ++ [Credit x | x <- (evalProductList (creditsHom1 xs))] 
+evalHom1 xs =  evalTProductList xs  --[Debit x | x <- (evalProductList (debitsHom1 xs))] ++ [Credit x | x <- (evalProductList (creditsHom1 xs))] 
 
 public export
 diffHom1 : Hom1 -> Hom1 -> Hom1
@@ -161,6 +183,8 @@ public export
 eqHom1 : Hom1 -> Hom1 -> Bool
 eqHom1 x y = (evDiffHom1 x y) == id_hom1
 
+
+
 public export
 th1 : Hom1
 th1 = [ Debit ("a1",4), Debit ("a2",3), Debit ("a1", 9) ]
@@ -168,3 +192,9 @@ th1 = [ Debit ("a1",4), Debit ("a2",3), Debit ("a1", 9) ]
 public export
 th2 : Hom1
 th2 = [ Debit ("a1",4), Debit ("a2",3), Credit ("a1", 9) ]
+
+public export
+th3 : Hom1
+th3 = diffHom1 th1 th2
+
+
