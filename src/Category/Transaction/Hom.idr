@@ -70,9 +70,12 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
-data Journal = MkDate Integer | MkDoc Integer
+data Journal = MkDate Integer | MkDoc Integer 
 
-%runElab derive "Journal" [Generic, Meta, Eq, Ord,Show]
+%runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
+
+
 
 public export
 Qty : Type
@@ -139,20 +142,21 @@ FromJSON Hom1 where
 
 public export
 data Term : Type where
-     ID : Term
+     --ID : Term
      Ch : Account -> Account -> Hom1 -> Term     
-     --Jn : Journal -> Term -> Term
+     Jn : Journal -> Term -> Term
+     Lst : List Term -> Term
      --Pro : Term -> Term -> Term
      Co : Term -> Term -> Term
 
-myToJSON : Encoder v => Meta a code => POP ToJSON code => a -> v
-myToJSON = genToJSON' (take 3) toLower (TaggedObject "t" "c")
+--myToJSON : Encoder v => Meta a code => POP ToJSON code => a -> v
+--myToJSON = genToJSON' (take 3) toLower (TaggedObject "t" "c")
 
 --myFromJSON : Encoder v => Meta a code => POP FromJSON code => a -> v
 --myFromJSON = genFromJSON' (take 3) toLower (TaggedObject "t" "c")
 
-MyToJSON : DeriveUtil -> InterfaceImpl
-MyToJSON = customToJSON `(myToJSON)
+--MyToJSON : DeriveUtil -> InterfaceImpl
+--MyToJSON = customToJSON `(myToJSON)
 
 --%runElab derive "Term" [Generic,Meta,Eq]
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
@@ -324,9 +328,23 @@ public export
 th3 : Hom1
 th3 = diffHom1 th11 th12
 
+{-
 partial
 monoTerm : Term -> Term -> Term
 monoTerm ID (Ch a1 a2 h1) = Ch a1 a2 h1
 monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
 monoTerm (Ch a1 a2 h1) (Ch b1 b2 h2) = if (a2==b1) then (Ch a1 b2 (unionHom1 h1 h2 ) ) else ID
 
+-}
+
+eq_accounts: Term -> Term -> Bool
+eq_accounts (Ch a1 a2 h1) (Ch b1 b2 h2) = ( (a1==b1) && (a2==b2) )
+eq_accounts _ _ = False
+
+
+partial
+monoTerm : Term -> Term -> Term
+monoTerm (Lst []) (Lst []) = Lst []
+--monoTerm ID (Ch a1 a2 h1) = Ch a1 a2 h1
+--monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
+monoTerm t1@(Ch a1 a2 h1) t2@(Ch b1 b2 h2) = if (eq_accounts t1 t2) then (Ch a1 a2 (unionHom1 h1 h2 ) ) else Lst []
