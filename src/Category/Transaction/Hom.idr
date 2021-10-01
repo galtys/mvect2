@@ -166,7 +166,7 @@ TermPath : Type
 TermPath = List Journal
 
 public export
-get_path : Term -> TermPath
+get_path : Term -> TermPath   -- user binary tree instead of list
 get_path (Ch j1 a1 a2 h1) = [j1,(Acc a1 a2)]
 get_path (Lst xs) = []
 get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
