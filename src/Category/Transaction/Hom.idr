@@ -70,7 +70,7 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
-data Journal = MkDate Integer | MkDoc Integer 
+data Journal = MkDate Integer | MkDoc Integer | NoJn | Acc Account Account
 
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
@@ -143,11 +143,12 @@ FromJSON Hom1 where
 public export
 data Term : Type where
 
-     Ch : Account -> Account -> Hom1 -> Term     
+     Ch : Journal -> Account -> Account -> Hom1 -> Term 
      --Jn : Journal -> Term -> Term
      Lst : List Term -> Term
-     --Pro : Term -> Term -> Term
-     Co : Term -> Term -> Term
+     Pro : Journal -> Term -> Term -> Term
+     Co : Journal -> Term -> Term -> Term
+     --Adj : Journal -> Term -> Term -> Term
 
 --myToJSON : Encoder v => Meta a code => POP ToJSON code => a -> v
 --myToJSON = genToJSON' (take 3) toLower (TaggedObject "t" "c")
@@ -161,9 +162,20 @@ data Term : Type where
 --%runElab derive "Term" [Generic,Meta,Eq]
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 
-partial
-evTerm : Term  -> Term
-evTerm (Co (Ch a1 a2 h1)  (Ch b1 b2 h2)  ) = ?xss
+TermPath : Type
+TermPath = List Journal
+
+public export
+get_path : Term -> TermPath
+get_path (Ch j1 a1 a2 h1) = [j1,(Acc a1 a2)]
+get_path (Lst xs) = []
+get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+--get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+
+--partial
+--evTerm : Term  -> Term
+--evTerm (Co (Ch j1 a1 a2 h1)  (Ch j2 b1 b2 h2)  ) = ?xss
 
 public export
 th11 : Hom1
@@ -181,15 +193,15 @@ th12 = [ Debit ("GBP",38) ]
 
 public export
 t1_r : Term
-t1_r = Ch pjb_loc pjb_r th11 --reservation
+t1_r = Ch NoJn pjb_loc pjb_r th11 --reservation
 
 public export
 t1_d : Term
-t1_d = Ch pjb_r hilton_loc th11' --delivery
+t1_d = Ch NoJn pjb_r hilton_loc th11' --delivery
 
 public export
 t1 : Term
-t1 = Co t1_r t1_d 
+t1 = Co NoJn t1_r t1_d 
 
 public export
 encode_x : String
@@ -338,13 +350,25 @@ monoTerm (Ch a1 a2 h1) (Ch b1 b2 h2) = if (a2==b1) then (Ch a1 b2 (unionHom1 h1 
 -}
 
 eq_accounts: Term -> Term -> Bool
-eq_accounts (Ch a1 a2 h1) (Ch b1 b2 h2) = ( (a1==b1) && (a2==b2) )
+eq_accounts (Ch j1 a1 a2 h1) (Ch j2 b1 b2 h2) = ( (a1==b1) && (a2==b2) && (j1==j2) )
 eq_accounts _ _ = False
 
 
 partial
 monoTerm : Term -> Term -> Term
-monoTerm (Lst []) (Lst []) = Lst []
---monoTerm (Lst xs) (Ch a1 a2 h1) = Ch a1 a2 h1
+--monoTerm t1@(Ch j1 a1 a2 h1) t2@(Ch j2 b1 b2 h2) = if (eq_accounts t1 t2) then (Ch j1 a1 a2 (unionHom1 h1 h2 ) ) else Lst [t1,t2]
+--monoTerm (Co t11 t12) (Co t21 t22) = ?monoid_for_composition
+
+monoTerm (Lst xs) (Lst []) = Lst xs
+monoTerm (Lst []) (Lst xs) = Lst xs
+monoTerm (Lst xs) (Lst ys) = Lst (xs++ys)
+monoTerm (Lst xs) t = Lst (xs ++ [t])
+monoTerm t (Lst xs) = Lst ([t] ++ xs)
+
+monoTerm t1 t2 = Lst ([t1] ++ [t2]) 
+
+--monoTerm t1@(Ch j1 a1 a2 h1) t2 = Lst [t1,t2]
+--monoTerm t1 t2@(Ch j1 a1 a2 h1) t2 = Lst [t1,t2]
+
 --monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
-monoTerm t1@(Ch a1 a2 h1) t2@(Ch b1 b2 h2) = if (eq_accounts t1 t2) then (Ch a1 a2 (unionHom1 h1 h2 ) ) else Lst []
+
