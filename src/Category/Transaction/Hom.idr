@@ -70,7 +70,7 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
-data Journal = MkDate Integer | MkDoc Integer | NoJn | Acc Account Account
+data Journal = MkDate Integer | MkDoc String | Acc Account Account
 
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
@@ -173,6 +173,14 @@ get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 --get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 
+public export
+get_hom1 : Term -> List Hom1
+get_hom1 (Ch j1 a1 a2 h1) = [h1]
+get_hom1 (Lst xs) = []
+get_hom1 (Pro j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
+get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
+
+
 --partial
 --evTerm : Term  -> Term
 --evTerm (Co (Ch j1 a1 a2 h1)  (Ch j2 b1 b2 h2)  ) = ?xss
@@ -193,15 +201,15 @@ th12 = [ Debit ("GBP",38) ]
 
 public export
 t1_r : Term
-t1_r = Ch NoJn pjb_loc pjb_r th11 --reservation
+t1_r = Ch (MkDoc "R1") pjb_loc pjb_r th11 --reservation
 
 public export
 t1_d : Term
-t1_d = Ch NoJn pjb_r hilton_loc th11' --delivery
+t1_d = Ch (MkDoc "D1") pjb_r hilton_loc th11' --delivery
 
 public export
 t1 : Term
-t1 = Co NoJn t1_r t1_d 
+t1 = Co (MkDoc "C1") t1_r t1_d 
 
 public export
 encode_x : String
