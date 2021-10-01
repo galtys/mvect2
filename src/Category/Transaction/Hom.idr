@@ -4,16 +4,19 @@ import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
 
+import JSON
+
 %language ElabReflection
 
 public export
 record Location where
   constructor MkL
   name : String
-%runElab derive "Location" [Generic, Meta, Eq, Ord, Show]
+%runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
+public export
 data Country = UK | CZ | US | DE | FR
-%runElab derive "Country" [Generic, Meta, Eq, Ord, Show]
+%runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
 public export
 record Address where
@@ -24,17 +27,28 @@ record Address where
   zip : String
   country_id : Country
   
-%runElab derive "Address" [Generic, Meta, Eq, Ord, Show]
+%runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
 public export
 record Contact where
   constructor MkC
   name : String
 
-%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show]
+%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
 
 public export
 data Account = L Location | A Address | C Contact
+
+%runElab derive "Account" [Generic, Meta, Eq, Ord,Show]
+
+public export
+ToJSON Account where
+  toJSON = genToJSON' id toLower TwoElemArray
+
+public export
+FromJSON Account where
+
+  fromJSON = genFromJSON' id toLower TwoElemArray
 
 public export
 pjb : Account
@@ -55,11 +69,6 @@ pjb_r = L (MkL "Reservation")
 public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
-
-
-
-
-%runElab derive "Account" [Generic, Meta, Eq, Ord,Show]
 
 data Journal = MkDate Integer | MkDoc Integer
 
@@ -87,6 +96,14 @@ TQty = T Qty
 %runElab derive "T" [Generic, Meta, Eq, Show]
 
 public export
+ToJSON TQty where
+  toJSON = genToJSON' id toLower TwoElemArray
+
+public export
+FromJSON TQty where
+  fromJSON = genFromJSON' id toLower TwoElemArray
+
+public export
 ProdKey : Type
 ProdKey = String
 
@@ -99,24 +116,50 @@ TProduct : Type
 TProduct = T Product
 
 public export
+ToJSON TProduct where
+  toJSON = genToJSON' id toLower TwoElemArray
+
+public export
+FromJSON TProduct where
+  fromJSON = genFromJSON' id toLower TwoElemArray
+
+public export
 Hom1 : Type
 Hom1 = List TProduct
+
+{-
+public export
+ToJSON Hom1 where
+  toJSON = genToJSON --' id toLower TwoElemArray
+public export
+FromJSON Hom1 where
+  fromJSON = genFromJSON --' id toLower TwoElemArray
+-}
+
 
 public export
 data Term : Type where
      ID : Term
-     Ch : Account -> Account -> Hom1 -> Term
-     
+     Ch : Account -> Account -> Hom1 -> Term     
      --Jn : Journal -> Term -> Term
      --Pro : Term -> Term -> Term
      Co : Term -> Term -> Term
 
+myToJSON : Encoder v => Meta a code => POP ToJSON code => a -> v
+myToJSON = genToJSON' (take 3) toLower (TaggedObject "t" "c")
+
+--myFromJSON : Encoder v => Meta a code => POP FromJSON code => a -> v
+--myFromJSON = genFromJSON' (take 3) toLower (TaggedObject "t" "c")
+
+MyToJSON : DeriveUtil -> InterfaceImpl
+MyToJSON = customToJSON `(myToJSON)
+
+--%runElab derive "Term" [Generic,Meta,Eq]
+%runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 
 partial
 evTerm : Term  -> Term
 evTerm (Co (Ch a1 a2 h1)  (Ch b1 b2 h2)  ) = ?xss
-
-%runElab derive "Term" [Generic, Meta, Eq, Show]
 
 public export
 th11 : Hom1
@@ -144,7 +187,13 @@ public export
 t1 : Term
 t1 = Co t1_r t1_d 
 
+public export
+encode_x : String
+encode_x = encode t1
 
+public export
+term_x : Either JSONErr Term
+term_x = decode encode_x
 
 add : (Qty,Qty) -> (Qty,Qty) -> (Qty,Qty)
 add (a,b) (c,d) = (a+c, b+d)
@@ -153,17 +202,12 @@ add (a,b) (c,d) = (a+c, b+d)
 merge_item_into : (SortedMap ProdKey Qty) -> (ProdKey, Qty) -> (SortedMap ProdKey Qty)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
-
 fromProductList : List Product -> SortedMap ProdKey Qty
 fromProductList xs = foldl merge_item_into empty xs
 
 evalProductList : List Product -> List Product
 evalProductList xs = toList $ fromProductList xs 
 
-
-public export
-add_tproducts : TProduct -> TProduct -> Either (TProduct,TProduct) TProduct 
-add_tproducts x y = ?u
 
 public export
 getKey : TProduct -> ProdKey
