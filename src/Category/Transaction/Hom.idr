@@ -142,9 +142,9 @@ FromJSON Hom1 where
 
 public export
 data Term : Type where
-     --ID : Term
+
      Ch : Account -> Account -> Hom1 -> Term     
-     Jn : Journal -> Term -> Term
+     --Jn : Journal -> Term -> Term
      Lst : List Term -> Term
      --Pro : Term -> Term -> Term
      Co : Term -> Term -> Term
@@ -345,6 +345,6 @@ eq_accounts _ _ = False
 partial
 monoTerm : Term -> Term -> Term
 monoTerm (Lst []) (Lst []) = Lst []
---monoTerm ID (Ch a1 a2 h1) = Ch a1 a2 h1
+--monoTerm (Lst xs) (Ch a1 a2 h1) = Ch a1 a2 h1
 --monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
 monoTerm t1@(Ch a1 a2 h1) t2@(Ch b1 b2 h2) = if (eq_accounts t1 t2) then (Ch a1 a2 (unionHom1 h1 h2 ) ) else Lst []
