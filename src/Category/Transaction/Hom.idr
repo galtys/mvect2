@@ -10,25 +10,6 @@ import Category.Transaction.Types
 %language ElabReflection
 
 
-public export
-pjb : Account
-pjb = C (MkC "P.J.Bridgman")
-
-public export
-hilton : Account
-hilton = C (MkC "Hilton")
-
-public export
-pjb_loc : Account
-pjb_loc = L (MkL "Enfield")
-
-public export
-pjb_r : Account
-pjb_r = L (MkL "Reservation")
-
-public export
-hilton_loc : Account
-hilton_loc = L (MkL "Bristol")
 
 public export
 q1 : Qty
@@ -38,19 +19,20 @@ public export
 q7 : Qty
 q7 = 7
 
-
 public export
 get_path : Term -> TermPath   -- user binary tree instead of list
-get_path (Ch j1 a1 a2 h1) = [j1,(Acc a1 a2)]
+--get_path (Ref j1) = [j1]
+--get_path (Ch t1 h1) = [(Acc a1 a2)]
 --get_path (Lst xs) = []
-get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
-get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+--get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 --get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+--get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
+
 
 public export
 get_hom1 : Term -> List Hom1
-get_hom1 (Ch j1 a1 a2 h1) = [h1]
---get_hom1 (Lst xs) = []
+get_hom1 (Ref j1) = []
+get_hom1 (Ch j1  h1) = [h1]
 get_hom1 (Pro j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 
@@ -78,26 +60,6 @@ public export
 th12 : Hom1
 th12 = [ Debit ("GBP",38) ]
 
-
-public export
-t1_r : Term
-t1_r = Ch (MkDoc "R1") pjb_loc pjb_r th11 --reservation
-
-public export
-t1_d : Term
-t1_d = Ch (MkDoc "D1") pjb_r hilton_loc th11' --delivery
-
-public export
-t1 : Term
-t1 = Co (MkDoc "C1") t1_r t1_d 
-
-public export
-encode_x : String
-encode_x = encode t1
-
-public export
-term_x : Either JSONErr Term
-term_x = decode encode_x
 
 add : (Qty,Qty) -> (Qty,Qty) -> (Qty,Qty)
 add (a,b) (c,d) = (a+c, b+d)
@@ -235,11 +197,12 @@ monoTerm ID (Ch a1 a2 h1) = Ch a1 a2 h1
 monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
 monoTerm (Ch a1 a2 h1) (Ch b1 b2 h2) = if (a2==b1) then (Ch a1 b2 (unionHom1 h1 h2 ) ) else ID
 
--}
 
 eq_accounts: Term -> Term -> Bool
 eq_accounts (Ch j1 a1 a2 h1) (Ch j2 b1 b2 h2) = ( (a1==b1) && (a2==b2) && (j1==j2) )
 eq_accounts _ _ = False
+
+-}
 
 
 --partial
@@ -260,16 +223,3 @@ eq_accounts _ _ = False
 
 --monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
 
-public export
-pricelist_f : Hom2_f
-pricelist_f (Debit ("p1",qty)) =  Debit ("£",qty*10)
-pricelist_f (Credit ("p1",qty)) =  Credit ("£",qty*10)
-pricelist_f (Debit ("p2",qty)) =  Debit ("£",qty*7)
-pricelist_f (Credit ("p2",qty)) =  Credit ("£",qty*7)
-pricelist_f (Debit ("p3",qty)) =  Debit ("£",qty*5)
-pricelist_f (Credit ("p3",qty)) =  Credit ("£",qty*5)
-pricelist_f _ = Debit ("",0)
-
-public export
-Pricelist : Hom2
-Pricelist xs = map pricelist_f xs

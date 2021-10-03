@@ -6,6 +6,7 @@ import Crypto.Hash.SHA256
 
 import Category.Transaction.Types
 import Category.Transaction.Hom
+import Category.Transaction.Journal
 
 import System.FFI
 import JSON
@@ -54,10 +55,12 @@ inf_loop p_mgr time_out = do
   mg_mgr_poll p_mgr time_out
   inf_loop p_mgr time_out
 
+{-
 term_s : String
 term_s = case (term_x) of
           Left x => "JSON ERR"
           Right y => (show y)
+-}
 
 main : IO ()
 main = do
@@ -65,7 +68,7 @@ main = do
   printLn (sha256 "čau")
   printLn (get_len "č")
   
-  putStrLn (term_s)
+  --putStrLn (term_s)
   
   p_mgr <- get_and_malloc__mg_mgr
   mg_mgr_init p_mgr 

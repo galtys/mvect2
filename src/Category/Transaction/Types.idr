@@ -1,5 +1,6 @@
 module Category.Transaction.Types
 
+
 import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
@@ -57,9 +58,20 @@ CalcSource : Type
 CalcSource = String --sha256 of the source journal, and calc method?
 
 public export
-data Journal = MkDate Integer | MkDoc String | Acc Account Account | MkCalc CalcSource
+data DocType = SaleOrder | PurchaseOrder | Delivery | Return |  Reservation | InternalMovement | Payment | Refund | Other |PriceList
+
+%runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+public export
+data Journal : Type where 
+ Order : Account -> Account -> Account -> Account -> Journal
+ Acc :    Account -> Account -> Journal
+-- MkCalc : CalcSource -> Journal
+ MkDate:  Integer -> Journal -> DocType -> Journal
+ MkDoc :  String -> Journal
 
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
 
 public export
 Qty : Type
@@ -111,8 +123,36 @@ Hom2_f : Type
 Hom2_f = (TProduct -> TProduct)
 
 public export
+Hom2_f' : Type
+Hom2_f' = List (ProdKey,Qty)
+
+public export
 Hom2 : Type
 Hom2 = (Hom1 -> Hom1)
+
+public export
+Hom2' : Type
+Hom2' = (Hom1,Hom1)
+
+
+public export
+TermPath : Type
+TermPath = List Journal
+  
+public export
+data Term : Type where
+     Ref : Journal -> Term
+     Ch : Term -> Hom1 -> Term 
+     --Jn : Journal -> Term -> Term
+--     Lst : List Term -> Term , instead of Lst, use something like merge_item_into2.. for Term , with get_path, get_hom1
+     Pro : Journal -> Term -> Term -> Term
+     Co : Journal ->  Term -> Term -> Term
+     --Adj : Journal -> Term -> Term -> Term
+
+--%runElab derive "Term" [Generic,Meta,Eq]
+%runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
+
+
 
 public export
 record Line where
@@ -129,19 +169,23 @@ record Line where
   --SubTotal ... calculated
 
 public export
-TermPath : Type
-TermPath = List Journal
-  
+data LineTerm : Type where
+     LRef : Journal -> LineTerm --DocType Pricelist
+     PList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
+     
+     ChL : Journal -> Line -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
+     LTax : Journal -> LineTerm -> LineTerm -- calc tax based on order lines
+     
+     
+     
+--With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist
+     
+--, and delivery cost that depend on subtotals     
 public export
-data Term : Type where
-
-     Ch : Journal -> Account -> Account -> Hom1 -> Term 
-     --Jn : Journal -> Term -> Term
---     Lst : List Term -> Term , instead of Lst, use something like merge_item_into2.. for Term , with get_path, get_hom1
-     Pro : Journal -> Term -> Term -> Term
-     Co : Journal ->  Term -> Term -> Term
-     --Adj : Journal -> Term -> Term -> Term
-
---%runElab derive "Term" [Generic,Meta,Eq]
-%runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
-
+data OrderTerm : Type where
+     ChO : Journal -> (List LineTerm) -> OrderTerm
+     Sub : Journal -> OrderTerm -> OrderTerm
+--     DeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm 
+-- delivery line pricelist can depend on subtotals, which is in OrderTerm 
+-- in this case, delivery line is just an DeliveryOption selector
+     Tax : Journal -> OrderTerm -> OrderTerm

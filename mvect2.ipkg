@@ -26,7 +26,8 @@ modules = Web.Mongoose.Types
           , Test1
 	  , Category.Transaction.Types
 	  , Category.Transaction.Hom
-
+	  , Category.Transaction.Journal
+	  
 -- main file (i.e. file to load at REPL)
 main = Test1
 
