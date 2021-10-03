@@ -68,16 +68,13 @@ public export
 Pricelist : Hom2
 Pricelist xs = map pricelist_f1 xs
 
-
 public export
 pricelist_journal : Journal
-pricelist_journal = MkDate 0 (MkDoc "plist") PriceList
+pricelist_journal = JDate 0 (JDoc "plist") PriceList
 
 public export 
 pricelist_term : LineTerm
-pricelist_term = PList pricelist_1' (LRef pricelist_journal)
-
-
+pricelist_term = LPList pricelist_1' (LRef pricelist_journal)
 
 public export
 pjb : Account
@@ -100,8 +97,26 @@ hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
 public export
-so1 : Journal
-so1 = MkDate 0 (Order pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder
+so1_j : Journal
+so1_j = JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder
+
+public export
+so1_l1 : Line
+so1_l1 = MkLine "p1" 5 "£" INC20 31 0
+
+public export 
+so1_l1_term : LineTerm
+so1_l1_term = LDiscount (discount so1_l1) (LHom2 (currency so1_l1 ) (price_unit so1_l1)  pricelist_term)
+
+public export 
+so1_l1_term_h1 : LineTerm
+so1_l1_term_h1 = LCh so1_j [Debit ((sku so1_l1),(qty so1_l1))] so1_l1_term 
+
+public export
+so1 : OrderTerm
+so1 = ChO so1_j [so1_l1_term_h1] 
+
+
 
 --public export
 --t1_r : Term

@@ -58,17 +58,17 @@ CalcSource : Type
 CalcSource = String --sha256 of the source journal, and calc method?
 
 public export
-data DocType = SaleOrder | PurchaseOrder | Delivery | Return |  Reservation | InternalMovement | Payment | Refund | Other |PriceList
+data DocType = SaleOrder | PurchaseOrder | Delivery | Return |  Reservation | Internal | Payment | Refund | Other |PriceList
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
 data Journal : Type where 
- Order : Account -> Account -> Account -> Account -> Journal
- Acc :    Account -> Account -> Journal
+ JOrder : Account -> Account -> Account -> Account -> Journal
+ JAcc :    Account -> Account -> Journal
 -- MkCalc : CalcSource -> Journal
- MkDate:  Integer -> Journal -> DocType -> Journal
- MkDoc :  String -> Journal
+ JDate:  Integer -> Journal -> DocType -> Journal
+ JDoc :  String -> Journal
 
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
@@ -152,8 +152,6 @@ data Term : Type where
 --%runElab derive "Term" [Generic,Meta,Eq]
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 
-
-
 public export
 record Line where
   constructor MkLine
@@ -163,21 +161,30 @@ record Line where
   --company pricelist is input  , "price_unit" modifies it, as a multiple
   currency : ProdKey   
   tax_code : TaxCode
-  --List Price  
+  --reference to List Price  
   price_unit : Qty --together with discount,turn it into a function Qty->Qty
   discount : Qty   --idea, in amendments, fix price_unit and let the user change the discount 
   --SubTotal ... calculated
 
+{-
+public export
+ToJSON Line where
+  toJSON = genToJSON' id toLower TwoElemArray
+
+public export
+FromJSON Line where
+  fromJSON = genFromJSON' id toLower TwoElemArray
+-}
+
 public export
 data LineTerm : Type where
      LRef : Journal -> LineTerm --DocType Pricelist
-     PList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
-     
-     ChL : Journal -> Line -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
+     LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
+     LHom2 : ProdKey -> Qty -> LineTerm -> LineTerm -- (currency and unit price)
+     LDiscount :             Qty -> LineTerm -> LineTerm
+     LCh : Journal -> Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
      LTax : Journal -> LineTerm -> LineTerm -- calc tax based on order lines
-     
-     
-     
+    
 --With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist
      
 --, and delivery cost that depend on subtotals     
