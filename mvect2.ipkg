@@ -24,6 +24,8 @@ depends = base >= 0.5.1
 -- modules to install
 modules = Web.Mongoose.Types
           , Test1
+	  , Category.Transaction.Types
+	  , Category.Transaction.Hom
 
 -- main file (i.e. file to load at REPL)
 main = Test1

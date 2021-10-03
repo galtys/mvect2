@@ -4,6 +4,7 @@ import Web.Mongoose.Types
 import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
 
+import Category.Transaction.Types
 import Category.Transaction.Hom
 
 import System.FFI
@@ -41,7 +42,8 @@ x_my_http_handler p_conn ev p_ev p_fn = do
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
 
-
+hx : Hom1
+--hx = (map Pricelist th11L)
 
 test1: String
 test1="mufum"

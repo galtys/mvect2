@@ -3,52 +3,12 @@ module Category.Transaction.Hom
 import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
-
 import JSON
+
+import Category.Transaction.Types
 
 %language ElabReflection
 
-public export
-record Location where
-  constructor MkL
-  name : String
-%runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
-public export
-data Country = UK | CZ | US | DE | FR
-%runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
-
-public export
-record Address where
-  constructor MkA
-  street : String
-  street2 : String
-  city : String
-  zip : String
-  country_id : Country
-  
-%runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
-public export
-record Contact where
-  constructor MkC
-  name : String
-
-%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
-
-public export
-data Account = L Location | A Address | C Contact
-
-%runElab derive "Account" [Generic, Meta, Eq, Ord,Show]
-
-public export
-ToJSON Account where
-  toJSON = genToJSON' id toLower TwoElemArray
-
-public export
-FromJSON Account where
-
-  fromJSON = genFromJSON' id toLower TwoElemArray
 
 public export
 pjb : Account
@@ -70,17 +30,6 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
-data Journal = MkDate Integer | MkDoc String | Acc Account Account
-
-%runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
-
-
-
-
-public export
-Qty : Type
-Qty = Integer
-
 public export
 q1 : Qty
 q1 = 1
@@ -89,86 +38,11 @@ public export
 q7 : Qty
 q7 = 7
 
-public export
-data T a = Debit a | Credit a
-
-public export
-TQty : Type
-TQty = T Qty
-
-%runElab derive "T" [Generic, Meta, Eq, Show]
-
-public export
-ToJSON TQty where
-  toJSON = genToJSON' id toLower TwoElemArray
-
-public export
-FromJSON TQty where
-  fromJSON = genFromJSON' id toLower TwoElemArray
-
-public export
-ProdKey : Type
-ProdKey = String
-
-public export
-Product : Type
-Product = (ProdKey, Qty)
-
-public export
-TProduct : Type
-TProduct = T Product
-
-public export
-ToJSON TProduct where
-  toJSON = genToJSON' id toLower TwoElemArray
-
-public export
-FromJSON TProduct where
-  fromJSON = genFromJSON' id toLower TwoElemArray
-
-public export
-Hom1 : Type
-Hom1 = List TProduct
-
-{-
-public export
-ToJSON Hom1 where
-  toJSON = genToJSON --' id toLower TwoElemArray
-public export
-FromJSON Hom1 where
-  fromJSON = genFromJSON --' id toLower TwoElemArray
--}
-
-
-public export
-data Term : Type where
-
-     Ch : Journal -> Account -> Account -> Hom1 -> Term 
-     --Jn : Journal -> Term -> Term
-     Lst : List Term -> Term
-     Pro : Journal -> Term -> Term -> Term
-     Co : Journal -> Term -> Term -> Term
-     --Adj : Journal -> Term -> Term -> Term
-
---myToJSON : Encoder v => Meta a code => POP ToJSON code => a -> v
---myToJSON = genToJSON' (take 3) toLower (TaggedObject "t" "c")
-
---myFromJSON : Encoder v => Meta a code => POP FromJSON code => a -> v
---myFromJSON = genFromJSON' (take 3) toLower (TaggedObject "t" "c")
-
---MyToJSON : DeriveUtil -> InterfaceImpl
---MyToJSON = customToJSON `(myToJSON)
-
---%runElab derive "Term" [Generic,Meta,Eq]
-%runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
-
-TermPath : Type
-TermPath = List Journal
 
 public export
 get_path : Term -> TermPath   -- user binary tree instead of list
 get_path (Ch j1 a1 a2 h1) = [j1,(Acc a1 a2)]
-get_path (Lst xs) = []
+--get_path (Lst xs) = []
 get_path (Pro j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 --get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
@@ -176,7 +50,7 @@ get_path (Co j1 t1 t2) = [j1] ++ (get_path t1) ++ (get_path t2)
 public export
 get_hom1 : Term -> List Hom1
 get_hom1 (Ch j1 a1 a2 h1) = [h1]
-get_hom1 (Lst xs) = []
+--get_hom1 (Lst xs) = []
 get_hom1 (Pro j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 
@@ -185,13 +59,19 @@ get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 --evTerm : Term  -> Term
 --evTerm (Co (Ch j1 a1 a2 h1)  (Ch j2 b1 b2 h2)  ) = ?xss
 
+
 public export
 th11 : Hom1
-th11 = [ Debit ("a1",4), Debit ("a2",3), Debit ("a1", 9) ]
+th11 = [ Debit ("p1",4), Debit ("p2",3), Debit ("p1", 9) ]
+
+public export
+th11L : List TProduct
+th11L = th11
+
 
 public export
 th11' : Hom1
-th11' = [ Debit ("a1",3), Debit ("a1", 6) ]
+th11' = [ Debit ("p1",3), Debit ("p1", 6) ]
 
 
 public export
@@ -362,21 +242,34 @@ eq_accounts (Ch j1 a1 a2 h1) (Ch j2 b1 b2 h2) = ( (a1==b1) && (a2==b2) && (j1==j
 eq_accounts _ _ = False
 
 
-partial
-monoTerm : Term -> Term -> Term
+--partial
+--monoTerm : Term -> Term -> Term
 --monoTerm t1@(Ch j1 a1 a2 h1) t2@(Ch j2 b1 b2 h2) = if (eq_accounts t1 t2) then (Ch j1 a1 a2 (unionHom1 h1 h2 ) ) else Lst [t1,t2]
 --monoTerm (Co t11 t12) (Co t21 t22) = ?monoid_for_composition
 
-monoTerm (Lst xs) (Lst []) = Lst xs
-monoTerm (Lst []) (Lst xs) = Lst xs
-monoTerm (Lst xs) (Lst ys) = Lst (xs++ys)
-monoTerm (Lst xs) t = Lst (xs ++ [t])
-monoTerm t (Lst xs) = Lst ([t] ++ xs)
+--monoTerm (Lst xs) (Lst []) = Lst xs
+--monoTerm (Lst []) (Lst xs) = Lst xs
+--monoTerm (Lst xs) (Lst ys) = Lst (xs++ys)
+--monoTerm (Lst xs) t = Lst (xs ++ [t])
+--monoTerm t (Lst xs) = Lst ([t] ++ xs)
 
-monoTerm t1 t2 = Lst ([t1] ++ [t2]) 
+--monoTerm t1 t2 = Lst ([t1] ++ [t2]) 
 
 --monoTerm t1@(Ch j1 a1 a2 h1) t2 = Lst [t1,t2]
 --monoTerm t1 t2@(Ch j1 a1 a2 h1) t2 = Lst [t1,t2]
 
 --monoTerm (Ch a1 a2 h1) ID = Ch a1 a2 h1
 
+public export
+pricelist_f : Hom2_f
+pricelist_f (Debit ("p1",qty)) =  Debit ("£",qty*10)
+pricelist_f (Credit ("p1",qty)) =  Credit ("£",qty*10)
+pricelist_f (Debit ("p2",qty)) =  Debit ("£",qty*7)
+pricelist_f (Credit ("p2",qty)) =  Credit ("£",qty*7)
+pricelist_f (Debit ("p3",qty)) =  Debit ("£",qty*5)
+pricelist_f (Credit ("p3",qty)) =  Credit ("£",qty*5)
+pricelist_f _ = Debit ("",0)
+
+public export
+Pricelist : Hom2
+Pricelist xs = map pricelist_f xs
