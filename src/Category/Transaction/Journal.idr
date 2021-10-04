@@ -13,36 +13,6 @@ import Data.Ratio
 
 %language ElabReflection
 
-public export
-jref : Journal -> Journal
-jref x = JRef $ sha256 $ encode x
-
-
-prices_1: List QtyRatio
-prices_1 = [10,7,5] --,2,11,9,50,1,33,100]
-
-sku_1 : List ProdKey
-sku_1 = [("p"++show i) | i <- [1..(length prices_1)]]
-
-public export
-pricelist_1' : List (ProdKey,QtyRatio)
-pricelist_1' = zip sku_1 prices_1
-
-public export
-pricelist_1'_map : SortedMap ProdKey QtyRatio
-pricelist_1'_map = fromList pricelist_1'
-
-
-
-public export
-pricelist_f1 : Hom2_f
-pricelist_f1 (Debit (px,qty)) =  case (lookup px pricelist_1'_map) of 
-                                     Just price_unit => Debit ("£",qty*price_unit) 
-                                     Nothing => Debit ("£", 0)
-pricelist_f1 (Credit (px,qty)) = case (lookup px pricelist_1'_map) of 
-                                     Just price_unit => Credit ("£",qty*price_unit) 
-                                     Nothing => Credit ("£", 0)
-
 
 {-
 public export
@@ -69,6 +39,34 @@ pricelist_f (Debit ("p10",qty)) =  Debit ("£",qty*100)
 pricelist_f (Credit ("p10",qty)) =  Credit ("£",qty*100)
 pricelist_f _ = Debit ("",0)
 -}
+
+public export
+jref : Journal -> Journal
+jref x = JRef $ sha256 $ encode x
+
+prices_1: List QtyRatio
+prices_1 = [10,7,5] --,2,11,9,50,1,33,100]
+
+sku_1 : List ProdKey
+sku_1 = [("p"++show i) | i <- [1..(length prices_1)]]
+
+public export
+pricelist_1' : List (ProdKey,QtyRatio)
+pricelist_1' = zip sku_1 prices_1
+
+public export
+pricelist_1'_map : SortedMap ProdKey QtyRatio
+pricelist_1'_map = fromList pricelist_1'
+
+public export
+pricelist_f1 : Hom2_f
+pricelist_f1 (Debit (px,qty)) =  case (lookup px pricelist_1'_map) of 
+                                     Just price_unit => Debit ("£",qty*price_unit) 
+                                     Nothing => Debit ("£", 0)
+pricelist_f1 (Credit (px,qty)) = case (lookup px pricelist_1'_map) of 
+                                     Just price_unit => Credit ("£",qty*price_unit) 
+                                     Nothing => Credit ("£", 0)
+
 
 public export
 Pricelist : Hom2
@@ -111,21 +109,54 @@ so1_l1 : Line
 so1_l1 = MkLine "p1" 5 "£" INC20 31 (MkQr 20 100)
 
 
-so1_l1_ref : LineTerm
-so1_l1_ref = LDiscount (discount so1_l1) 
+public export 
+so1_l1_qty : LineTerm
+so1_l1_qty = LHom1 (Debit ((sku so1_l1),(qty so1_l1)))
 
 public export 
-so1_l1_term : LineTerm
-so1_l1_term = LHom2 [(currency so1_l1, price_unit so1_l1)]  so1_l1_ref
+so1_l1_price_unit : LineTerm
+so1_l1_price_unit = LHom2 (Debit (currency so1_l1, price_unit so1_l1))  so1_l1_qty
+
+so1_l1_discount : LineTerm
+so1_l1_discount = LDiscount (discount so1_l1) so1_l1_price_unit
 
 public export 
-so1_l1_term_h1 : LineTerm
-so1_l1_term_h1 = LCh [Debit ((sku so1_l1),(qty so1_l1))] so1_l1_term 
+so1_l1_price_unit_h1 : LineTerm
+so1_l1_price_unit_h1 = so1_l1_discount
 
 public export
 so1 : OrderTerm
-so1 = ChO so1_j [so1_l1_term_h1] 
+so1 = ChO so1_j [so1_l1_price_unit_h1] 
 
+public export
+get_hom1 : LineTerm -> TProduct
+get_hom1 (LHom1 qty) = qty
+get_hom1 (LHom2 price_unit x) = get_hom1 x
+get_hom1 (LDiscount discount x) = get_hom1 x
+
+
+public export
+get_hom2 : LineTerm -> Hom2_f   --(Hom1->Hom1)
+
+get_hom2 (LHom1 (Debit  (px,qty)) ) = id --(\x => (Debit  (px,1))    )
+get_hom2 (LHom1 (Credit (px,qty)) ) = id --(\x => (Credit (px,1)) )
+
+get_hom2 (LHom2 (Debit  (cy,price_unit))  l) = (\x => case x of
+                                               (Debit  (px,qty)) => (Debit  (cy,qty*price_unit))
+                                               (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    )  . (get_hom2 l)
+get_hom2 (LHom2 (Credit  (cy,price_unit))  l) = (\x => case x of
+                                               (Debit  (px,qty)) => (Debit  (cy,qty*price_unit))
+                                               (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    )  . (get_hom2 l)
+
+get_hom2 (LDiscount discount l) = (\x => case x of
+                                               (Debit  (px,qty)) => (Debit  (px,qty*discount))
+                                               (Credit  (px,qty)) => (Credit  (px,qty*discount))  ) . (get_hom2 l)
+
+
+
+public export
+mufum : Hom2_f
+mufum = get_hom2 so1_l1_price_unit_h1
 
 
 --public export

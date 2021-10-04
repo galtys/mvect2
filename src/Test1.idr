@@ -78,7 +78,7 @@ main = do
   printLn (r1 > r2)
   
   printLn "\n"
-  printLn so1_l1_term_h1  
+  printLn so1_l1_price_unit_h1
 {-  
   p_mgr <- get_and_malloc__mg_mgr
   mg_mgr_init p_mgr 
