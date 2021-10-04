@@ -75,6 +75,8 @@ main = do
   --printLn so1_l1
   
   --printLn (so1)
+  printLn (r1 > r2)
+  
   printLn "\n"
   printLn so1_l1_term_h1  
 {-  
