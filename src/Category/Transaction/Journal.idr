@@ -45,32 +45,32 @@ jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
 prices_1: List QtyRatio
-prices_1 = [10,7,5] --,2,11,9,50,1,33,100]
+prices_1 = [10,7,5,2,11,9,50,1,33,100]
 
 sku_1 : List ProdKey
 sku_1 = [("p"++show i) | i <- [1..(length prices_1)]]
 
 public export
-pricelist_1' : List (ProdKey,QtyRatio)
+pricelist_1' : Hom2_f' 
 pricelist_1' = zip sku_1 prices_1
 
 public export
-pricelist_1'_map : SortedMap ProdKey QtyRatio
-pricelist_1'_map = fromList pricelist_1'
+pricelist_1'_map : Hom2_f' -> SortedMap ProdKey QtyRatio
+pricelist_1'_map xs= fromList xs --pricelist_1'
 
 public export
-pricelist_f1 : Hom2_f
-pricelist_f1 (Debit (px,qty)) =  case (lookup px pricelist_1'_map) of 
+pricelist_f1 : Hom2_f' -> Hom2_f
+pricelist_f1 pl (Debit (px,qty)) =  case (lookup px (pricelist_1'_map pl) ) of 
                                      Just price_unit => Debit ("£",qty*price_unit) 
-                                     Nothing => Debit ("£", 0)
-pricelist_f1 (Credit (px,qty)) = case (lookup px pricelist_1'_map) of 
+                                     Nothing => Debit ("£", 0) 
+                                     
+pricelist_f1 pl (Credit (px,qty)) = case (lookup px (pricelist_1'_map pl)) of 
                                      Just price_unit => Credit ("£",qty*price_unit) 
                                      Nothing => Credit ("£", 0)
 
-
 public export
 Pricelist : Hom2
-Pricelist xs = map pricelist_f1 xs
+Pricelist xs = map (pricelist_f1 pricelist_1') xs
 
 public export
 pricelist_journal : Journal
@@ -131,6 +131,7 @@ so1 = ChO so1_j [so1_l1_price_unit_h1]
 public export
 get_hom1 : LineTerm -> TProduct
 get_hom1 (LHom1 qty) = qty
+get_hom1 (LPList pricelist x) = get_hom1 x
 get_hom1 (LHom2 price_unit x) = get_hom1 x
 get_hom1 (LDiscount discount x) = get_hom1 x
 
@@ -140,7 +141,7 @@ get_hom2 : LineTerm -> Hom2_f   --(Hom1->Hom1)
 
 get_hom2 (LHom1 (Debit  (px,qty)) ) = id --(\x => (Debit  (px,1))    )
 get_hom2 (LHom1 (Credit (px,qty)) ) = id --(\x => (Credit (px,1)) )
-
+get_hom2 (LPList pricelist l) = (pricelist_f1 pricelist) . (get_hom2 l)
 get_hom2 (LHom2 (Debit  (cy,price_unit))  l) = (\x => case x of
                                                (Debit  (px,qty)) => (Debit  (cy,qty*price_unit))
                                                (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    )  . (get_hom2 l)
