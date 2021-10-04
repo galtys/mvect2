@@ -213,3 +213,17 @@ int test_gcd(int a, int b)
     }
     return a;
 }
+
+/*
+int gcd(int m, int n)
+{
+        int tmp;
+        while(m) { tmp = m; m = n % m; n = tmp; }       
+        return n;
+}
+*/
+
+int test_lcm(int m, int n)
+{
+  return (m / test_gcd(m, n) * n);
+}

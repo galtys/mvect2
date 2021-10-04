@@ -5,19 +5,20 @@ import Data.SortedMap
 import Control.Monad.State
 import JSON
 
-import Category.Transaction.Qty
+--import Category.Transaction.Qty
 import Category.Transaction.Types
+import Data.Ratio
 
 %language ElabReflection
 
 
 
 public export
-q1 : Qty
+q1 : QtyRatio
 q1 = 1
 
 public export
-q7 : Qty
+q7 : QtyRatio
 q7 = 7
 
 public export
@@ -62,14 +63,14 @@ th12 : Hom1
 th12 = [ Debit ("GBP",38) ]
 
 
-add : (Qty,Qty) -> (Qty,Qty) -> (Qty,Qty)
+add : (QtyRatio,QtyRatio) -> (QtyRatio,QtyRatio) -> (QtyRatio,QtyRatio)
 add (a,b) (c,d) = (a+c, b+d)
 
 
-merge_item_into : (SortedMap ProdKey Qty) -> (ProdKey, Qty) -> (SortedMap ProdKey Qty)
+merge_item_into : (SortedMap ProdKey QtyRatio) -> (ProdKey, QtyRatio) -> (SortedMap ProdKey QtyRatio)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
-fromProductList : List Product -> SortedMap ProdKey Qty
+fromProductList : List Product -> SortedMap ProdKey QtyRatio
 fromProductList xs = foldl merge_item_into empty xs
 
 evalProductList : List Product -> List Product

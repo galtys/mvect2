@@ -18,18 +18,18 @@ jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
 
-prices_1: List Qty
+prices_1: List QtyRatio
 prices_1 = [10,7,5] --,2,11,9,50,1,33,100]
 
 sku_1 : List ProdKey
 sku_1 = [("p"++show i) | i <- [1..(length prices_1)]]
 
 public export
-pricelist_1' : List (ProdKey,Qty)
+pricelist_1' : List (ProdKey,QtyRatio)
 pricelist_1' = zip sku_1 prices_1
 
 public export
-pricelist_1'_map : SortedMap ProdKey Qty
+pricelist_1'_map : SortedMap ProdKey QtyRatio
 pricelist_1'_map = fromList pricelist_1'
 
 

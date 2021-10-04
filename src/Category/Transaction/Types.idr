@@ -5,7 +5,7 @@ import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
 
-import Category.Transaction.Qty
+--import Category.Transaction.Qty
 import Crypto.Hash.SHA256
 import Data.Ratio
 
@@ -85,7 +85,7 @@ data T a = Debit a | Credit a
 
 public export
 TQty : Type
-TQty = T Qty
+TQty = T QtyRatio
 
 %runElab derive "T" [Generic, Meta, Eq, Show]
 
@@ -105,7 +105,7 @@ ProdKey = String
 
 public export
 Product : Type
-Product = (ProdKey, Qty)
+Product = (ProdKey, QtyRatio)
 
 public export
 TProduct : Type
@@ -160,7 +160,7 @@ public export
 record Line where
   constructor MkLine
   sku : ProdKey
-  qty : Qty
+  qty : QtyRatio
   --Unit of Measure
   --company pricelist is input  , "price_unit" modifies it, as a multiple
   currency : ProdKey   
