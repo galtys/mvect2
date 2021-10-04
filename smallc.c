@@ -201,3 +201,15 @@ void *set_is_closing(struct mg_connection *c) {
   c -> is_closing = 1;
   return NULL;
 }
+
+int test_gcd(int a, int b)
+{
+    int temp;
+    while (b != 0)
+    {
+        temp = a % b;
+        a = b;
+        b = temp;
+    }
+    return a;
+}

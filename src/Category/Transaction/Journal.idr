@@ -6,19 +6,25 @@ import Data.SortedMap
 import Control.Monad.State
 import JSON
 
+import Category.Transaction.Qty
 import Category.Transaction.Types
+import Crypto.Hash.SHA256
+import Data.Ratio
 
 %language ElabReflection
 
-
+public export
+jref : Journal -> Journal
+jref x = JRef $ sha256 $ encode x
 
 
 prices_1: List Qty
-prices_1 = [10,7,5,2,11,9,50,1,33,100]
+prices_1 = [10,7,5] --,2,11,9,50,1,33,100]
 
 sku_1 : List ProdKey
 sku_1 = [("p"++show i) | i <- [1..(length prices_1)]]
 
+public export
 pricelist_1' : List (ProdKey,Qty)
 pricelist_1' = zip sku_1 prices_1
 
@@ -70,11 +76,11 @@ Pricelist xs = map pricelist_f1 xs
 
 public export
 pricelist_journal : Journal
-pricelist_journal = JDate 0 (JDoc "plist") PriceList
+pricelist_journal = jref (JDate 0 (JDoc "plist") PriceList)
 
-public export 
-pricelist_term : LineTerm
-pricelist_term = LPList pricelist_1' (LRef pricelist_journal)
+--public export 
+--pricelist_term : LineTerm
+--pricelist_term = LPList pricelist_1' (LRef pricelist_journal)
 
 public export
 pjb : Account
@@ -98,19 +104,23 @@ hilton_loc = L (MkL "Bristol")
 
 public export
 so1_j : Journal
-so1_j = JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder
+so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder) 
 
 public export
 so1_l1 : Line
-so1_l1 = MkLine "p1" 5 "£" INC20 31 0
+so1_l1 = MkLine "p1" 5 "£" INC20 31 (MkQr 20 100)
+
+
+so1_l1_ref : LineTerm
+so1_l1_ref = LDiscount (discount so1_l1) 
 
 public export 
 so1_l1_term : LineTerm
-so1_l1_term = LDiscount (discount so1_l1) (LHom2 (currency so1_l1 ) (price_unit so1_l1)  pricelist_term)
+so1_l1_term = LHom2 [(currency so1_l1, price_unit so1_l1)]  so1_l1_ref
 
 public export 
 so1_l1_term_h1 : LineTerm
-so1_l1_term_h1 = LCh so1_j [Debit ((sku so1_l1),(qty so1_l1))] so1_l1_term 
+so1_l1_term_h1 = LCh [Debit ((sku so1_l1),(qty so1_l1))] so1_l1_term 
 
 public export
 so1 : OrderTerm

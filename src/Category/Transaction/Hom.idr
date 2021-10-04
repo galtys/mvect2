@@ -5,6 +5,7 @@ import Data.SortedMap
 import Control.Monad.State
 import JSON
 
+import Category.Transaction.Qty
 import Category.Transaction.Types
 
 %language ElabReflection

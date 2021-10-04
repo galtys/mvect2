@@ -5,6 +5,10 @@ import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
 
+import Category.Transaction.Qty
+import Crypto.Hash.SHA256
+import Data.Ratio
+
 import JSON
 
 %language ElabReflection
@@ -21,6 +25,9 @@ data Country = UK | CZ | US | DE | FR
 
 public export
 data TaxCode = ZeroVAT | INC20 | EX20
+
+%runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
+
 
 public export
 record Address where
@@ -69,13 +76,9 @@ data Journal : Type where
 -- MkCalc : CalcSource -> Journal
  JDate:  Integer -> Journal -> DocType -> Journal
  JDoc :  String -> Journal
-
+ JRef :  H256 -> Journal
+ 
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
-
-
-public export
-Qty : Type
-Qty = Integer
 
 public export
 data T a = Debit a | Credit a
@@ -97,6 +100,8 @@ FromJSON TQty where
 public export
 ProdKey : Type
 ProdKey = String
+
+--%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
 Product : Type
@@ -124,7 +129,7 @@ Hom2_f = (TProduct -> TProduct)
 
 public export
 Hom2_f' : Type
-Hom2_f' = List (ProdKey,Qty)
+Hom2_f' = List (ProdKey,QtyRatio)
 
 public export
 Hom2 : Type
@@ -149,7 +154,6 @@ data Term : Type where
      Co : Journal ->  Term -> Term -> Term
      --Adj : Journal -> Term -> Term -> Term
 
---%runElab derive "Term" [Generic,Meta,Eq]
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 
 public export
@@ -162,30 +166,27 @@ record Line where
   currency : ProdKey   
   tax_code : TaxCode
   --reference to List Price  
-  price_unit : Qty --together with discount,turn it into a function Qty->Qty
-  discount : Qty   --idea, in amendments, fix price_unit and let the user change the discount 
+  price_unit : QtyRatio --together with discount,turn it into a function Qty->Qty
+  discount : QtyRatio   --idea, in amendments, fix price_unit and let the user change the discount 
   --SubTotal ... calculated
 
-{-
-public export
-ToJSON Line where
-  toJSON = genToJSON' id toLower TwoElemArray
+%runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
-public export
-FromJSON Line where
-  fromJSON = genFromJSON' id toLower TwoElemArray
--}
 
 public export
 data LineTerm : Type where
-     LRef : Journal -> LineTerm --DocType Pricelist
-     LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
-     LHom2 : ProdKey -> Qty -> LineTerm -> LineTerm -- (currency and unit price)
-     LDiscount :             Qty -> LineTerm -> LineTerm
-     LCh : Journal -> Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
-     LTax : Journal -> LineTerm -> LineTerm -- calc tax based on order lines
-    
+     --LRef : Journal -> LineTerm --DocType Pricelist
+     --LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
+     LDiscount :  QtyRatio -> LineTerm     
+     LHom2 : Hom2_f' -> LineTerm -> LineTerm -- (currency and unit price)
+     
+     LCh : Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
+     
+     --LTax : LineTerm -> LineTerm -- calc tax based on order lines   
+     
 --With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist
+     
+%runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
      
 --, and delivery cost that depend on subtotals     
 public export
@@ -196,3 +197,5 @@ data OrderTerm : Type where
 -- delivery line pricelist can depend on subtotals, which is in OrderTerm 
 -- in this case, delivery line is just an DeliveryOption selector
      Tax : Journal -> OrderTerm -> OrderTerm
+
+%runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
