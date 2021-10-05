@@ -193,10 +193,6 @@ data LineTQty : Type where
      LTQDiscount :  (discount:QtyRatio) -> LineTQty -> LineTQty
 %runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
-public export
-fromLineTerm : LineTerm -> LineTQty
-
-
 
 --, and delivery cost that depend on subtotals     
 public export

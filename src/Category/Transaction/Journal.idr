@@ -8,6 +8,7 @@ import JSON
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
+import Category.Transaction.Hom
 import Crypto.Hash.SHA256
 import Data.Ratio
 
@@ -149,12 +150,20 @@ get_hom2 (LDiscount d l) = (\x => case x of
 addLineTerms : LineTerm -> LineTerm -> LineTerm
 addLineTerms (LHom1 (Debit y)) (LHom1 (Debit x)) = ?addLineTerms_rhs_9
 addLineTerms (LHom1 (Debit y)) (LHom1 (Credit x)) = ?addLineTerms_rhs_10
-addLineTerms (LHom1 (Credit y)) (LHom1 x) = ?addLineTerms_rhs_8
+addLineTerms (LHom1 (Credit y)) (LHom1 (Debit x)) = ?addLineTerms_rhs_11
+addLineTerms (LHom1 (Credit y)) (LHom1 (Credit x)) = ?addLineTerms_rhs_12
 
 addLineTerms (LHom1 qty) (LHom2 price_unit x) = ?addLineTerms_rhs_5
 addLineTerms (LHom1 qty) (LDiscount discount x) = ?addLineTerms_rhs_6
 addLineTerms (LHom2 price_unit x) y = ?addLineTerms_rhs_2
 addLineTerms (LDiscount discount x) y = ?addLineTerms_rhs_3
+
+public export
+fromLineTerm : LineTerm -> LineTQty
+fromLineTerm (LHom1 qty) = (LTQHom1 (getVal qty))
+fromLineTerm (LHom2 price_unit x) = (LTQHom2 (getVal price_unit) (fromLineTerm x))
+fromLineTerm (LDiscount discount x) = (LTQDiscount discount (fromLineTerm x))
+
 
 
 public export

@@ -76,9 +76,10 @@ main = do
   
   --printLn "\n"
   printLn so1_lt1
-  
+  printLn $ fromLineTerm so1_lt1
   printLn ( (get_hom1 so1_lt1 ))  
   printLn (mufum (get_hom1 so1_lt1 ))
+  
 {-  
   p_mgr <- get_and_malloc__mg_mgr
   mg_mgr_init p_mgr 
