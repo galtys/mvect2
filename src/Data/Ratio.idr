@@ -18,7 +18,17 @@ record QtyRatio where
    num : Qty
    den : Qty
 
-%runElab derive "QtyRatio" [Generic, Meta, Show, RecordToJSON,RecordFromJSON]
+public export
+percent : Qty -> QtyRatio
+percent x = (MkQr (100-x) 100)
+
+
+public export
+Show QtyRatio where
+    show (MkQr num den) = if (den==1) then (show num) else (show num)++"/"++(show den)
+
+
+%runElab derive "QtyRatio" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 is_whole : QtyRatio -> Bool
 is_whole (MkQr a b) = if (b==1) then True else False
@@ -37,7 +47,7 @@ sub_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
 sub_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) then (MkQr (a-c) b) else (MkQr (a*d - c*b) (b*d) )
 
 
---public export
+public export
 mul_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
 mul_qtyratio (MkQr a b) (MkQr c d) = (MkQr (a*c) (b*d) )
 

@@ -176,9 +176,9 @@ record Line where
 public export
 data LineTerm : Type where
      LHom1 : (qty:TProduct) -> LineTerm
-     LPList : (pricelist:Hom2_f') -> LineTerm -> LineTerm
+     --LPList : (pricelist:Hom2_f') -> LineTerm -> LineTerm
      --LRef : Journal -> LineTerm --DocType Pricelist
---     LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
+     LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
      LHom2 : (price_unit:TProduct) -> LineTerm -> LineTerm -- (currency and unit price)
      LDiscount :  (discount:QtyRatio) -> LineTerm -> LineTerm     
      

@@ -106,7 +106,7 @@ so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder)
 
 public export
 so1_l1 : Line
-so1_l1 = MkLine "p1" 5 "£" INC20 31 (MkQr 20 100)
+so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 3)
 
 
 public export 
@@ -137,21 +137,22 @@ get_hom1 (LDiscount discount x) = get_hom1 x
 
 
 public export
-get_hom2 : LineTerm -> Hom2_f   --(Hom1->Hom1)
+get_hom2 : LineTerm -> Hom2_f   --(TProduct->TProduct)
 
-get_hom2 (LHom1 (Debit  (px,qty)) ) = id --(\x => (Debit  (px,1))    )
-get_hom2 (LHom1 (Credit (px,qty)) ) = id --(\x => (Credit (px,1)) )
+get_hom2 (LHom1 (Debit  (px,qty)) ) = id
+get_hom2 (LHom1 (Credit (px,qty)) ) = id
 get_hom2 (LPList pricelist l) = (pricelist_f1 pricelist) . (get_hom2 l)
-get_hom2 (LHom2 (Debit  (cy,price_unit))  l) = (\x => case x of
-                                               (Debit  (px,qty)) => (Debit  (cy,qty*price_unit))
-                                               (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    )  . (get_hom2 l)
+get_hom2 (LHom2 (Debit  (cy,p_u))  l) = ((\x => case x of
+                                               (Debit  (px,qt)) => Debit  (cy, qt*p_u )  
+                                               (Credit  (px,qt)) => (Credit  (cy, qt*p_u))    )  . (get_hom2 l))
+                                               
 get_hom2 (LHom2 (Credit  (cy,price_unit))  l) = (\x => case x of
                                                (Debit  (px,qty)) => (Debit  (cy,qty*price_unit))
-                                               (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    )  . (get_hom2 l)
+                                               (Credit  (px,qty)) => (Credit  (cy,qty*price_unit))    ) . (get_hom2 l)
 
-get_hom2 (LDiscount discount l) = (\x => case x of
-                                               (Debit  (px,qty)) => (Debit  (px,qty*discount))
-                                               (Credit  (px,qty)) => (Credit  (px,qty*discount))  ) . (get_hom2 l)
+get_hom2 (LDiscount d l) = (\x => case x of
+                                               (Debit  (px,qty)) => (Debit  (px,qty*d))
+                                               (Credit  (px,qty)) => (Credit  (px,qty*d))  ) . (get_hom2 l)
 
 
 
