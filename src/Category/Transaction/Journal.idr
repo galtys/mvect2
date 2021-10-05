@@ -105,28 +105,20 @@ so1_j : Journal
 so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder) 
 
 public export
+fromLine : Line -> LineTerm
+fromLine l = (LDiscount (discount l) (LHom2 (Debit (currency l, price_unit l))  (LHom1 (Debit ((sku l),(qty l))) ) ) )
+
+public export
 so1_l1 : Line
 so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 3)
 
-
 public export 
-so1_l1_qty : LineTerm
-so1_l1_qty = LHom1 (Debit ((sku so1_l1),(qty so1_l1)))
-
-public export 
-so1_l1_price_unit : LineTerm
-so1_l1_price_unit = LHom2 (Debit (currency so1_l1, price_unit so1_l1))  so1_l1_qty
-
-so1_l1_discount : LineTerm
-so1_l1_discount = LDiscount (discount so1_l1) so1_l1_price_unit
-
-public export 
-so1_l1_price_unit_h1 : LineTerm
-so1_l1_price_unit_h1 = so1_l1_discount
+so1_lt1 : LineTerm
+so1_lt1 = fromLine so1_l1
 
 public export
 so1 : OrderTerm
-so1 = ChO so1_j [so1_l1_price_unit_h1] 
+so1 = ChO so1_j [so1_lt1] 
 
 public export
 get_hom1 : LineTerm -> TProduct
@@ -158,7 +150,7 @@ get_hom2 (LDiscount d l) = (\x => case x of
 
 public export
 mufum : Hom2_f
-mufum = get_hom2 so1_l1_price_unit_h1
+mufum = get_hom2 so1_lt1
 
 
 --public export

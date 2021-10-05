@@ -74,14 +74,11 @@ main = do
   --printLn $ show $ eval_qtyratio (r1*r2)
   printLn so1_l1
   
-  --printLn (so1)
-  printLn (r1 > r2)
-  
   --printLn "\n"
-  printLn so1_l1_price_unit_h1
+  printLn so1_lt1
   
-  printLn ( (get_hom1 so1_l1_price_unit_h1))  
-  printLn (mufum (get_hom1 so1_l1_price_unit_h1))
+  printLn ( (get_hom1 so1_lt1 ))  
+  printLn (mufum (get_hom1 so1_lt1 ))
 {-  
   p_mgr <- get_and_malloc__mg_mgr
   mg_mgr_init p_mgr 
