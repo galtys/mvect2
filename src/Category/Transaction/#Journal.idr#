@@ -149,7 +149,8 @@ get_hom2 (LDiscount d l) = (\x => case x of
 addLineTerms : LineTerm -> LineTerm -> LineTerm
 addLineTerms (LHom1 (Debit y)) (LHom1 (Debit x)) = ?addLineTerms_rhs_9
 addLineTerms (LHom1 (Debit y)) (LHom1 (Credit x)) = ?addLineTerms_rhs_10
-addLineTerms (LHom1 (Credit y)) (LHom1 x) = ?addLineTerms_rhs_8
+addLineTerms (LHom1 (Credit y)) (LHom1 (Debit x)) = ?addLineTerms_rhs_11
+addLineTerms (LHom1 (Credit y)) (LHom1 (Credit x)) = ?addLineTerms_rhs_12
 
 addLineTerms (LHom1 qty) (LHom2 price_unit x) = ?addLineTerms_rhs_5
 addLineTerms (LHom1 qty) (LDiscount discount x) = ?addLineTerms_rhs_6

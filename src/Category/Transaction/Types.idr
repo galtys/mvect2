@@ -178,18 +178,26 @@ data LineTerm : Type where
      LHom1 : (qty:TProduct) -> LineTerm
      --LPList : (pricelist:Hom2_f') -> LineTerm -> LineTerm
      --LRef : Journal -> LineTerm --DocType Pricelist
-     LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
+     --LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
      LHom2 : (price_unit:TProduct) -> LineTerm -> LineTerm -- (currency and unit price)
-     LDiscount :  (discount:QtyRatio) -> LineTerm -> LineTerm     
-     
-     --LCh : Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way
-     
-     --LTax : LineTerm -> LineTerm -- calc tax based on order lines   
-     
---With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist
-     
+     LDiscount :  (discount:QtyRatio) -> LineTerm -> LineTerm          
+     --LCh : Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way     
+     --LTax : LineTerm -> LineTerm -- calc tax based on order lines        
+--With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist        
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
-     
+
+public export
+data LineTQty : Type where
+     LTQHom1 : (qty:TQty) -> LineTQty
+     LTQHom2 : (price_unit:TQty) -> LineTQty -> LineTQty
+     LTQDiscount :  (discount:QtyRatio) -> LineTQty -> LineTQty
+%runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+
+public export
+fromLineTerm : LineTerm -> LineTQty
+
+
+
 --, and delivery cost that depend on subtotals     
 public export
 data OrderTerm : Type where
