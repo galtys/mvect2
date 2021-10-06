@@ -74,9 +74,12 @@ main = do
   --printLn "\n"
 
   printLn so1_lt1
-  printLn $ fromLineTerm so1_lt1
-  printLn ( (get_hom1 so1_lt1 ))  
-  printLn (mufum (get_hom1 so1_lt1 ))
+  printLn l1_e
+  printLn (get_hom1 l1_e, get_hom2 l1_e)
+  printLn (get_hom1 l1_e_2, get_hom2 l1_e_2)
+    
+  --printLn ( (get_hom1 so1_lt1 ))  
+  --printLn (mufum (get_hom1 so1_lt1 ))
 
   
 {-  

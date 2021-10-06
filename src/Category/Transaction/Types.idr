@@ -205,6 +205,11 @@ data LineExpr : Type where
 
 %runElab derive "LineExpr" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
+public export
+Product2 : Type
+Product2 = (ProdKey2, LineExpr)
+
+
 --, and delivery cost that depend on subtotals     
 public export
 data OrderTerm : Type where

@@ -90,6 +90,7 @@ public export
 so1 : OrderTerm
 so1 = ChO so1_j [so1_lt1] 
 
+{-
 public export
 get_hom1 : LineTerm -> Product
 get_hom1 (LHom1 qty) = qty
@@ -102,62 +103,53 @@ get_hom2 : LineTerm -> Hom2_f   --(TProduct->TProduct)
 get_hom2 (LHom1 (px,qty) ) = id
 --get_hom2 (LPList pricelist l) = (pricelist_f1 pricelist) . (get_hom2 l)
 get_hom2 (LHom2  (cy,p_u)  l) = ( (\(px,qt) => (cy, qt*p_u)  )  . (get_hom2 l))
-                                               
 get_hom2 (LDiscount d l) = (\(px,qty) => (px,qty*d) ) . (get_hom2 l)
+-}
+
+--public export
+--fromLineExpr : 
 
 public export
-fromLineTerm : LineTerm -> LineTQty
-fromLineTerm (LHom1 qty) = (LTQHom1 (snd qty))
-fromLineTerm (LHom2 price_unit x) = (LTQHom2 (snd price_unit) (fromLineTerm x))
-fromLineTerm (LDiscount discount x) = (LTQDiscount discount (fromLineTerm x))
+fromLineTerm : LineTerm -> LineExpr
+fromLineTerm (LHom1 (px, qty)) = LEHom1 qty
+fromLineTerm (LHom2 (cy,p_u) x) = LEMul p_u UnitPrice (fromLineTerm x)
+fromLineTerm (LDiscount discount x) = LEMul discount Discount (fromLineTerm x)
 
+{-
 public export
 mufum : Hom2_f
 mufum = get_hom2 so1_lt1
-
-public export
-getHom1TQty : LineExpr -> TQty
-getHom1TQty (LEHom1 qty) = qty
-getHom1TQty (LEAdd l1 l2) = (getHom1TQty l1) + (getHom1TQty l2)
-getHom1TQty (LEMul u mu l) = getHom1TQty l
-
-public export
-getHom2TQty : LineExpr -> TQty 
-getHom2TQty (LEHom1 qty) = 1
-getHom2TQty (LEAdd l1 l2) = (getHom2TQty l1) + (getHom2TQty l2)
-getHom2TQty (LEMul u mu l) = (getHom2TQty l) * u
-
-{-
-replaceHom1 : LineExpr -> TQty -> LineExpr
-replaceHom1 (LEHom1 qty) y = (LEHom1 y)
-replaceHom1 (LEAdd l1 l2) y = LEAdd (replaceHom1 l1 y) (replaceHom1 l2 y)
-replaceHom1 (LEMul u mu l) y = LEMul u mu (replaceHom1 l y)
 -}
+
+public export
+get_hom1 : LineExpr -> TQty
+get_hom1 (LEHom1 qty) = qty
+get_hom1 (LEAdd l1 l2) = (get_hom1 l1) + (get_hom1 l2)
+get_hom1 (LEMul u mu l) = get_hom1 l
+
+public export
+get_hom2 : LineExpr -> TQty 
+get_hom2 (LEHom1 qty) = 1
+get_hom2 (LEAdd l1 l2) = (get_hom2 l1) + (get_hom2 l2)
+get_hom2 (LEMul u mu l) = (get_hom2 l) * u
 
 public export
 addLineExpr : LineExpr -> LineExpr -> LineExpr
 addLineExpr x y = 
-       let q1 = getHom1TQty x
-           q2 = getHom1TQty y
+       let q1 = get_hom1 x
+           q2 = get_hom1 y
            q = q1+q2
            l1 = LEMul (q1/q) MultQty x
            l2 = LEMul (q2/q) MultQty y
            l = LEAdd l1 l2 in l
 
-
-{-
 public export
-addLineTQty : LineTQty -> LineTQty -> LineTQty
-addLineTQty (LTQHom1 qty) (LTQHom1 x) = (LTQHom1 x)
-addLineTQty l@(LTQHom1 qty) (LTQHom2 price_unit x) = (LTQHom2 price_unit l)
-addLineTQty l@(LTQHom1 qty) (LTQDiscount discount x) = (LTQDiscount discount l)
+l1_e : LineExpr
+l1_e = fromLineTerm so1_lt1
 
-addLineTQty (LTQHom2 price_unit x) l@(LTQHom1 qty) = (LTQHom2 price_unit l)
-addLineTQty (LTQDiscount discount x) l@(LTQHom1 qty) = (LTQDiscount discount l)
-
-addLineTQty (LTQHom2 price_unit x) y = ?addLineTQty_rhs_2
-addLineTQty (LTQDiscount discount x) y = ?addLineTQty_rhs_3
--}
+public export
+l1_e_2 : LineExpr
+l1_e_2 = (addLineExpr l1_e l1_e) 
 
 
 --public export
