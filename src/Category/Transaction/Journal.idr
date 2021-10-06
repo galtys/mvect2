@@ -115,6 +115,21 @@ public export
 mufum : Hom2_f
 mufum = get_hom2 so1_lt1
 
+{-
+public export
+addLineTQty : LineTQty -> LineTQty -> LineTQty
+addLineTQty (LTQHom1 qty) (LTQHom1 x) = (LTQHom1 x)
+addLineTQty l@(LTQHom1 qty) (LTQHom2 price_unit x) = (LTQHom2 price_unit l)
+addLineTQty l@(LTQHom1 qty) (LTQDiscount discount x) = (LTQDiscount discount l)
+
+addLineTQty (LTQHom2 price_unit x) l@(LTQHom1 qty) = (LTQHom2 price_unit l)
+addLineTQty (LTQDiscount discount x) l@(LTQHom1 qty) = (LTQDiscount discount l)
+
+addLineTQty (LTQHom2 price_unit x) y = ?addLineTQty_rhs_2
+addLineTQty (LTQDiscount discount x) y = ?addLineTQty_rhs_3
+-}
+
+
 --public export
 --t1_r : Term
 --t1_r = Ch (Ref so1) th11 --reservation

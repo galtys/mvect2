@@ -96,6 +96,12 @@ ProdKey = String
 --%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
+record ProdKey2 where
+    constructor MkProdK2
+    keyfrom : ProdKey
+    keyto : ProdKey
+    
+public export
 Product : Type
 Product = (ProdKey, TQty)
 
@@ -183,8 +189,21 @@ data LineTQty : Type where
      LTQHom1 : (qty:TQty) -> LineTQty
      LTQHom2 : (price_unit:TQty) -> LineTQty -> LineTQty
      LTQDiscount :  (discount:TQty) -> LineTQty -> LineTQty
+     
 %runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
+public export
+data LineExprMultType = UnitPrice | Discount
+
+%runElab derive "LineExprMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+public export
+data LineExpr : Type where
+     LEHom1 : (qty:TQty) -> LineExpr
+     LEAdd : (l1:LineExpr) -> (l2:LineExpr) -> LineExpr
+     LEMul : (u:TQty) -> (mu:LineExprMultType) -> (l:LineExpr) -> LineExpr
+
+%runElab derive "LineExpr" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 --, and delivery cost that depend on subtotals     
 public export
