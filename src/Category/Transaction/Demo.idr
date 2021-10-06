@@ -15,9 +15,6 @@ import Data.Ratio
 
 %language ElabReflection
 
-public export
-jref : Journal -> Journal
-jref x = JRef $ sha256 $ encode x
 
 prices: List TQty
 prices = [10,7,5,2,11,9,50,1,33,100]

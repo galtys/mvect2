@@ -14,7 +14,9 @@ import Data.Ratio
 
 %language ElabReflection
 
-
+public export
+jref : Journal -> Journal
+jref x = JRef $ sha256 $ encode x
 
 public export
 pricelist_1'_map : Hom2_f' -> SortedMap ProdKey TQty
