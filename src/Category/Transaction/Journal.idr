@@ -29,16 +29,6 @@ pricelist_f1 pl (px,qty) =  case (lookup px (pricelist_1'_map pl) ) of
                                      Nothing => ("£", 0) 
 
 public export
-fromLine : Line -> LineTerm
-fromLine l = (LDiscount (discount l) (LHom2 ((currency l, price_unit l))  (LHom1 (((sku l),(qty l))) ) ) )
-
-public export
-fromLineTerm : LineTerm -> LineExpr
-fromLineTerm (LHom1 (px, qty)) = LEHom1 qty
-fromLineTerm (LHom2 (cy,p_u) x) = LEMul p_u UnitPrice (fromLineTerm x)
-fromLineTerm (LDiscount discount x) = LEMul discount Discount (fromLineTerm x)
-
-public export
 get_line : Line -> Product2
 get_line l =
    let h1=LEHom1 (qty l)

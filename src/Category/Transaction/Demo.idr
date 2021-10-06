@@ -66,12 +66,6 @@ public export
 so1_l1 : Line
 so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 0)
 
-{-
-public export 
-so1_lt1 : LineTerm
-so1_lt1 = fromLine so1_l1
--}
-
 public export
 l1_e : LineExpr
 l1_e = snd $ get_line so1_l1
