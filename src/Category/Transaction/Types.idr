@@ -28,7 +28,6 @@ data TaxCode = ZeroVAT | INC20 | EX20
 
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
-
 public export
 record Address where
   constructor MkA
@@ -127,7 +126,7 @@ Hom2_f = (Product -> Product)  --was TProduct?
 
 public export
 Hom2_f' : Type
-Hom2_f' = List Product   --(ProdKey,QtyRatio), was TProduct?
+Hom2_f' = List Product   --(ProdKey,TQty), was TProduct?
 
 public export
 Hom2 : Type

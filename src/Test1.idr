@@ -4,10 +4,11 @@ import Web.Mongoose.Types
 import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
 
+import Category.Transaction.Qty
 import Category.Transaction.Types
 import Category.Transaction.Hom
 import Category.Transaction.Journal
-
+import Category.Transaction.Demo
 import Data.Ratio
 
 import System.FFI
@@ -19,6 +20,7 @@ json_result = "{\"result\": 332}"
 
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
+
 
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
@@ -39,14 +41,8 @@ x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
 x_my_http_handler p_conn ev p_ev p_fn = do 
                   pure ()
 
-
-
-
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
-
-test1: String
-test1="mufum"
 
 partial
 inf_loop : (Ptr MG_MGR) -> Int -> IO ()
@@ -54,30 +50,13 @@ inf_loop p_mgr time_out = do
   mg_mgr_poll p_mgr time_out
   inf_loop p_mgr time_out
 
-{-
-term_s : String
-term_s = case (term_x) of
-          Left x => "JSON ERR"
-          Right y => (show y)
--}
+
 
 main : IO ()
 main = do
   mg_log_set "3"
 
-  --printLn (get_len "č")
-  
---  putStrLn (show eval_qtyratio (r1*r2) )
-  --printLn $ show $ eval_qtyratio (r1*r2)
-  printLn so1_l1
-  
-  --printLn "\n"
-
-  printLn so1_lt1
-  printLn l1_e
-  printLn (get_hom1 l1_e, get_hom2 l1_e)
-  printLn (get_hom1 l1_e_2, get_hom2 l1_e_2)
-    
+  test_demo
   --printLn ( (get_hom1 so1_lt1 ))  
   --printLn (mufum (get_hom1 so1_lt1 ))
 
