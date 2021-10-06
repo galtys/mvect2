@@ -163,7 +163,7 @@ record Line where
   discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
   tax_code : TaxCode
   --reference to List Price  
-  --SubTotal ... calculated
+                      --SubTotal ... calculated
 
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
