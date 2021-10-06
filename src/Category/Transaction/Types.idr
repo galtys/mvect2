@@ -117,11 +117,11 @@ Hom1 = List Product
 
 public export
 Hom2_f : Type
-Hom2_f = (Product -> Product)
+Hom2_f = (Product -> Product)  --was TProduct?
 
 public export
 Hom2_f' : Type
-Hom2_f' = List Product   --(ProdKey,QtyRatio)
+Hom2_f' = List Product   --(ProdKey,QtyRatio), was TProduct?
 
 public export
 Hom2 : Type
@@ -167,11 +167,11 @@ record Line where
 
 public export
 data LineTerm : Type where
-     LHom1 : (qty:TProduct) -> LineTerm
+     LHom1 : (qty:Product) -> LineTerm
      --LPList : (pricelist:Hom2_f') -> LineTerm -> LineTerm
      --LRef : Journal -> LineTerm --DocType Pricelist
      --LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
-     LHom2 : (price_unit:TProduct) -> LineTerm -> LineTerm -- (currency and unit price)
+     LHom2 : (price_unit:Product) -> LineTerm -> LineTerm -- (currency and unit price)
      LDiscount :  (discount:TQty) -> LineTerm -> LineTerm          
      --LCh : Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way     
      --LTax : LineTerm -> LineTerm -- calc tax based on order lines        
