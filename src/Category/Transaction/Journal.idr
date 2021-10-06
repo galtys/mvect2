@@ -115,6 +115,36 @@ public export
 mufum : Hom2_f
 mufum = get_hom2 so1_lt1
 
+public export
+getHom1TQty : LineExpr -> TQty
+getHom1TQty (LEHom1 qty) = qty
+getHom1TQty (LEAdd l1 l2) = (getHom1TQty l1) + (getHom1TQty l2)
+getHom1TQty (LEMul u mu l) = getHom1TQty l
+
+public export
+getHom2TQty : LineExpr -> TQty 
+getHom2TQty (LEHom1 qty) = 1
+getHom2TQty (LEAdd l1 l2) = (getHom2TQty l1) + (getHom2TQty l2)
+getHom2TQty (LEMul u mu l) = (getHom2TQty l) * u
+
+{-
+replaceHom1 : LineExpr -> TQty -> LineExpr
+replaceHom1 (LEHom1 qty) y = (LEHom1 y)
+replaceHom1 (LEAdd l1 l2) y = LEAdd (replaceHom1 l1 y) (replaceHom1 l2 y)
+replaceHom1 (LEMul u mu l) y = LEMul u mu (replaceHom1 l y)
+-}
+
+public export
+addLineExpr : LineExpr -> LineExpr -> LineExpr
+addLineExpr x y = 
+       let q1 = getHom1TQty x
+           q2 = getHom1TQty y
+           q = q1+q2
+           l1 = LEMul (q1/q) MultQty x
+           l2 = LEMul (q2/q) MultQty y
+           l = LEAdd l1 l2 in l
+
+
 {-
 public export
 addLineTQty : LineTQty -> LineTQty -> LineTQty

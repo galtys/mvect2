@@ -193,7 +193,7 @@ data LineTQty : Type where
 %runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
-data LineExprMultType = UnitPrice | Discount
+data LineExprMultType = UnitPrice | Discount | MultQty
 
 %runElab derive "LineExprMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
