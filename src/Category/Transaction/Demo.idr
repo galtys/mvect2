@@ -64,15 +64,19 @@ so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder)
 
 public export
 so1_l1 : Line
-so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 0)
+so1_l1 = MkLine "p1" 5 "£" 31 (percent 0) INC20
 
 public export
-l1_e : LineTerm
-l1_e = snd $ get_line so1_l1
+l1_t : LineTerm
+l1_t = snd $ get_line so1_l1
 
 public export
-l1_e_2 : LineTerm
-l1_e_2 = (addLineTerm l1_e l1_e) 
+l1_tax : LineTerm
+l1_tax = ev_tax l1_t
+
+public export
+l1_t_2 : LineTerm
+l1_t_2 = (addLineTerm l1_t l1_t) 
 
 public export
 so1 : OrderTerm
@@ -87,8 +91,12 @@ test_demo = do
   --printLn $ show $ eval_qtyratio (r1*r2)
   printLn so1_l1
   
-  printLn l1_e
-  printLn (get_hom1 l1_e, get_hom2 l1_e)
-  printLn (get_hom1 l1_e_2, get_hom2 l1_e_2)
+  printLn l1_t
+  printLn l1_tax
+  
+  printLn (get_hom1 l1_t, get_hom2 l1_t)
+  printLn (get_hom1 l1_t_2, get_hom2 l1_t_2)
+  printLn "tax line:"
+  printLn (get_hom1 l1_tax, get_hom2 l1_tax)
 
-
+  

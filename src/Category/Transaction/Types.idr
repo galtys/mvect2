@@ -159,10 +159,10 @@ record Line where
   --Unit of Measure
   --company pricelist is input  , "price_unit" modifies it, as a multiple
   currency : ProdKey   
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
   tax_code : TaxCode
   --reference to List Price  
-  price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount 
   --SubTotal ... calculated
 
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
