@@ -22,16 +22,18 @@ public export
 percent : Qty -> QtyRatio
 percent x = (MkQr (100-x) 100)
 
+||| for QtyRatio
+is_whole : QtyRatio -> Bool
+is_whole (MkQr a b) = if (b==1) then True else False
+
+fromWhole : Integer -> QtyRatio
+fromWhole x = MkQr x 1
 
 public export
 Show QtyRatio where
-    show (MkQr num den) = if (den==1) then (show num) else (show num)++"/"++(show den)
-
+    show q@(MkQr num den) = if (is_whole q) then (show num) else (show num)++"/"++(show den)
 
 %runElab derive "QtyRatio" [Generic, Meta, RecordToJSON,RecordFromJSON]
-
-is_whole : QtyRatio -> Bool
-is_whole (MkQr a b) = if (b==1) then True else False
 
 --public export
 eq_qtyratio : QtyRatio -> QtyRatio -> Bool
@@ -84,7 +86,7 @@ eval_qtyratio (MkQr x y) = if ( (x==0) || (y==0)) then MkQr x y
 public export
 Eq QtyRatio where
    (==) = eq_qtyratio
-   (/=) x y = (not (x==y))
+   --(/=) x y = (not (x==y))
    
 public export
 Ord QtyRatio where
@@ -101,11 +103,12 @@ Ord QtyRatio where
                     in if (na==nc) then EQ
                           else if (na>nc) then LT else GT
 
+
 public export
 Num QtyRatio where
    (+) x y = eval_qtyratio $ add_qtyratio x y
    (*) x y = eval_qtyratio $  mul_qtyratio x y
-   fromInteger x = MkQr x 1
+   fromInteger = fromWhole
 
 public export
 Neg QtyRatio where
@@ -139,9 +142,150 @@ public export
 r4 : QtyRatio
 r4 = (MkQr 4 1)
 
+public export
+r0 : QtyRatio
+r0 = (MkQr 1 0)
+
+
+||| For TQty
+public export
+data T a = Debit a | Credit a
+
+
+public export
+TQty : Type
+TQty = T QtyRatio
+
+show_TQty : TQty -> String
+show_TQty (Debit x) = show x
+show_TQty (Credit x) = "M"++(show x)++"M"
+
+public export
+Show TQty where
+   show = show_TQty
+
+%runElab derive "T" [Generic, Meta, Eq, Show,ToJSON,FromJSON]     
+
+add_TQty : TQty -> TQty -> TQty 
+add_TQty (Debit a) (Debit b) = Debit (a+b)
+add_TQty (Credit a) (Credit b) = Credit (a+b)
+add_TQty (Debit a) (Credit b) = if (a<b) then Credit (b-a)
+                                  else if (a>b) then Debit (a-b) 
+                                       else Debit 0
+add_TQty (Credit a) (Debit b) = if (a<b) then Debit (b-a)
+                                  else if (a>b) then Credit (a-b) 
+                                       else Debit 0
+
+
+mul_TQty : TQty -> TQty -> TQty
+mul_TQty (Debit x) (Debit y) = Debit (x*y)
+mul_TQty (Debit x) (Credit y) = Credit (x*y)
+mul_TQty (Credit x) (Debit y) = Credit (x*y)
+mul_TQty (Credit x) (Credit y) = Debit (x*y)
+
+--public export
+dr : TQty -> QtyRatio
+dr (Debit x) = x
+dr (Credit x) = 0
+
+--public export
+cr : TQty -> QtyRatio
+cr (Debit x) = 0
+cr (Credit x) = x
 
 
 
 public export
-r0 : QtyRatio
-r0 = (MkQr 1 0)
+Num TQty where
+    (+) = add_TQty
+    (*) = mul_TQty
+    fromInteger x = if (x >= 0) then (Debit (fromWhole x)) else (Credit (fromWhole x))
+
+eq_TQty : TQty -> TQty -> Bool
+eq_TQty  x y = ((dr x)+(cr y)) == ((cr x)+(dr y))
+
+negate_TQty : TQty -> TQty
+negate_TQty (Debit x) = Credit x
+negate_TQty (Credit x) = Debit x
+
+sub_TQty : TQty -> TQty -> TQty
+sub_TQty x y = x + (negate_TQty y)
+
+
+recip_TQty : TQty -> TQty
+recip_TQty (Debit x) = (Debit (recip_qtyratio x))
+recip_TQty (Credit x) = (Credit (recip_qtyratio x))
+
+div_TQty : TQty -> TQty -> TQty
+div_TQty x y = x * (recip_TQty y)
+
+
+compare_TQty : TQty -> TQty -> Ordering
+compare_TQty (Debit x) (Debit y) = if (x==y) then EQ else compare x y
+compare_TQty (Debit x) (Credit y) = if (x==y) then EQ else GT
+compare_TQty (Credit x) (Debit y) = if (x==y) then EQ else LT
+compare_TQty (Credit x) (Credit y) = if (x==y) then EQ else compare x y
+
+
+public export
+Ord TQty where
+   compare = compare_TQty
+
+public export
+Fractional TQty where
+    (/) = div_TQty
+    recip = recip_TQty
+
+public export
+Neg TQty where
+    (-) = sub_TQty
+    negate  = negate_TQty
+
+public export
+Eq TQty where
+    (==) = eq_TQty
+    
+
+public export
+data EQty : Type where
+     EQVal : (x:TQty) -> EQty
+     EQAdd : (x:EQty) -> (y:EQty) -> EQty
+     EQNegate : (x:EQty) -> EQty
+     EQSub : (x:EQty) -> (y:EQty) -> EQty
+     EQDiv : (x:EQty) -> (y:EQty) -> EQty
+     EQRecip : (x:EQty) -> EQty
+
+public export
+eval : EQty -> TQty
+eval (EQVal x) = x
+eval (EQAdd x y) = (eval x) + (eval y)
+eval (EQNegate x) = negate (eval x)
+eval (EQSub x y) = (eval x)-(eval y)
+eval (EQDiv x y) = (eval x)/(eval y)
+eval (EQRecip x) = recip (eval x)
+
+public export
+Num EQty where
+     (+) = EQAdd
+     (*) = EQDiv
+     fromInteger x = (EQVal (fromInteger x))
+
+public export
+Neg EQty where
+     (-) = EQSub
+     negate = EQNegate
+
+public export     
+Fractional EQty where
+     (/) = EQDiv
+     recip = EQRecip
+               
+public export
+Eq EQty where
+     (==) x y = ( (eval x) == (eval y) )
+
+public export
+Ord EQty where
+     compare x y = compare (eval x) (eval y)
+     
+%runElab derive "EQty" [Generic, Meta, Show, ToJSON,FromJSON]     

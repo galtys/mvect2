@@ -80,14 +80,6 @@ data Journal : Type where
  
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
-public export
-data T a = Debit a | Credit a
-
-public export
-TQty : Type
-TQty = T QtyRatio
-
-%runElab derive "T" [Generic, Meta, Eq, Show]
 
 public export
 ToJSON TQty where

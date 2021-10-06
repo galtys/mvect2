@@ -12,15 +12,6 @@ import Data.Ratio
 %language ElabReflection
 
 
-
-public export
-q1 : QtyRatio
-q1 = 1
-
-public export
-q7 : QtyRatio
-q7 = 7
-
 public export
 get_path : Term -> TermPath   -- user binary tree instead of list
 --get_path (Ref j1) = [j1]
@@ -88,15 +79,6 @@ getVal (Debit (k,v)) = Debit v
 getVal (Credit (k,v)) = Credit v
 
 
-addTQty : TQty -> TQty -> TQty 
-addTQty (Debit a) (Debit b) = Debit (a+b)
-addTQty (Credit a) (Credit b) = Credit (a+b)
-addTQty (Debit a) (Credit b) = if (a<b) then Credit (b-a)
-                                  else if (a>b) then Debit (a-b) 
-                                       else Debit 0
-addTQty (Credit a) (Debit b) = if (a<b) then Debit (b-a)
-                                  else if (a>b) then Credit (a-b) 
-                                       else Debit 0
 
 unTQty : TQty -> TQty -> TQty 
 unTQty (Debit a) (Debit b) = Debit (min a b)
@@ -110,7 +92,7 @@ public export
 merge_item_into2 : (SortedMap ProdKey TProduct) -> TProduct -> (SortedMap ProdKey TProduct)
 merge_item_into2 acc x = case (lookup (getKey x) acc) of
                              Nothing => (insert (getKey x) x acc)
-                             Just v => case (addTQty (getVal v) (getVal x) ) of 
+                             Just v => case ( (getVal v)+(getVal x) ) of 
                                            Debit 0 => (delete (getKey x) acc)
                                            Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
                                            Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
