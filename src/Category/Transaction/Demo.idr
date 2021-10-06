@@ -67,12 +67,12 @@ so1_l1 : Line
 so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 0)
 
 public export
-l1_e : LineExpr
+l1_e : LineTerm
 l1_e = snd $ get_line so1_l1
 
 public export
-l1_e_2 : LineExpr
-l1_e_2 = (addLineExpr l1_e l1_e) 
+l1_e_2 : LineTerm
+l1_e_2 = (addLineTerm l1_e l1_e) 
 
 public export
 so1 : OrderTerm

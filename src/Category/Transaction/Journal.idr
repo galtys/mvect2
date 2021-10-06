@@ -38,22 +38,22 @@ get_line l =
        t = LETaxCode (tax_code l) d in (pk2,t)
 
 public export
-get_hom1 : LineExpr -> TQty
+get_hom1 : LineTerm -> TQty
 get_hom1 (LEHom1 qty) = qty
 get_hom1 (LETaxCode tc l) = (get_hom1 l)
 get_hom1 (LEAdd l1 l2) = (get_hom1 l1) + (get_hom1 l2)
 get_hom1 (LEMul u mu l) = get_hom1 l
 
 public export
-get_hom2 : LineExpr -> TQty 
+get_hom2 : LineTerm -> TQty 
 get_hom2 (LEHom1 qty) = 1
 get_hom2 (LETaxCode tc l) = (get_hom2 l)
 get_hom2 (LEAdd l1 l2) = (get_hom2 l1) + (get_hom2 l2)
 get_hom2 (LEMul u mu l) = (get_hom2 l) * u
 
 public export
-addLineExpr : LineExpr -> LineExpr -> LineExpr
-addLineExpr x y = 
+addLineTerm : LineTerm -> LineTerm -> LineTerm
+addLineTerm x y = 
        let q1 = get_hom1 x
            q2 = get_hom1 y
            q = q1+q2

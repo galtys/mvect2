@@ -168,22 +168,22 @@ record Line where
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
 public export
-data LineExprMultType = UnitPrice | Discount | MultQty | TaxMul
+data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 
-%runElab derive "LineExprMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
-data LineExpr : Type where
-     LEHom1 : (qty:TQty) -> LineExpr
-     LETaxCode : (taxcode:TaxCode) -> LineExpr -> LineExpr
-     LEAdd : (l1:LineExpr) -> (l2:LineExpr) -> LineExpr
-     LEMul : (u:TQty) -> (mu:LineExprMultType) -> (l:LineExpr) -> LineExpr
+data LineTerm : Type where
+     LEHom1 : (qty:TQty) -> LineTerm
+     LETaxCode : (taxcode:TaxCode) -> LineTerm -> LineTerm
+     LEAdd : (l1:LineTerm) -> (l2:LineTerm) -> LineTerm
+     LEMul : (u:TQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
 
-%runElab derive "LineExpr" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+%runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
 Product2 : Type
-Product2 = (ProdKey2, LineExpr)
+Product2 = (ProdKey2, LineTerm)
 
 --, and delivery cost that depend on subtotals     
 public export
