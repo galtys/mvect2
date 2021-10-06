@@ -25,10 +25,6 @@ is_whole (MkQr a b) = if (b==1) then True else False
 fromWhole : Integer -> QtyRatio
 fromWhole x = MkQr x 1
 
-public export
-Show QtyRatio where
-    show q@(MkQr num den) = if (is_whole q) then (show num) else (show num)++"/"++(show den)
-
 %runElab derive "QtyRatio" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 --public export
@@ -39,10 +35,18 @@ eq_qtyratio (MkQr a b) (MkQr c d) = ((a*d)==(b*c))
 add_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
 add_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) then (MkQr (a+c) b) else (MkQr (a*d+c*b) (b*d) )
 
+--public export
+abs_qtyratio : QtyRatio -> QtyRatio
+abs_qtyratio (MkQr num den) = MkQr (abs num) (abs den)
+
 
 --public export
 sub_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
-sub_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) then (MkQr (a-c) b) else (MkQr (a*d - c*b) (b*d) )
+sub_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) && (b==d) then (MkQr (a-c) b) 
+                             else let ad=a*d
+                                      cb=c*b
+                                      ret = (MkQr (ad-cb) (b*d) ) in ret
+
 
 
 public export
@@ -78,6 +82,14 @@ eval_qtyratio (MkQr x y) = if ( (x==0) || (y==0)) then MkQr x y
                     g = test_gcd xi yi
                     xret = int2qty (div xi g) 
                     yret = int2qty (div yi g) in MkQr xret yret
+public export
+Show QtyRatio where
+    show q@(MkQr n d) = 
+                  let eq = eval_qtyratio q
+                      x=show $ num eq
+                      y=show $ den eq
+                      ret = x++"/"++y in if is_whole eq then (show x)  else ret
+
 
 public export
 Eq QtyRatio where
@@ -102,19 +114,19 @@ Ord QtyRatio where
 
 public export
 Num QtyRatio where
-   (+) x y = eval_qtyratio $ add_qtyratio x y
-   (*) x y = eval_qtyratio $  mul_qtyratio x y
+   (+) x y = {-eval_qtyratio $-} add_qtyratio x y
+   (*) x y = {-eval_qtyratio $-}  mul_qtyratio x y
    fromInteger = fromWhole
 
 public export
 Neg QtyRatio where
-   (-) x y = eval_qtyratio $ sub_qtyratio x y
-   negate (MkQr x y) = eval_qtyratio (MkQr ((-1)*x) y )
+   (-) x y = {-eval_qtyratio $-} sub_qtyratio x y
+   negate (MkQr x y) = {-eval_qtyratio-} (MkQr ((-1)*x) y )
    
 public export
 Fractional QtyRatio where
-   (/) x y = eval_qtyratio $ div_qtyratio x y
-   recip x = eval_qtyratio $ recip_qtyratio x
+   (/) x y = {-eval_qtyratio $-} div_qtyratio x y
+   recip x = {-eval_qtyratio $-} recip_qtyratio x
 
 public export
 d1 : Double
@@ -155,7 +167,6 @@ TQty = T QtyRatio
 public export
 percent : Qty -> TQty
 percent x = if (x >= 0) then (Debit (MkQr (100-x) 100)) else (Credit (MkQr (100-x) 100))
-
 
 show_TQty : TQty -> String
 show_TQty (Debit x) = show x
@@ -206,8 +217,8 @@ eq_TQty : TQty -> TQty -> Bool
 eq_TQty  x y = ((dr x)+(cr y)) == ((cr x)+(dr y))
 
 negate_TQty : TQty -> TQty
-negate_TQty (Debit x) = Credit x
-negate_TQty (Credit x) = Debit x
+negate_TQty (Debit x) = if (x>0) then Credit (abs_qtyratio x) else Debit (abs_qtyratio x)
+negate_TQty (Credit x) = if (x>0) then Debit (abs_qtyratio x) else Credit (abs_qtyratio x)
 
 sub_TQty : TQty -> TQty -> TQty
 sub_TQty x y = x + (negate_TQty y)

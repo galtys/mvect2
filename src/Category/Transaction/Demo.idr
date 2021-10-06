@@ -89,6 +89,10 @@ test_demo = do
   
 --  putStrLn (show eval_qtyratio (r1*r2) )
   --printLn $ show $ eval_qtyratio (r1*r2)
+  printLn PC20
+  printLn one5
+  printLn inc20_const
+  
   printLn so1_l1
   
   printLn l1_t
