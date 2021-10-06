@@ -41,12 +41,14 @@ abs_qtyratio (MkQr num den) = MkQr (abs num) (abs den)
 
 
 --public export
+
+{-
 sub_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
 sub_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) && (b==d) then (MkQr (a-c) b) 
                              else let ad=a*d
                                       cb=c*b
                                       ret = (MkQr (ad-cb) (b*d) ) in ret
-
+-}
 
 
 public export
@@ -118,11 +120,13 @@ Num QtyRatio where
    (*) x y = {-eval_qtyratio $-}  mul_qtyratio x y
    fromInteger = fromWhole
 
+{-
 public export
 Neg QtyRatio where
    (-) x y = {-eval_qtyratio $-} sub_qtyratio x y
    negate (MkQr x y) = {-eval_qtyratio-} (MkQr ((-1)*x) y )
-   
+-}
+ 
 public export
 Fractional QtyRatio where
    (/) x y = {-eval_qtyratio $-} div_qtyratio x y
@@ -181,14 +185,17 @@ Show TQty where
 add_TQty : TQty -> TQty -> TQty 
 add_TQty (Debit a) (Debit b) = Debit (a+b)
 add_TQty (Credit a) (Credit b) = Credit (a+b)
-add_TQty (Debit a) (Credit b) = if (a<b) then Credit (b-a)
-                                  else if (a>b) then Debit (a-b) 
-                                       else Debit 0
-add_TQty (Credit a) (Debit b) = if (a<b) then Debit (b-a)
-                                  else if (a>b) then Credit (a-b) 
-                                       else Debit 0
-
-
+add_TQty (Debit (MkQr a1 b1)) (Credit (MkQr a2 b2)) = 
+                let x = a1*b2 - a2*b1
+                    y = b1*b2
+                    ax = abs x
+                    n = if (x<0) then Credit (MkQr ax y) else Debit (MkQr ax y) in n
+add_TQty (Credit (MkQr a1 b1)) (Debit (MkQr a2 b2)) = 
+                let x = a2*b1 - a1*b2
+                    y = b1*b2
+                    ax = abs x
+                    n = if (x<0) then Credit (MkQr ax y) else Debit (MkQr ax y) in n
+                    
 mul_TQty : TQty -> TQty -> TQty
 mul_TQty (Debit x) (Debit y) = Debit (x*y)
 mul_TQty (Debit x) (Credit y) = Credit (x*y)
@@ -217,8 +224,8 @@ eq_TQty : TQty -> TQty -> Bool
 eq_TQty  x y = ((dr x)+(cr y)) == ((cr x)+(dr y))
 
 negate_TQty : TQty -> TQty
-negate_TQty (Debit x) = if (x>0) then Credit (abs_qtyratio x) else Debit (abs_qtyratio x)
-negate_TQty (Credit x) = if (x>0) then Debit (abs_qtyratio x) else Credit (abs_qtyratio x)
+negate_TQty (Debit x) = (Credit x) --if (x>0) then Credit (abs_qtyratio x) else Debit (abs_qtyratio x)
+negate_TQty (Credit x) = Debit x --if (x>0) then Debit (abs_qtyratio x) else Credit (abs_qtyratio x)
 
 sub_TQty : TQty -> TQty -> TQty
 sub_TQty x y = x + (negate_TQty y)

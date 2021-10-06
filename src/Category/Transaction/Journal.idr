@@ -20,11 +20,11 @@ PC20 = (percent 20)
 
 public export
 one5 : TQty
-one5 = Debit (MkQr 1 5)   --1 - PC20
+one5 = 1 - PC20
 
 public export
 inc20_const : TQty
-inc20_const = Debit (MkQr 1 6) --(  1/(1+one5) ) * one5
+inc20_const = (  1/(1+one5) ) * one5
 
 public export
 taxRatio : TaxCode -> TQty
