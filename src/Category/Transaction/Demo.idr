@@ -64,7 +64,7 @@ so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder)
 
 public export
 so1_l1 : Line
-so1_l1 = MkLine "p1" 5 "£" 31 (percent 0) INC20
+so1_l1 = MkLine "p1" 5 "£" 120 (percent 0) INC20
 
 public export
 l1_t : LineTerm

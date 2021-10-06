@@ -14,8 +14,11 @@ import Data.Ratio
 
 %language ElabReflection
 
+one5 : TQty
+one5 = Debit ( (MkQr 1 5) )
+
 inc20_const : TQty
-inc20_const = Debit ( ((MkQr 1 1)+(MkQr 1 5)) * (MkQr 1 5) )
+inc20_const = (  1/(1+one5) ) * one5
 
 public export
 taxRatio : TaxCode -> TQty
