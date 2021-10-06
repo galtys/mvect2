@@ -28,11 +28,9 @@ pricelist_f1 pl (px,qty) =  case (lookup px (pricelist_1'_map pl) ) of
                                      Just price => ("£",qty*price) 
                                      Nothing => ("£", 0) 
 
-
 public export
 fromLine : Line -> LineTerm
 fromLine l = (LDiscount (discount l) (LHom2 ((currency l, price_unit l))  (LHom1 (((sku l),(qty l))) ) ) )
-
 
 public export
 fromLineTerm : LineTerm -> LineExpr
@@ -41,14 +39,25 @@ fromLineTerm (LHom2 (cy,p_u) x) = LEMul p_u UnitPrice (fromLineTerm x)
 fromLineTerm (LDiscount discount x) = LEMul discount Discount (fromLineTerm x)
 
 public export
+get_line : Line -> Product2
+get_line l =
+   let h1=LEHom1 (qty l)
+       pk2 = MkProdK2 (sku l) (currency l)
+       p = LEMul (price_unit l) UnitPrice h1
+       d = LEMul (discount l) Discount p 
+       t = LETaxCode (tax_code l) d in (pk2,t)
+
+public export
 get_hom1 : LineExpr -> TQty
 get_hom1 (LEHom1 qty) = qty
+get_hom1 (LETaxCode tc l) = (get_hom1 l)
 get_hom1 (LEAdd l1 l2) = (get_hom1 l1) + (get_hom1 l2)
 get_hom1 (LEMul u mu l) = get_hom1 l
 
 public export
 get_hom2 : LineExpr -> TQty 
 get_hom2 (LEHom1 qty) = 1
+get_hom2 (LETaxCode tc l) = (get_hom2 l)
 get_hom2 (LEAdd l1 l2) = (get_hom2 l1) + (get_hom2 l2)
 get_hom2 (LEMul u mu l) = (get_hom2 l) * u
 

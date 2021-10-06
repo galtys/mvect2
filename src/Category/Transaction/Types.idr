@@ -99,6 +99,8 @@ record ProdKey2 where
     constructor MkProdK2
     keyfrom : ProdKey
     keyto : ProdKey
+
+%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
     
 public export
 Product : Type
@@ -192,13 +194,14 @@ data LineTQty : Type where
 %runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
-data LineExprMultType = UnitPrice | Discount | MultQty
+data LineExprMultType = UnitPrice | Discount | MultQty | TaxMul
 
 %runElab derive "LineExprMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
 data LineExpr : Type where
      LEHom1 : (qty:TQty) -> LineExpr
+     LETaxCode : (taxcode:TaxCode) -> LineExpr -> LineExpr
      LEAdd : (l1:LineExpr) -> (l2:LineExpr) -> LineExpr
      LEMul : (u:TQty) -> (mu:LineExprMultType) -> (l:LineExpr) -> LineExpr
 
@@ -212,7 +215,7 @@ Product2 = (ProdKey2, LineExpr)
 --, and delivery cost that depend on subtotals     
 public export
 data OrderTerm : Type where
-     ChO : Journal -> (List LineTerm) -> OrderTerm
+     ChO : Journal -> (List Product2) -> OrderTerm
      Sub : Journal -> OrderTerm -> OrderTerm
 --     DeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm 
 -- delivery line pricelist can depend on subtotals, which is in OrderTerm 

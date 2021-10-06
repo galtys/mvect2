@@ -66,21 +66,23 @@ public export
 so1_l1 : Line
 so1_l1 = MkLine "p1" 5 "£" INC20 31 (percent 0)
 
+{-
 public export 
 so1_lt1 : LineTerm
 so1_lt1 = fromLine so1_l1
-
-public export
-so1 : OrderTerm
-so1 = ChO so1_j [so1_lt1] 
+-}
 
 public export
 l1_e : LineExpr
-l1_e = fromLineTerm so1_lt1
+l1_e = snd $ get_line so1_l1
 
 public export
 l1_e_2 : LineExpr
 l1_e_2 = (addLineExpr l1_e l1_e) 
+
+public export
+so1 : OrderTerm
+so1 = ChO so1_j [get_line so1_l1] 
 
 public export
 test_demo : IO ()
@@ -91,9 +93,6 @@ test_demo = do
   --printLn $ show $ eval_qtyratio (r1*r2)
   printLn so1_l1
   
-  --printLn "\n"
-
-  printLn so1_lt1
   printLn l1_e
   printLn (get_hom1 l1_e, get_hom2 l1_e)
   printLn (get_hom1 l1_e_2, get_hom2 l1_e_2)
