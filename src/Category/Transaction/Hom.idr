@@ -54,14 +54,10 @@ th12 : Hom1
 th12 = [ Debit ("GBP",38) ]
 
 
-add : (QtyRatio,QtyRatio) -> (QtyRatio,QtyRatio) -> (QtyRatio,QtyRatio)
-add (a,b) (c,d) = (a+c, b+d)
-
-
-merge_item_into : (SortedMap ProdKey QtyRatio) -> (ProdKey, QtyRatio) -> (SortedMap ProdKey QtyRatio)
+merge_item_into : (SortedMap ProdKey TQty) -> (ProdKey, TQty) -> (SortedMap ProdKey TQty)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
-fromProductList : List Product -> SortedMap ProdKey QtyRatio
+fromProductList : List Product -> SortedMap ProdKey TQty
 fromProductList xs = foldl merge_item_into empty xs
 
 evalProductList : List Product -> List Product
@@ -75,8 +71,8 @@ getKey (Credit (k,v)) = k
 
 public export
 getVal : TProduct -> TQty
-getVal (Debit (k,v)) = Debit v
-getVal (Credit (k,v)) = Credit v
+getVal (Debit (k,v)) = v
+getVal (Credit (k,v)) = v
 
 
 
@@ -94,8 +90,22 @@ merge_item_into2 acc x = case (lookup (getKey x) acc) of
                              Nothing => (insert (getKey x) x acc)
                              Just v => case ( (getVal v)+(getVal x) ) of 
                                            Debit 0 => (delete (getKey x) acc)
+                                           Debit nv => (insert (getKey x) (Debit (getKey x, (Debit nv)) )  acc)
+                                           
+                                           Credit nv => (insert (getKey x) (Credit (getKey x,(Credit nv) ) )  acc)
+
+{-
+partial
+public export
+merge_item_into3 : (SortedMap ProdKey Product) -> Product -> (SortedMap ProdKey Product)
+merge_item_into3 acc x = case (lookup (getKey x) acc) of
+                             Nothing => (insert (getKey x) x acc)
+                             Just v => case ( (getVal v)+(getVal x) ) of 
+                                           Debit 0 => (delete (getKey x) acc)
                                            Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
                                            Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
+-}
+
 partial
 public export
 merge_as_union : (SortedMap ProdKey TProduct) -> TProduct -> (SortedMap ProdKey TProduct)
@@ -103,8 +113,8 @@ merge_as_union acc x = case (lookup (getKey x) acc) of
                              Nothing => acc
                              Just v => case (unTQty (getVal v) (getVal x) ) of 
                                            Debit 0 => (delete (getKey x) acc)
-                                           Debit nv => (insert (getKey x) (Debit (getKey x,nv) )  acc)
-                                           Credit nv => (insert (getKey x) (Credit (getKey x,nv) )  acc)
+                                           Debit nv => (insert (getKey x) (Debit (getKey x, Debit nv) )  acc)
+                                           Credit nv => (insert (getKey x) (Credit (getKey x,Credit nv) )  acc)
 
 public export                             
 fromTProductList : List TProduct -> SortedMap ProdKey TProduct

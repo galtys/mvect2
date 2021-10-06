@@ -18,10 +18,6 @@ record QtyRatio where
    num : Qty
    den : Qty
 
-public export
-percent : Qty -> QtyRatio
-percent x = (MkQr (100-x) 100)
-
 ||| for QtyRatio
 is_whole : QtyRatio -> Bool
 is_whole (MkQr a b) = if (b==1) then True else False
@@ -156,6 +152,11 @@ public export
 TQty : Type
 TQty = T QtyRatio
 
+public export
+percent : Qty -> TQty
+percent x = if (x >= 0) then (Debit (MkQr (100-x) 100)) else (Credit (MkQr (100-x) 100))
+
+
 show_TQty : TQty -> String
 show_TQty (Debit x) = show x
 show_TQty (Credit x) = "M"++(show x)++"M"
@@ -289,3 +290,42 @@ Ord EQty where
      compare x y = compare (eval x) (eval y)
      
 %runElab derive "EQty" [Generic, Meta, Show, ToJSON,FromJSON]     
+
+
+||| Decimal number
+
+Precision : Type
+Precision = Integer
+
+DEFAULT_PRECISION : Precision
+DEFAULT_PRECISION = 2
+
+DECIMAL_BASE : Qty
+DECIMAL_BASE = 10
+
+getDen : Precision -> Qty
+getDen n = foldl (*) 1 [DECIMAL_BASE | x <-[1..n] ]
+
+DEFAULT_DEN : Qty
+DEFAULT_DEN = (getDen DEFAULT_PRECISION)
+
+public export
+record Decimal where
+  constructor MKDec
+  ||| True Value, val = dec+err
+  val : TQty
+  
+  ||| Decimal Value with denominator den
+  dec : TQty
+  
+  ||| Error
+  err : TQty  
+--  ||| Denominator of num
+--  den   : TQty
+
+add_Decimal : Decimal -> Decimal -> Decimal
+add_Decimal (MKDec val dec err ) (MKDec x y z) = MKDec (val+x) (dec+y) (err+z)
+
+sub_Decimal : Decimal -> Decimal -> Decimal
+sub_Decimal (MKDec val dec err ) (MKDec x y z) = MKDec (val-x) (dec-y) (err-z)
+

@@ -97,7 +97,7 @@ ProdKey = String
 
 public export
 Product : Type
-Product = (ProdKey, QtyRatio)
+Product = (ProdKey, TQty)
 
 public export
 TProduct : Type
@@ -152,14 +152,14 @@ public export
 record Line where
   constructor MkLine
   sku : ProdKey
-  qty : QtyRatio
+  qty : TQty
   --Unit of Measure
   --company pricelist is input  , "price_unit" modifies it, as a multiple
   currency : ProdKey   
   tax_code : TaxCode
   --reference to List Price  
-  price_unit : QtyRatio --together with discount,turn it into a function Qty->Qty
-  discount : QtyRatio   --idea, in amendments, fix price_unit and let the user change the discount 
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount 
   --SubTotal ... calculated
 
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
@@ -172,7 +172,7 @@ data LineTerm : Type where
      --LRef : Journal -> LineTerm --DocType Pricelist
      --LPList : Hom2_f' -> LineTerm -> LineTerm --use Hom2' instead of Hom2, elab will work better?, 
      LHom2 : (price_unit:TProduct) -> LineTerm -> LineTerm -- (currency and unit price)
-     LDiscount :  (discount:QtyRatio) -> LineTerm -> LineTerm          
+     LDiscount :  (discount:TQty) -> LineTerm -> LineTerm          
      --LCh : Hom1 -> LineTerm -> LineTerm --To be able to express dependence on base pricelist, user can alter price this way     
      --LTax : LineTerm -> LineTerm -- calc tax based on order lines        
 --With Ref erence at the bottom of the recursive structure, each LineTerm can be referenced by that journal, used for pricelist        
@@ -182,7 +182,7 @@ public export
 data LineTQty : Type where
      LTQHom1 : (qty:TQty) -> LineTQty
      LTQHom2 : (price_unit:TQty) -> LineTQty -> LineTQty
-     LTQDiscount :  (discount:QtyRatio) -> LineTQty -> LineTQty
+     LTQDiscount :  (discount:TQty) -> LineTQty -> LineTQty
 %runElab derive "LineTQty" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 
