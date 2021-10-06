@@ -113,11 +113,11 @@ FromJSON TProduct where
 
 public export
 Hom1 : Type
-Hom1 = List TProduct
+Hom1 = List Product
 
 public export
 Hom2_f : Type
-Hom2_f = (TProduct -> TProduct)
+Hom2_f = (Product -> Product)
 
 public export
 Hom2_f' : Type

@@ -6,7 +6,7 @@ import Crypto.Hash.SHA256
 
 import Category.Transaction.Types
 import Category.Transaction.Hom
-import Category.Transaction.Journal
+--import Category.Transaction.Journal
 --import Rational.NonZeroQty
 import Data.Ratio
 
@@ -72,13 +72,15 @@ main = do
   
 --  putStrLn (show eval_qtyratio (r1*r2) )
   --printLn $ show $ eval_qtyratio (r1*r2)
-  printLn so1_l1
+--  printLn so1_l1
   
   --printLn "\n"
+  {-
   printLn so1_lt1
   printLn $ fromLineTerm so1_lt1
   printLn ( (get_hom1 so1_lt1 ))  
   printLn (mufum (get_hom1 so1_lt1 ))
+  -}
   
 {-  
   p_mgr <- get_and_malloc__mg_mgr
