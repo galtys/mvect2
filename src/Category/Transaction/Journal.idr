@@ -24,7 +24,7 @@ public export
 taxRatio : TaxCode -> TQty
 taxRatio ZeroVAT = 0
 taxRatio INC20 = inc20_const
-taxRatio EX20 = Debit (MkQr 1 5)
+taxRatio EX20 = one5
 
 public export
 jref : Journal -> Journal
