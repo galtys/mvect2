@@ -72,8 +72,10 @@ int2qty x = cast x
 %foreign "C:test_gcd,libmongoose"
 test_gcd : Int -> Int -> Int
 
+{-
 %foreign "C:test_lcm,libmongoose"
 test_lcm : Int -> Int -> Int
+-}
 
 --public export
 eval_qtyratio : QtyRatio -> QtyRatio
@@ -97,10 +99,11 @@ public export
 Eq QtyRatio where
    (==) = eq_qtyratio
    --(/=) x y = (not (x==y))
-   
+
+{-      
 public export
 Ord QtyRatio where
-   compare (MkQr a b) (MkQr c d) = if ( ((b==1) && (d==1)) || ((b==0) || (d==0)) )then (compare a b)     
+   compare (MkQr a b) (MkQr c d) = if (b==d) || ((b==1) && (d==1)) || ((b==0) || (d==0)) then (compare a c)
            else
                 let xa = qty2int a
                     xc = qty2int c
@@ -112,7 +115,13 @@ Ord QtyRatio where
                     nc = (div bd_lcm xc)
                     in if (na==nc) then EQ
                           else if (na>nc) then LT else GT
-
+-}
+public export
+Ord QtyRatio where
+   compare (MkQr a1 b1) (MkQr a2 b2) = 
+          let a1b2 = a1*b2
+              a2b1 = a2*b1 in compare a1b2 a2b1
+              -- b1b2 = b1*b2 same as b2*b1
 
 public export
 Num QtyRatio where
