@@ -86,22 +86,7 @@ public export
 FromJSON TQty where
   fromJSON = genFromJSON' id toLower TwoElemArray
 
-public export
-ProdKey : Type
-ProdKey = String
-
-public export
-record ProdKey2 where
-    constructor MkProdK2
-    keyfrom : ProdKey
-    keyto : ProdKey
-
-%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-    
-public export
-Product : Type
-Product = (ProdKey, TQty)
-
+{-
 public export
 TProduct : Type
 TProduct = T Product
@@ -113,10 +98,7 @@ ToJSON TProduct where
 public export
 FromJSON TProduct where
   fromJSON = genFromJSON' id toLower TwoElemArray
-
-public export
-Hom1 : Type
-Hom1 = List Product
+-}
 
 {-
 public export
@@ -127,9 +109,6 @@ public export
 Hom2_f' : Type
 Hom2_f' = List Product   --(ProdKey,TQty), was TProduct?
 
-public export
-Hom2 : Type
-Hom2 = (Hom1 -> Hom1)
 
 public export
 Hom2' : Type
@@ -152,6 +131,9 @@ data Term : Type where
      --Adj : Journal -> Term -> Term -> Term
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 -}
+public export
+ProdKey : Type
+ProdKey = String
 
 public export
 record Line where
@@ -169,6 +151,22 @@ record Line where
 
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
+
+public export
+record LineExt where
+  constructor MkLineExt
+  sku : ProdKey
+  qty : TQty
+  currency : ProdKey   
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
+  tax_code : List TaxCode
+
+%runElab derive "LineExt" [Generic, Meta, Show, Eq]
+--%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
+
+
+
 public export
 data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 
@@ -184,8 +182,30 @@ data LineTerm : Type where
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
+record ProdKey2 where
+    constructor MkProdK2
+    keyfrom : ProdKey
+    keyto : ProdKey
+
+%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+public export
+Product : Type
+Product = (ProdKey, TQty)
+    
+public export
 Product2 : Type
 Product2 = (ProdKey2, LineTerm)
+
+public export
+Hom1 : Type
+Hom1 = List Product
+
+public export
+Hom2 : Type
+Hom2 = List Product2 --was (Hom1->Hom1)
+
+
 
 --, and delivery cost that depend on subtotals     
 public export

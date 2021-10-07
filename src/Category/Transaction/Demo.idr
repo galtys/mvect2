@@ -127,9 +127,9 @@ test_demo = do
   printLn l1_t
   printLn l1_tax
   
-  printLn (get_hom1 l1_t, get_hom2 l1_t)
-  printLn (get_hom1 l1_t_2, get_hom2 l1_t_2)
+  printLn (get_hom1_TQty l1_t, get_hom2_TQty l1_t)
+  printLn (get_hom1_TQty l1_t_2, get_hom2_TQty l1_t_2)
   printLn "tax line:"
-  printLn (get_hom1 l1_tax, get_hom2 l1_tax)
+  printLn (get_hom1_TQty l1_tax, get_hom2_TQty l1_tax)
 
   
