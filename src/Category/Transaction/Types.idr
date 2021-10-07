@@ -188,11 +188,18 @@ Product2 = (ProdKey2, LineTerm)
 --, and delivery cost that depend on subtotals     
 public export
 data OrderTerm : Type where
-     ChO : Journal -> (List Product2) -> OrderTerm
-     Sub : OrderTerm -> OrderTerm
---     DeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm 
+     WHom2 : (List Product2) -> OrderTerm
+     WSub : Journal -> OrderTerm -> OrderTerm
+     WDeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm
 -- delivery line pricelist can depend on subtotals, which is in OrderTerm 
 -- in this case, delivery line is just an DeliveryOption selector
-     Tax : OrderTerm -> OrderTerm
+     WTax : Journal -> OrderTerm -> OrderTerm     
+     LHom1 : Hom1 -> OrderTerm
+     LMove : Journal -> OrderTerm -> OrderTerm
+     LCo : Journal -> OrderTerm -> OrderTerm -> OrderTerm
+     LPro : Journal -> OrderTerm -> OrderTerm -> OrderTerm
+     Adj : OrderTerm -> OrderTerm -> OrderTerm
+     
+     
 
 %runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
