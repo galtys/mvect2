@@ -26,9 +26,11 @@ public export
 pricelist : List (ProdKey,TQty)
 pricelist = (zip skus prices)
 
+{-
 public export
 Pricelist : Hom2
 Pricelist xs = map (pricelist_f1 pricelist) xs
+-}
 
 public export
 pricelist_journal : Journal
@@ -37,6 +39,33 @@ pricelist_journal = jref (JDate 0 (JDoc "plist") PriceList)
 --public export 
 --pricelist_term : LineTerm
 --pricelist_term = LPList pricelist_1' (LRef pricelist_journal)
+
+public export
+th11 : Hom1
+th11 = [ ("p1",4), ("p2",3), ("p1", 9) ]
+
+public export
+th11L : List Product
+th11L = th11
+
+
+public export
+th11' : Hom1
+th11' = [ ("p1",3), ("p1", 6) ]
+
+
+public export
+th12 : Hom1
+th12 = [ ("GBP",38) ]
+
+
+public export
+th3 : Hom1
+th3 = diffHom1 th11 th12
+
+
+
+
 
 public export
 pjb : Account

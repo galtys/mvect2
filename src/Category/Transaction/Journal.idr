@@ -36,6 +36,7 @@ public export
 jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
+{- Keep
 public export
 pricelist_1'_map : Hom2_f' -> SortedMap ProdKey TQty
 pricelist_1'_map xs= fromList xs --pricelist_1'
@@ -45,6 +46,7 @@ pricelist_f1 : Hom2_f' -> Hom2_f
 pricelist_f1 pl (px,qty) =  case (lookup px (pricelist_1'_map pl) ) of 
                                      Just price => ("£",qty*price) 
                                      Nothing => ("£", 0) 
+-}
 
 public export
 get_line : Line -> Product2

@@ -11,32 +11,14 @@ import Data.Ratio
 
 %language ElabReflection
 
+{-
 public export
 get_hom1 : Term -> List Hom1
 get_hom1 (Ref j1) = []
 get_hom1 (Ch j1  h1) = [h1]
 get_hom1 (Pro j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
-
-
-public export
-th11 : Hom1
-th11 = [ ("p1",4), ("p2",3), ("p1", 9) ]
-
-public export
-th11L : List Product
-th11L = th11
-
-
-public export
-th11' : Hom1
-th11' = [ ("p1",3), ("p1", 6) ]
-
-
-public export
-th12 : Hom1
-th12 = [ ("GBP",38) ]
-
+-}
 
 unTQty : TQty -> TQty -> TQty 
 unTQty (Debit a) (Debit b) = Debit (min a b)
@@ -101,9 +83,4 @@ evDiffHom1 x y = (evalHom1 (diffHom1 x y))
 public export
 eqHom1 : Hom1 -> Hom1 -> Bool
 eqHom1 x y = (evDiffHom1 x y) == id_hom1
-
-
-public export
-th3 : Hom1
-th3 = diffHom1 th11 th12
 

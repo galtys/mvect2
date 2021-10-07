@@ -118,6 +118,7 @@ public export
 Hom1 : Type
 Hom1 = List Product
 
+{-
 public export
 Hom2_f : Type
 Hom2_f = (Product -> Product)  --was TProduct?
@@ -134,11 +135,12 @@ public export
 Hom2' : Type
 Hom2' = (Hom1,Hom1)
 
-
 public export
 TermPath : Type
 TermPath = List Journal
-  
+-}
+
+{-
 public export
 data Term : Type where
      Ref : Journal -> Term
@@ -148,8 +150,8 @@ data Term : Type where
      Pro : Journal -> Term -> Term -> Term
      Co : Journal ->  Term -> Term -> Term
      --Adj : Journal -> Term -> Term -> Term
-
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
+-}
 
 public export
 record Line where
@@ -191,9 +193,8 @@ data OrderTerm : Type where
      WHom2 : (List Product2) -> OrderTerm
      WSub : Journal -> OrderTerm -> OrderTerm
      WDeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm
--- delivery line pricelist can depend on subtotals, which is in OrderTerm 
--- in this case, delivery line is just an DeliveryOption selector
-     WTax : Journal -> OrderTerm -> OrderTerm     
+     WTax : Journal -> OrderTerm -> OrderTerm
+     
      LHom1 : Hom1 -> OrderTerm
      LMove : Journal -> OrderTerm -> OrderTerm
      LCo : Journal -> OrderTerm -> OrderTerm -> OrderTerm
