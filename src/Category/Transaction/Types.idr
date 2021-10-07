@@ -62,16 +62,20 @@ CalcSource : Type
 CalcSource = String --sha256 of the source journal, and calc method?
 
 public export
-data DocType = SaleOrder | PurchaseOrder | Delivery | Return |  Reservation | Internal | Payment | Refund | Other |PriceList
+data DocType = SaleOrder | PurchaseOrder |PriceList
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+public export
+Date : Type
+Date = Integer
 
 public export
 data Journal : Type where 
  JOrder : Account -> Account -> Account -> Account -> Journal
  JAcc :    Account -> Account -> Journal
 -- MkCalc : CalcSource -> Journal
- JDate:  Integer -> Journal -> DocType -> Journal
+ JDate:  Date -> Journal -> DocType -> Journal
  JDoc :  String -> Journal
  JRef :  H256 -> Journal
  
@@ -205,18 +209,31 @@ public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
+
 --, and delivery cost that depend on subtotals     
 public export
+data MoveType = Delivery  | Return | Reservation | Internal | Payment | Refund 
+
+%runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+public export
 data OrderTerm : Type where
-     WHom2 : (h2:Hom2) -> OrderTerm
-     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderTerm) -> OrderTerm
+     WHom2 : (date:Date) -> (h2:Hom2) -> OrderTerm
+--     WSub : (sub:OrderTerm) -> OrderTerm
+         
+     LHom1 : (date:Date) -> (mv:MoveType) -> (h1:Hom1) -> OrderTerm
+--     LCo : OrderTerm -> OrderTerm -> OrderTerm
+--     LPro :OrderTerm -> OrderTerm -> OrderTerm
+     
+     Add : (own:OrderTerm) -> (loc:OrderTerm) -> OrderTerm
+          
+--     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderTerm) -> OrderTerm  --delivery line is calculated, merging is not needed
 --     WSub : Journal -> OrderTerm -> OrderTerm
 
 {-          
      WDeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm
      WTax : Journal -> OrderTerm -> OrderTerm
      
-     LHom1 : Hom1 -> OrderTerm
      LMove : Journal -> OrderTerm -> OrderTerm
      LCo : Journal -> OrderTerm -> OrderTerm -> OrderTerm
      LPro : Journal -> OrderTerm -> OrderTerm -> OrderTerm

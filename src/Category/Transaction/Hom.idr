@@ -175,6 +175,7 @@ fromMaybeTQty : Maybe TQty -> TQty
 fromMaybeTQty Nothing = 0
 fromMaybeTQty (Just x) = x
 
+public export
 fromProduct2 : Product2 -> LineExt
 fromProduct2 (p2,lt) =
           let lt_tc = get_tax_codes lt

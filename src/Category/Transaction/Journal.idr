@@ -19,22 +19,64 @@ jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
 public export
-getWHom2 : OrderTerm -> Hom2
-getWHom2 (WHom2 h2) = h2
-getWHom2 (WDeliveryLine delivery subtotal) = getWHom2 subtotal
+getHomW : OrderTerm ->  List (Date,Hom2)
+getHomW (WHom2 date h2) = [(date,h2)]
+--getHomW (WSub sub) = getHomW sub
+getHomW (LHom1 date mv h1) = []
+--getHomW (LCo x y) = []
+--getHomW (LPro x y) = []
+getHomW (Add x y ) = (getHomW x)++(getHomW y)
+
+getHomL : OrderTerm ->  MoveType -> List (Date,Hom1)
+getHomL (WHom2 date h2) m = [] 
+--getHomL (WSub sub) m = []
+getHomL (LHom1 date mv h1) m = if (mv==m) then [(date,h1)] else [] 
+--getHomL (LCo x y) m = []
+--getHomL (LPro x y) m = [] 
+getHomL (Add x y) m = (getHomL x m)++(getHomL y m)
+
+
+public export
+addOrderTerm : OrderTerm -> OrderTerm -> OrderTerm
+addOrderTerm x y = Add x y
+
+
+{-
+public export
+getWSub : OrderTerm -> List (Date,Hom2)
+getWSub (WHom2 d h2) = [(d,h2)]
+getWSub sub = getWSub sub
+
+--getWSub (WDeliveryLine delivery subtotal) = getWSub subtotal
+
 
 public export
 getDeliveryLine : OrderTerm -> LineTerm 
-getDeliveryLine (WHom2 h2) = LEHom1 0
+getDeliveryLine (WSub h2) = LEHom1 0
 getDeliveryLine (WDeliveryLine delivery subtotal) = delivery --? recursive?
+
+
 
 public export
 addOrderTerm : OrderTerm -> OrderTerm -> OrderTerm
 addOrderTerm x y = 
-      let h2 = evalProduct2List ( (getWHom2 x) ++ (getWHom2 y) )
+      let h2 = evalProduct2List ( (getWSub x) ++ (getWSub y) )
           d = (getDeliveryLine x) `addLineTerm` (getDeliveryLine y)
-          o = WDeliveryLine d (WHom2 h2) in o
+          o = WDeliveryLine d (WSub h2) in o
 
+
+merge_item_into3 : SortedMap Journal OrderTerm -> Term -> (SortedMap Journal OrderTerm)
+merge_item_into3 acc x = mergeWith (addOrderTerm) acc (fromList [x])
+
+
+fromJournalTermList : JournalTerm -> SortedMap Journal OrderTerm
+fromJournalTermList xs = foldl merge_item_into3 empty xs
+
+public export
+evalJournalTermList : JournalTerm -> JournalTerm
+evalJournalTermList xs = toList $ fromJournalTermList xs 
+
+-}
 
 {- Keep
 public export

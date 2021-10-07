@@ -105,8 +105,20 @@ l1_t_2 : LineTerm
 l1_t_2 = (addLineTerm l1_t l1_t) 
 
 public export
+so1_l1_prod2 : Product2
+so1_l1_prod2 = get_line so1_l1
+
+public export
+so1_l1_ext : LineExt
+so1_l1_ext = fromProduct2 so1_l1_prod2
+
+public export
 so1 : OrderTerm
-so1 = WHom2 [get_line so1_l1]
+so1 = (WHom2 1 [so1_l1_prod2])
+
+public export
+so1_jt : JournalTerm
+so1_jt = [ (so1_j,so1) ]
 
 public export
 test_demo : IO ()
@@ -120,7 +132,9 @@ test_demo = do
   printLn inc20_const
   
   printLn so1_l1
+  printLn so1_l1_ext
   
+  {-
   printLn l1_t
   printLn l1_tax
   
@@ -128,5 +142,5 @@ test_demo = do
   printLn (get_hom1_TQty l1_t_2, get_hom2_TQty l1_t_2)
   printLn "tax line:"
   printLn (get_hom1_TQty l1_tax, get_hom2_TQty l1_tax)
-
+  -}
   
