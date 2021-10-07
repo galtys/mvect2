@@ -209,42 +209,58 @@ public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
+public export
+record STD where
+  constructor MkSTD
+  sub : Hom2
+  tax : Hom2
+  dline : Hom2
+
+%runElab derive "STD" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]
 
 --, and delivery cost that depend on subtotals     
 public export
-data MoveType = Delivery  | Return | Reservation | Internal | Payment | Refund 
+data MoveType = Delivery  | Return | Reservation | Payment | Refund 
 
 %runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
-data OrderTerm : Type where
-     WHom2 : (date:Date) -> (h2:Hom2) -> OrderTerm
---     WSub : (sub:OrderTerm) -> OrderTerm
+data OrderEvent : Type where
+     WHom2 : (date:Date) -> (std:STD) -> OrderEvent
+     --?WDLine : (delivery:Hom2) -> (sub:OrderEvent) -> OrderEvent     
+--     WSub : (sub:OrderEvent) -> OrderEvent
          
-     LHom1 : (date:Date) -> (mv:MoveType) -> (h1:Hom1) -> OrderTerm
---     LCo : OrderTerm -> OrderTerm -> OrderTerm
---     LPro :OrderTerm -> OrderTerm -> OrderTerm
+     LHom1 : (date:Date) -> (mv:MoveType) -> (h1:Hom1) -> OrderEvent
+--     LCo : OrderEvent -> OrderEvent -> OrderEvent
+--     LPro :OrderEvent -> OrderEvent -> OrderEvent
      
-     Add : (own:OrderTerm) -> (loc:OrderTerm) -> OrderTerm
+--     Add : (own:OrderEvent) -> (loc:OrderEvent) -> OrderEvent
           
---     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderTerm) -> OrderTerm  --delivery line is calculated, merging is not needed
---     WSub : Journal -> OrderTerm -> OrderTerm
-
+--     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderEvent) -> OrderEvent  --delivery line is calculated, merging is not needed
+--     WSub : Journal -> OrderEvent -> OrderEvent
 {-          
-     WDeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm
-     WTax : Journal -> OrderTerm -> OrderTerm
-     
-     LMove : Journal -> OrderTerm -> OrderTerm
-     LCo : Journal -> OrderTerm -> OrderTerm -> OrderTerm
-     LPro : Journal -> OrderTerm -> OrderTerm -> OrderTerm
-     Adj : OrderTerm -> OrderTerm -> OrderTerm
--}     
-%runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+     WDeliveryLine : Journal -> LineTerm -> OrderEvent -> OrderEvent
+     WTax : Journal -> OrderEvent -> OrderEvent
+     LMove : Journal -> OrderEvent -> OrderEvent
+     LCo : Journal -> OrderEvent -> OrderEvent -> OrderEvent
+     LPro : Journal -> OrderEvent -> OrderEvent -> OrderEvent
+     Adj : OrderEvent -> OrderEvent -> OrderEvent
+-}
+
+%runElab derive "OrderEvent" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
-Term : Type
-Term = (Journal, OrderTerm)
+record OrderState where
+   constructor MkOrderState
+   events : List OrderEvent
+   totals : List STD
+   invoiced : List STD
+   backorder : Hom1
+   due : Hom1
+   
+   
+%runElab derive "OrderState" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]   
 
 public export
-JournalTerm : Type
-JournalTerm = List Term
+JournalOrderState : Type
+JournalOrderState = (Journal, OrderState)

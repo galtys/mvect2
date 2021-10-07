@@ -112,13 +112,18 @@ public export
 so1_l1_ext : LineExt
 so1_l1_ext = fromProduct2 so1_l1_prod2
 
-public export
-so1 : OrderTerm
-so1 = (WHom2 1 [so1_l1_prod2])
 
 public export
-so1_jt : JournalTerm
-so1_jt = [ (so1_j,so1) ]
+so1_std : STD
+so1_std = MkSTD [so1_l1_prod2] [] []
+
+public export
+so1 : OrderEvent
+so1 = (WHom2 1 so1_std)
+
+--public export
+--so1_jt : JournalOrderState
+--so1_jt = [ (so1_j, MkOrderState [so1] [] [] [] []  ) ]
 
 public export
 test_demo : IO ()

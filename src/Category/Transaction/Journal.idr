@@ -18,32 +18,34 @@ public export
 jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
+{-
+
 public export
-getHomW : OrderTerm ->  List (Date,Hom2)
+getHomW : OrderEvent ->  List (Date,Hom2)
 getHomW (WHom2 date h2) = [(date,h2)]
 --getHomW (WSub sub) = getHomW sub
 getHomW (LHom1 date mv h1) = []
 --getHomW (LCo x y) = []
 --getHomW (LPro x y) = []
-getHomW (Add x y ) = (getHomW x)++(getHomW y)
+--getHomW (Add x y ) = (getHomW x)++(getHomW y)
 
-getHomL : OrderTerm ->  MoveType -> List (Date,Hom1)
+getHomL : OrderEvent ->  MoveType -> List (Date,Hom1)
 getHomL (WHom2 date h2) m = [] 
 --getHomL (WSub sub) m = []
 getHomL (LHom1 date mv h1) m = if (mv==m) then [(date,h1)] else [] 
 --getHomL (LCo x y) m = []
 --getHomL (LPro x y) m = [] 
-getHomL (Add x y) m = (getHomL x m)++(getHomL y m)
+--getHomL (Add x y) m = (getHomL x m)++(getHomL y m)
+-}
 
-
-public export
-addOrderTerm : OrderTerm -> OrderTerm -> OrderTerm
-addOrderTerm x y = Add x y
+--public export
+--addOrderEvent : OrderEvent -> OrderEvent -> OrderEvent
+--addOrderEvent x y = Add x y
 
 
 {-
 public export
-getWSub : OrderTerm -> List (Date,Hom2)
+getWSub : OrderEvent -> List (Date,Hom2)
 getWSub (WHom2 d h2) = [(d,h2)]
 getWSub sub = getWSub sub
 
@@ -51,25 +53,25 @@ getWSub sub = getWSub sub
 
 
 public export
-getDeliveryLine : OrderTerm -> LineTerm 
+getDeliveryLine : OrderEvent -> LineTerm 
 getDeliveryLine (WSub h2) = LEHom1 0
 getDeliveryLine (WDeliveryLine delivery subtotal) = delivery --? recursive?
 
 
 
 public export
-addOrderTerm : OrderTerm -> OrderTerm -> OrderTerm
-addOrderTerm x y = 
+addOrderEvent : OrderEvent -> OrderEvent -> OrderEvent
+addOrderEvent x y = 
       let h2 = evalProduct2List ( (getWSub x) ++ (getWSub y) )
           d = (getDeliveryLine x) `addLineTerm` (getDeliveryLine y)
           o = WDeliveryLine d (WSub h2) in o
 
 
-merge_item_into3 : SortedMap Journal OrderTerm -> Term -> (SortedMap Journal OrderTerm)
-merge_item_into3 acc x = mergeWith (addOrderTerm) acc (fromList [x])
+merge_item_into3 : SortedMap Journal OrderEvent -> Term -> (SortedMap Journal OrderEvent)
+merge_item_into3 acc x = mergeWith (addOrderEvent) acc (fromList [x])
 
 
-fromJournalTermList : JournalTerm -> SortedMap Journal OrderTerm
+fromJournalTermList : JournalTerm -> SortedMap Journal OrderEvent
 fromJournalTermList xs = foldl merge_item_into3 empty xs
 
 public export
