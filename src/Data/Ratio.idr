@@ -72,20 +72,31 @@ int2qty x = cast x
 %foreign "C:test_gcd,libmongoose"
 test_gcd : Int -> Int -> Int
 
-{-
-%foreign "C:test_lcm,libmongoose"
-test_lcm : Int -> Int -> Int
--}
+public export
+gcd : Qty -> Qty -> Qty
+gcd a b = if (b==0) then a else gcd b (a `mod` b)
+
+
+--%foreign "C:test_lcm,libmongoose"
+--test_lcm : Int -> Int -> Int
 
 --public export
-eval_qtyratio : QtyRatio -> QtyRatio
-eval_qtyratio (MkQr x y) = if ( (x==0) || (y==0)) then MkQr x y
+eval_qtyratio_int : QtyRatio -> QtyRatio
+eval_qtyratio_int (MkQr x y) = if ( (x==0) || (y==0)) then MkQr x y
            else
                 let xi = qty2int x
                     yi = qty2int y
                     g = test_gcd xi yi
                     xret = int2qty (div xi g) 
                     yret = int2qty (div yi g) in MkQr xret yret
+
+eval_qtyratio : QtyRatio -> QtyRatio
+eval_qtyratio (MkQr x y) = if ( (x==0) || (y==0)) then MkQr x y
+           else
+                let g = gcd x y
+                    xret = (div x g) 
+                    yret = (div y g) in MkQr xret yret
+
 public export
 Show QtyRatio where
     show q@(MkQr n d) = 
@@ -98,7 +109,6 @@ Show QtyRatio where
 public export
 Eq QtyRatio where
    (==) = eq_qtyratio
-   --(/=) x y = (not (x==y))
 
 {-      
 public export
@@ -109,8 +119,7 @@ Ord QtyRatio where
                     xc = qty2int c
                     xb = qty2int b
                     xd = qty2int d                    
-                    bd_lcm = test_lcm xb xd
-                    
+                    bd_lcm = test_lcm xb xd                    
                     na = (div bd_lcm xa)
                     nc = (div bd_lcm xc)
                     in if (na==nc) then EQ
@@ -145,8 +154,6 @@ public export
 d1 : Double
 d1 = 43.32
 
---Eq, Ord
-
 public export
 r1 : QtyRatio
 r1 = (MkQr 7 4)
@@ -167,11 +174,8 @@ public export
 r0 : QtyRatio
 r0 = (MkQr 1 0)
 
-
-||| For TQty
 public export
 data T a = Debit a | Credit a
-
 
 public export
 TQty : Type
@@ -221,8 +225,6 @@ cr : TQty -> QtyRatio
 cr (Debit x) = 0
 cr (Credit x) = x
 
-
-
 public export
 Num TQty where
     (+) = add_TQty
@@ -238,7 +240,6 @@ negate_TQty (Credit x) = Debit x --if (x>0) then Debit (abs_qtyratio x) else Cre
 
 sub_TQty : TQty -> TQty -> TQty
 sub_TQty x y = x + (negate_TQty y)
-
 
 recip_TQty : TQty -> TQty
 recip_TQty (Debit x) = (Debit (recip_qtyratio x))

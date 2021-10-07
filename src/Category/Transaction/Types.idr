@@ -189,10 +189,10 @@ Product2 = (ProdKey2, LineTerm)
 public export
 data OrderTerm : Type where
      ChO : Journal -> (List Product2) -> OrderTerm
-     Sub : Journal -> OrderTerm -> OrderTerm
+     Sub : OrderTerm -> OrderTerm
 --     DeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm 
 -- delivery line pricelist can depend on subtotals, which is in OrderTerm 
 -- in this case, delivery line is just an DeliveryOption selector
-     Tax : Journal -> OrderTerm -> OrderTerm
+     Tax : OrderTerm -> OrderTerm
 
 %runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
