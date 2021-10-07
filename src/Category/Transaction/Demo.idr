@@ -64,9 +64,6 @@ th3 : Hom1
 th3 = diffHom1 th11 th12
 
 
-
-
-
 public export
 pjb : Account
 pjb = C (MkC "P.J.Bridgman")
@@ -109,7 +106,7 @@ l1_t_2 = (addLineTerm l1_t l1_t)
 
 public export
 so1 : OrderTerm
-so1 = WSub so1_j (WHom2 [get_line so1_l1])
+so1 = WHom2 [get_line so1_l1]
 
 public export
 test_demo : IO ()

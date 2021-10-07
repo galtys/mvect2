@@ -18,6 +18,24 @@ public export
 jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
+public export
+getWHom2 : OrderTerm -> Hom2
+getWHom2 (WHom2 h2) = h2
+getWHom2 (WDeliveryLine delivery subtotal) = getWHom2 subtotal
+
+public export
+getDeliveryLine : OrderTerm -> LineTerm 
+getDeliveryLine (WHom2 h2) = LEHom1 0
+getDeliveryLine (WDeliveryLine delivery subtotal) = delivery --? recursive?
+
+public export
+addOrderTerm : OrderTerm -> OrderTerm -> OrderTerm
+addOrderTerm x y = 
+      let h2 = evalProduct2List ( (getWHom2 x) ++ (getWHom2 y) )
+          d = (getDeliveryLine x) `addLineTerm` (getDeliveryLine y)
+          o = WDeliveryLine d (WHom2 h2) in o
+
+
 {- Keep
 public export
 pricelist_1'_map : Hom2_f' -> SortedMap ProdKey TQty
@@ -30,14 +48,9 @@ pricelist_f1 pl (px,qty) =  case (lookup px (pricelist_1'_map pl) ) of
                                      Nothing => ("£", 0) 
 -}
 
-public export
-get_line : Line -> Product2
-get_line l =
-   let h1=LEHom1 (qty l)
-       pk2 = MkProdK2 (sku l) (currency l)
-       p = LEMul (price_unit l) UnitPrice h1
-       d = LEMul (discount l) Discount p 
-       t = LETaxCode (tax_code l) d in (pk2,t)
+
+
+
 
 
 --public export

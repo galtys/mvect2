@@ -205,13 +205,14 @@ public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
-
-
 --, and delivery cost that depend on subtotals     
 public export
 data OrderTerm : Type where
-     WHom2 : (List Product2) -> OrderTerm
-     WSub : Journal -> OrderTerm -> OrderTerm
+     WHom2 : (h2:Hom2) -> OrderTerm
+     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderTerm) -> OrderTerm
+--     WSub : Journal -> OrderTerm -> OrderTerm
+
+{-          
      WDeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm
      WTax : Journal -> OrderTerm -> OrderTerm
      
@@ -220,7 +221,13 @@ data OrderTerm : Type where
      LCo : Journal -> OrderTerm -> OrderTerm -> OrderTerm
      LPro : Journal -> OrderTerm -> OrderTerm -> OrderTerm
      Adj : OrderTerm -> OrderTerm -> OrderTerm
-     
-     
-
+-}     
 %runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+
+public export
+Term : Type
+Term = (Journal, OrderTerm)
+
+public export
+JournalTerm : Type
+JournalTerm = List Term

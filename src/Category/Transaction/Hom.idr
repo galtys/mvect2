@@ -42,12 +42,12 @@ merge_as_union acc x = case (lookup (fst x) acc) of
 merge_item_into : (SortedMap ProdKey TQty) -> (ProdKey, TQty) -> (SortedMap ProdKey TQty)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
-fromProductList : List Product -> SortedMap ProdKey TQty
+fromProductList : Hom1 -> SortedMap ProdKey TQty
 fromProductList xs = foldl merge_item_into empty xs
 
-evalProductList : List Product -> List Product
+public export
+evalProductList : Hom1 -> Hom1
 evalProductList xs = toList $ fromProductList xs 
-
 
 public export 
 unionHom1' : Hom1 -> Hom1 -> SortedMap ProdKey TQty
@@ -109,6 +109,15 @@ taxRatio EX20 = one5
 
 
 ||| Hom2
+public export
+get_line : Line -> Product2
+get_line l =
+   let h1=LEHom1 (qty l)
+       pk2 = MkProdK2 (sku l) (currency l)
+       p = LEMul (price_unit l) UnitPrice h1
+       d = LEMul (discount l) Discount p 
+       t = LETaxCode (tax_code l) d in (pk2,t)
+
 
 public export
 get_hom1_TQty : LineTerm -> TQty
@@ -193,6 +202,19 @@ addLineTerm x y =
            l1 = LEMul (q1/q) MultQty x
            l2 = LEMul (q2/q) MultQty y
            l = if (eqLineTerm_TaxTQty x y) then replaceHom1 x q else LEAdd l1 l2 in l
+
+
+merge_item_into2 : (SortedMap ProdKey2 LineTerm) -> (ProdKey2, LineTerm) -> (SortedMap ProdKey2 LineTerm)
+merge_item_into2 acc x = mergeWith (addLineTerm) acc (fromList [x])
+
+fromProduct2List : Hom2 -> SortedMap ProdKey2 LineTerm
+fromProduct2List xs = foldl merge_item_into2 empty xs
+
+public export
+evalProduct2List : Hom2 -> Hom2
+evalProduct2List xs = toList $ fromProduct2List xs 
+
+
 
 
 {-
