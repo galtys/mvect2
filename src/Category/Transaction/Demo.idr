@@ -30,11 +30,12 @@ pricelist = (zip skus prices)
 public export
 Pricelist : Hom2
 Pricelist xs = map (pricelist_f1 pricelist) xs
--}
 
 public export
 pricelist_journal : Journal
 pricelist_journal = jref (JDate 0 (JDoc "plist") PriceList)
+-}
+
 
 --public export 
 --pricelist_term : LineTerm
@@ -84,9 +85,18 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
+{-
 public export
 so1_j : Journal
 so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder) 
+-}
+
+public export
+so1_j : Journal
+so1_j = 
+    let j_w = (JAcc Order 0 pjb hilton  ) 
+        j_l = (JAcc Delivery  0 pjb_loc pjb_r)
+        j = JSeq [j_w,j_l] in jref j
 
 public export
 so1_l1 : Line

@@ -67,17 +67,17 @@ data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 %runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 
-
+{-
 --, and delivery cost that depend on subtotals     
 public export
 data MoveType = Delivery  | Return | Reservation | Payment | Refund 
 
 %runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
-
+-}
 
 
 public export
-data DocType = SaleOrder | PurchaseOrder |PriceList
+data DocType =  Order | PriceList | Delivery  | Return | Reservation | Payment | Refund 
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
@@ -88,11 +88,12 @@ Date = Integer
 
 public export
 data Journal : Type where 
- JOrder : Account -> Account -> Account -> Account -> Journal
- JAcc :    Account -> Account -> Journal
+-- JOrder : Account -> Account ->  Journal
+ JAcc :  (type:DocType) -> (date:Date) ->  (a1:Account) -> (a2:Account) ->  Journal
+ JSeq : List Journal -> Journal
 -- MkCalc : CalcSource -> Journal
- JDate:  Date -> Journal -> DocType -> Journal
- JDoc :  String -> Journal
+-- JDate:  Date -> Journal -> DocType -> Journal
+-- JDoc :  String -> Journal
  JRef :  H256 -> Journal
  
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
@@ -233,7 +234,7 @@ data OrderEvent : Type where
      --?WDLine : (delivery:Hom2) -> (sub:OrderEvent) -> OrderEvent     
 --     WSub : (sub:OrderEvent) -> OrderEvent
          
-     LHom1 : (date:Date) -> (mv:MoveType) -> (h1:Hom1) -> OrderEvent
+     LHom1 : (date:Date) -> (mv:DocType) -> (h1:Hom1) -> OrderEvent
 --     LCo : OrderEvent -> OrderEvent -> OrderEvent
 --     LPro :OrderEvent -> OrderEvent -> OrderEvent
      
