@@ -62,6 +62,21 @@ CalcSource : Type
 CalcSource = String --sha256 of the source journal, and calc method?
 
 public export
+data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
+
+%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+
+
+--, and delivery cost that depend on subtotals     
+public export
+data MoveType = Delivery  | Return | Reservation | Payment | Refund 
+
+%runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+
+
+public export
 data DocType = SaleOrder | PurchaseOrder |PriceList
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
@@ -69,6 +84,7 @@ data DocType = SaleOrder | PurchaseOrder |PriceList
 public export
 Date : Type
 Date = Integer
+
 
 public export
 data Journal : Type where 
@@ -169,13 +185,6 @@ record LineExt where
 %runElab derive "LineExt" [Generic, Meta, Show, Eq]
 --%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
-
-
-public export
-data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
-
-%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
-
 public export
 data LineTerm : Type where
      LEHom1 : (qty:TQty) -> LineTerm
@@ -217,12 +226,6 @@ record STD where
   dline : Hom2
 
 %runElab derive "STD" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]
-
---, and delivery cost that depend on subtotals     
-public export
-data MoveType = Delivery  | Return | Reservation | Payment | Refund 
-
-%runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
 data OrderEvent : Type where
