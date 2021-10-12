@@ -9,10 +9,53 @@ import Category.Transaction.Types
 import Category.Transaction.Hom
 import Category.Transaction.Journal
 import Category.Transaction.Demo
+import Category.Transaction.Types
 import Data.Ratio
+
+import public Language.Reflection.Pretty
+import public Language.Reflection.Syntax
+import public Language.Reflection.Types
 
 import System.FFI
 import JSON
+
+import Generics.Derive
+import JSON
+
+%language ElabReflection
+
+
+export
+listInfo : TypeInfo
+listInfo = getInfo "List"
+
+
+export
+aInfo : TypeInfo
+aInfo = getInfo "Address"
+
+export
+lineInfo : TypeInfo
+lineInfo = getInfo "Category.Transaction.Types.LineSub"
+
+
+public export
+record TestInfo where
+  constructor MkTI
+  a1 : Int
+  a2 : Integer
+  a3 : String
+  a4 : Bool
+  
+%runElab derive "TestInfo" [Generic, Meta, Eq, Ord,Show]  
+
+export
+tInfo : TypeInfo
+tInfo = getInfo "TestInfo"
+
+export
+bInfo : TypeInfo
+bInfo = getInfo "Country"
 
 
 json_result : String
