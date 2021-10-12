@@ -62,17 +62,38 @@ CalcSource : Type
 CalcSource = String --sha256 of the source journal, and calc method?
 
 public export
-data DocType = SaleOrder | PurchaseOrder | Delivery | Return |  Reservation | Internal | Payment | Refund | Other |PriceList
+data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
+
+%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+
+{-
+--, and delivery cost that depend on subtotals     
+public export
+data MoveType = Delivery  | Return | Reservation | Payment | Refund 
+
+%runElab derive "MoveType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+-}
+
+
+public export
+data DocType =  Order | PriceList | Delivery  | Return | Reservation | Payment | Refund 
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
+Date : Type
+Date = Integer
+
+
+public export
 data Journal : Type where 
- JOrder : Account -> Account -> Account -> Account -> Journal
- JAcc :    Account -> Account -> Journal
+-- JOrder : Account -> Account ->  Journal
+ JAcc :  (type:DocType) -> (date:Date) ->  (a1:Account) -> (a2:Account) ->  Journal
+ JSeq : List Journal -> Journal
 -- MkCalc : CalcSource -> Journal
- JDate:  Integer -> Journal -> DocType -> Journal
- JDoc :  String -> Journal
+-- JDate:  Date -> Journal -> DocType -> Journal
+-- JDoc :  String -> Journal
  JRef :  H256 -> Journal
  
 %runElab derive "Journal" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
@@ -86,22 +107,7 @@ public export
 FromJSON TQty where
   fromJSON = genFromJSON' id toLower TwoElemArray
 
-public export
-ProdKey : Type
-ProdKey = String
-
-public export
-record ProdKey2 where
-    constructor MkProdK2
-    keyfrom : ProdKey
-    keyto : ProdKey
-
-%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-    
-public export
-Product : Type
-Product = (ProdKey, TQty)
-
+{-
 public export
 TProduct : Type
 TProduct = T Product
@@ -113,11 +119,9 @@ ToJSON TProduct where
 public export
 FromJSON TProduct where
   fromJSON = genFromJSON' id toLower TwoElemArray
+-}
 
-public export
-Hom1 : Type
-Hom1 = List Product
-
+{-
 public export
 Hom2_f : Type
 Hom2_f = (Product -> Product)  --was TProduct?
@@ -126,19 +130,17 @@ public export
 Hom2_f' : Type
 Hom2_f' = List Product   --(ProdKey,TQty), was TProduct?
 
-public export
-Hom2 : Type
-Hom2 = (Hom1 -> Hom1)
 
 public export
 Hom2' : Type
 Hom2' = (Hom1,Hom1)
 
-
 public export
 TermPath : Type
 TermPath = List Journal
-  
+-}
+
+{-
 public export
 data Term : Type where
      Ref : Journal -> Term
@@ -148,8 +150,11 @@ data Term : Type where
      Pro : Journal -> Term -> Term -> Term
      Co : Journal ->  Term -> Term -> Term
      --Adj : Journal -> Term -> Term -> Term
-
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
+-}
+public export
+ProdKey : Type
+ProdKey = String
 
 public export
 record Line where
@@ -164,28 +169,22 @@ record Line where
   tax_code : TaxCode
   --reference to List Price  
                       --SubTotal ... calculated
+
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
-public export
-record LineSub where
-  constructor MkLineSub
-  sub : TQty
-  tax : TQty
-  tot_line : TQty
-  --Unit of Measure
-  --company pricelist is input  , "price_unit" modifies it, as a multiple
-  --currency : ProdKey   
-  --price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  --discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
-  --tax_code : TaxCode
-  --reference to List Price  
-
-
 
 public export
-data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
+record LineExt where
+  constructor MkLineExt
+  sku : ProdKey
+  qty : TQty
+  currency : ProdKey   
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
+  tax_code : List TaxCode
 
-%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+%runElab derive "LineExt" [Generic, Meta, Show, Eq]
+--%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
 public export
 data LineTerm : Type where
@@ -197,17 +196,75 @@ data LineTerm : Type where
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 public export
+record ProdKey2 where
+    constructor MkProdK2
+    keyfrom : ProdKey
+    keyto : ProdKey
+
+%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+public export
+Product : Type
+Product = (ProdKey, TQty)
+    
+public export
 Product2 : Type
 Product2 = (ProdKey2, LineTerm)
 
---, and delivery cost that depend on subtotals     
 public export
-data OrderTerm : Type where
-     ChO : Journal -> (List Product2) -> OrderTerm
-     Sub : Journal -> OrderTerm -> OrderTerm
---     DeliveryLine : Journal -> LineTerm -> OrderTerm -> OrderTerm 
--- delivery line pricelist can depend on subtotals, which is in OrderTerm 
--- in this case, delivery line is just an DeliveryOption selector
-     Tax : Journal -> OrderTerm -> OrderTerm
+Hom1 : Type
+Hom1 = List Product
 
-%runElab derive "OrderTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+public export
+Hom2 : Type
+Hom2 = List Product2 --was (Hom1->Hom1)
+
+public export
+record STD where
+  constructor MkSTD
+  sub : Hom2
+  tax : Hom2
+  dline : Hom2
+
+%runElab derive "STD" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]
+
+public export
+data OrderEvent : Type where
+     WHom2 : (date:Date) -> (std:STD) -> OrderEvent
+     --?WDLine : (delivery:Hom2) -> (sub:OrderEvent) -> OrderEvent     
+--     WSub : (sub:OrderEvent) -> OrderEvent
+         
+     LHom1 : (date:Date) -> (mv:DocType) -> (h1:Hom1) -> OrderEvent
+--     LCo : OrderEvent -> OrderEvent -> OrderEvent
+--     LPro :OrderEvent -> OrderEvent -> OrderEvent
+     
+--     Add : (own:OrderEvent) -> (loc:OrderEvent) -> OrderEvent
+          
+--     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderEvent) -> OrderEvent  --delivery line is calculated, merging is not needed
+--     WSub : Journal -> OrderEvent -> OrderEvent
+{-          
+     WDeliveryLine : Journal -> LineTerm -> OrderEvent -> OrderEvent
+     WTax : Journal -> OrderEvent -> OrderEvent
+     LMove : Journal -> OrderEvent -> OrderEvent
+     LCo : Journal -> OrderEvent -> OrderEvent -> OrderEvent
+     LPro : Journal -> OrderEvent -> OrderEvent -> OrderEvent
+     Adj : OrderEvent -> OrderEvent -> OrderEvent
+-}
+
+%runElab derive "OrderEvent" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+
+public export
+record OrderState where
+   constructor MkOrderState
+   events : List OrderEvent
+   totals : List STD
+   invoiced : List STD
+   backorder : Hom1
+   due : Hom1
+   
+   
+%runElab derive "OrderState" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]   
+
+public export
+JournalOrderState : Type
+JournalOrderState = (Journal, OrderState)

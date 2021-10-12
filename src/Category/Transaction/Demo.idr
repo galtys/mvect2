@@ -26,6 +26,7 @@ public export
 pricelist : List (ProdKey,TQty)
 pricelist = (zip skus prices)
 
+{-
 public export
 Pricelist : Hom2
 Pricelist xs = map (pricelist_f1 pricelist) xs
@@ -33,10 +34,36 @@ Pricelist xs = map (pricelist_f1 pricelist) xs
 public export
 pricelist_journal : Journal
 pricelist_journal = jref (JDate 0 (JDoc "plist") PriceList)
+-}
+
 
 --public export 
 --pricelist_term : LineTerm
 --pricelist_term = LPList pricelist_1' (LRef pricelist_journal)
+
+public export
+th11 : Hom1
+th11 = [ ("p1",4), ("p2",3), ("p1", 9) ]
+
+public export
+th11L : List Product
+th11L = th11
+
+
+public export
+th11' : Hom1
+th11' = [ ("p1",3), ("p1", 6) ]
+
+
+public export
+th12 : Hom1
+th12 = [ ("GBP",38) ]
+
+
+public export
+th3 : Hom1
+th3 = diffHom1 th11 th12
+
 
 public export
 pjb : Account
@@ -58,9 +85,18 @@ public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
 
+{-
 public export
 so1_j : Journal
 so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder) 
+-}
+
+public export
+so1_j : Journal
+so1_j = 
+    let j_w = (JAcc Order 0 pjb hilton  ) 
+        j_l = (JAcc Delivery  0 pjb_loc pjb_r)
+        j = JSeq [j_w,j_l] in jref j
 
 public export
 so1_l1 : Line
@@ -79,8 +115,25 @@ l1_t_2 : LineTerm
 l1_t_2 = (addLineTerm l1_t l1_t) 
 
 public export
-so1 : OrderTerm
-so1 = ChO so1_j [get_line so1_l1] 
+so1_l1_prod2 : Product2
+so1_l1_prod2 = get_line so1_l1
+
+public export
+so1_l1_ext : LineExt
+so1_l1_ext = fromProduct2 so1_l1_prod2
+
+
+public export
+so1_std : STD
+so1_std = MkSTD [so1_l1_prod2] [] []
+
+public export
+so1 : OrderEvent
+so1 = (WHom2 1 so1_std)
+
+--public export
+--so1_jt : JournalOrderState
+--so1_jt = [ (so1_j, MkOrderState [so1] [] [] [] []  ) ]
 
 public export
 test_demo : IO ()
@@ -94,13 +147,15 @@ test_demo = do
   printLn inc20_const
   
   printLn so1_l1
+  printLn so1_l1_ext
   
+  {-
   printLn l1_t
   printLn l1_tax
   
-  printLn (get_hom1 l1_t, get_hom2 l1_t)
-  printLn (get_hom1 l1_t_2, get_hom2 l1_t_2)
+  printLn (get_hom1_TQty l1_t, get_hom2_TQty l1_t)
+  printLn (get_hom1_TQty l1_t_2, get_hom2_TQty l1_t_2)
   printLn "tax line:"
-  printLn (get_hom1 l1_tax, get_hom2 l1_tax)
-
+  printLn (get_hom1_TQty l1_tax, get_hom2_TQty l1_tax)
+  -}
   
