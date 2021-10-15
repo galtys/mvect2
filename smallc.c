@@ -12,6 +12,36 @@ typedef struct mg_ws_message MG_WS_MESSAGE;
 
 
 /*   UTILS  */
+void set_p_int(void *fn_data, int p_val) {
+  int *p_int;
+  p_int = (int *) fn_data;
+  *p_int = p_val;
+}
+
+int get_p_int(void *fn_data) {
+  int *p_int;
+  p_int = (int *) fn_data;
+  return *p_int;
+}
+void *malloc_pint() {
+  int *p_int;
+  p_int = malloc( sizeof(int) );
+  set_p_int(p_int, 0);  
+  return (void *) p_int;
+}
+
+int free_pint(int *p_int) {
+  free(p_int);
+}
+
+int set_fn_data(MG_CONNECTION *p_conn, void *fn_data) {
+  (p_conn->pfn_data) = fn_data;
+}
+
+int is_ptr_null(void* str) {
+  return (str == NULL);
+}
+
 
 char *get_pvoid_NULL() {
   return NULL;
@@ -29,6 +59,7 @@ unsigned int get_size_int(unsigned int y) {
   return x;
 }
 
+
 /* String utils */
 
 char *get_pchar_NULL() {
@@ -41,10 +72,6 @@ void* mkString(char* str) {
 
 char* getString(void *p) {
     return (char*)p;
-}
-
-int isNullString(void* str) {
-    return str == NULL;
 }
 
 int get_len(char* msg) {
@@ -185,6 +212,7 @@ MG_WS_MESSAGE *ev_to_ws_message(void *ev_data) {
   return p_ws;
 }
 
+
 char *ws_receive_as_String(struct mg_connection *c, struct mg_ws_message *wm) {
   char *p_ch;
   p_ch = charFromMG_STR( wm->data);
@@ -201,6 +229,21 @@ void *set_is_closing(struct mg_connection *c) {
   c -> is_closing = 1;
   return NULL;
 }
+
+
+unsigned long get_conn_id(MG_CONNECTION *p_c) {
+  return (p_c -> id);
+}
+
+void *get_pfn_data(MG_CONNECTION *p_c) {
+  return (p_c -> pfn_data);
+}
+
+
+
+
+
+
 
 int test_gcd(int a, int b)
 {

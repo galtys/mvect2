@@ -140,11 +140,18 @@ data MG_MGR : Type where
 public export
 data MG_CONNECTION : Type where
 
+
 public export
 data EV_DATA : Type where
 
 public export
+FN_DATA : Type
+FN_DATA = Int
+
+{-
+public export
 data FN_DATA : Type where 
+-}
 
 public export
 data MG_HTTP_SERVE_OPTS : Type where

@@ -12,6 +12,55 @@ public export
 mg_log_set : HasIO io => String -> io ()
 mg_log_set spec = primIO $ prim__mg_log_set spec
 
+||| Utils
+
+--public export
+%foreign "C:set_p_int,libmongoose"
+prim__set_p_int : Ptr FN_DATA -> Int -> PrimIO ()
+
+public export
+set_p_int : HasIO io => Ptr FN_DATA -> Int -> io ()
+set_p_int p_fn_data val = primIO $ prim__set_p_int p_fn_data val
+
+public export
+%foreign "C:get_conn_id,libmongoose"
+get_conn_id : Ptr MG_CONNECTION -> Int
+
+public export
+%foreign "C:get_pfn_data,libmongoose"
+get_pfn_data : Ptr MG_CONNECTION -> Ptr FN_DATA
+
+
+
+%foreign "C:malloc_pint,libmongoose"
+prim__malloc_pint :  PrimIO (Ptr FN_DATA)
+
+
+
+
+public export
+malloc_pint : HasIO io => io (Ptr FN_DATA)
+malloc_pint = primIO $ prim__malloc_pint
+
+
+%foreign "C:set_fn_data,libmongoose"
+prim__set_fn_data : Ptr MG_CONNECTION -> Ptr FN_DATA -> PrimIO ()
+
+
+public export
+set_fn_data : HasIO io => Ptr MG_CONNECTION -> Ptr FN_DATA -> io ()
+set_fn_data p_conn fn_d = primIO $ prim__set_fn_data p_conn fn_d
+
+
+public export
+%foreign "C:get_p_int,libmongoose"
+get_p_int : Ptr FN_DATA -> Int
+
+public export
+%foreign "C:is_ptr_null,libmongoose"
+is_ptr_null : Ptr FN_DATA -> Int
+
+
 
 
 ||| String Utils
@@ -98,11 +147,11 @@ mg_mgr_poll p_mgr time_out =primIO $ prim__mg_mgr_poll p_mgr time_out
 ||| MG Connection
 
 %foreign "C:mg_http_listen,libmongoose"
-prim__mg_http_listen : (Ptr MG_MGR) -> String -> ((Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()) -> (Ptr MG_MGR) -> PrimIO ()
+prim__mg_http_listen : (Ptr MG_MGR) -> String -> ((Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()) -> (Ptr FN_DATA) -> PrimIO ()
 
 public export
-mg_http_listen : HasIO io => (Ptr MG_MGR) -> String -> ((Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()) -> (Ptr MG_MGR) -> io ()
-mg_http_listen p_mgr addr fn p_mgr2 = primIO $ prim__mg_http_listen p_mgr addr fn p_mgr2
+mg_http_listen : HasIO io => (Ptr MG_MGR) -> String -> ((Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()) -> (Ptr FN_DATA) -> io ()
+mg_http_listen p_mgr addr fn fn_data = primIO $ prim__mg_http_listen p_mgr addr fn fn_data
 
 
 ||| MG HTTP MESSAGE
