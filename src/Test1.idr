@@ -1,5 +1,8 @@
 module Test1
 
+import Data.IORef
+import System.Directory
+
 import Web.Mongoose.Types
 import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
@@ -24,6 +27,15 @@ import JSON
 
 %language ElabReflection
 
+%runElab derive "UserName" [Generic, Meta,Eq, ToJSON,FromJSON]
+%runElab derive "Namespace" [Generic, Meta,Eq, ToJSON,FromJSON]
+%runElab derive "Name" [Generic, Meta,Eq, ToJSON,FromJSON]
+
+{-
+%runElab derive "UserName" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+%runElab derive "Namespace" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+%runElab derive "Name" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+-}
 
 export
 listInfo : TypeInfo
@@ -69,7 +81,7 @@ data RunIO : Type -> Type where
 (>>) : IO () -> Inf (RunIO b) -> RunIO b
 (>>) = Seq
 
-
+{-
 data Fuel = Dry | More (Lazy Fuel)
 
 run : Fuel -> RunIO a -> IO (Maybe a)
@@ -79,15 +91,20 @@ run (More fuel) (Do c f) = do res <- c
 run (More fuel) (Seq io k) = do io; run fuel k
 run Dry p = pure Nothing
 
+
 partial
 forever : Fuel
 forever = More forever
+-}
 
 json_result : String
 json_result = "{\"result\": 332}"
 
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
+
+
+
 
 
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
@@ -99,6 +116,7 @@ x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     if (mg_http_match_uri hm "/rest")==1 then do
                            mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
                            set_p_int p_fn 100
+                           
                        else if (mg_http_match_uri hm "/websocket")==1 then do
                            mg_ws_upgrade p_conn p_ev get_pchar_NULL  
                          else do
@@ -123,7 +141,7 @@ x_my_http_handler p_conn ev p_ev p_fn = do
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
 
-
+{-
 greet : RunIO ()
 greet = do putStr "Enter your name: "
            name <- getLine
@@ -137,7 +155,7 @@ inf_loop2 : (Ptr MG_MGR) -> Int -> RunIO ()
 inf_loop2 p_mgr time_out = do
   mg_mgr_poll p_mgr time_out
   inf_loop2 p_mgr time_out
-
+-}
 
 partial
 inf_loop : (Ptr MG_MGR) -> Int -> IO ()
@@ -146,9 +164,24 @@ inf_loop p_mgr time_out = do
   inf_loop p_mgr time_out
 
 
+fn_data_ref : HasIO io => io (IORef Country)
+fn_data_ref = newIORef UK
+
+data_store_dir : String
+data_store_dir = "/home/jan/github.com/mvect2/datax"
 
 main : IO ()
 main = do
+  --ignore $ run forever greet
+  
+  --c_ref <- fn_data_ref
+  --c <- readIORef c_ref
+  --putStrLn (show c)
+  Right d <- listDir data_store_dir 
+    | Left x => printLn x
+  
+  printLn d
+  
   mg_log_set "3"
   p_mgr <- get_and_malloc__mg_mgr
   mg_mgr_init p_mgr 
@@ -159,7 +192,7 @@ main = do
   mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler x1
   inf_loop p_mgr 1000
   mg_mgr_free p_mgr 
-
+  
   --test_demo
   --printLn ( (get_hom1 so1_lt1 ))  
   --printLn (mufum (get_hom1 so1_lt1 ))
