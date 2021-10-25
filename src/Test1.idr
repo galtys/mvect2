@@ -37,6 +37,12 @@ import JSON
 %runElab derive "Name" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 -}
 
+public export
+record Msg where
+   constructor MkMsg
+   msg_type : TypeInfo
+   
+
 export
 listInfo : TypeInfo
 listInfo = getInfo "List"
@@ -168,7 +174,7 @@ fn_data_ref : HasIO io => io (IORef Country)
 fn_data_ref = newIORef UK
 
 data_store_dir : String
-data_store_dir = "/home/jan/github.com/mvect2/datax"
+data_store_dir = "/home/jan/github.com/mvect2/data"
 
 main : IO ()
 main = do
@@ -178,7 +184,7 @@ main = do
   --c <- readIORef c_ref
   --putStrLn (show c)
   Right d <- listDir data_store_dir 
-    | Left x => printLn x
+    | Left x => printLn ("Directory does not exist:"++data_store_dir)
   
   printLn d
   
