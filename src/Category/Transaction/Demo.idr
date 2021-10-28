@@ -15,6 +15,62 @@ import Data.Ratio
 
 %language ElabReflection
 
+%runElab derive "UserName" [Generic, Meta,Eq, ToJSON,FromJSON]
+%runElab derive "Namespace" [Generic, Meta,Eq, ToJSON,FromJSON]
+%runElab derive "Name" [Generic, Meta,Eq, ToJSON,FromJSON]
+
+
+
+
+public export
+record Msg where
+   constructor MkMsg
+   msg_type : TypeInfo
+   
+
+export
+listInfo : TypeInfo
+listInfo = getInfo "List"
+
+
+export
+aInfo : TypeInfo
+aInfo = getInfo "Address"
+
+export
+lineInfo : TypeInfo
+lineInfo = getInfo "Category.Transaction.Types.Line"
+
+
+public export
+record TestInfo where
+  constructor MkTI
+  a1 : Int
+  a2 : Integer
+  a3 : String
+  a4 : Bool
+  
+%runElab derive "TestInfo" [Generic, Meta, Eq, Ord,Show]  
+
+export
+tInfo : TypeInfo
+tInfo = getInfo "TestInfo"
+
+export
+bInfo : TypeInfo
+bInfo = getInfo "Country"
+
+
+
+
+
+
+
+
+
+
+
+
 
 prices: List TQty
 prices = [10,7,5,2,11,9,50,1,33,100]

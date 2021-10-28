@@ -5,7 +5,7 @@ import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
 
 import System.FFI
-
+--osa85460
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_ERROR p_ev p_fn = pure ()
 x_my_http_handler p_conn MG_EV_WS_OPEN p_ev p_fn = do

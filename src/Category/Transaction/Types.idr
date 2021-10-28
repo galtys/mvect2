@@ -186,6 +186,13 @@ record LineExt where
 %runElab derive "LineExt" [Generic, Meta, Show, Eq]
 --%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
+
+public export
+data BoM : Type where
+   Node : (qty:TQty) -> (sku:ProdKey) -> (components:List BoM) -> BoM
+
+%runElab derive "BoM" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
+
 public export
 data LineTerm : Type where
      LEHom1 : (qty:TQty) -> LineTerm

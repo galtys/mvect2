@@ -25,55 +25,12 @@ import JSON
 import Generics.Derive
 import JSON
 
-%language ElabReflection
+import Control.Monad.Either
 
-%runElab derive "UserName" [Generic, Meta,Eq, ToJSON,FromJSON]
-%runElab derive "Namespace" [Generic, Meta,Eq, ToJSON,FromJSON]
-%runElab derive "Name" [Generic, Meta,Eq, ToJSON,FromJSON]
-
-{-
-%runElab derive "UserName" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
-%runElab derive "Namespace" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
-%runElab derive "Name" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
--}
-
-public export
-record Msg where
-   constructor MkMsg
-   msg_type : TypeInfo
-   
-
-export
-listInfo : TypeInfo
-listInfo = getInfo "List"
-
-
-export
-aInfo : TypeInfo
-aInfo = getInfo "Address"
-
-export
-lineInfo : TypeInfo
-lineInfo = getInfo "Category.Transaction.Types.Line"
-
-
-public export
-record TestInfo where
-  constructor MkTI
-  a1 : Int
-  a2 : Integer
-  a3 : String
-  a4 : Bool
-  
-%runElab derive "TestInfo" [Generic, Meta, Eq, Ord,Show]  
-
-export
-tInfo : TypeInfo
-tInfo = getInfo "TestInfo"
-
-export
-bInfo : TypeInfo
-bInfo = getInfo "Country"
+import PQ.CRUD
+import PQ.FFI
+import PQ.Schema
+import PQ.Types
 
 
 data RunIO : Type -> Type where
@@ -108,9 +65,6 @@ json_result = "{\"result\": 332}"
 
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
-
-
-
 
 
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
@@ -176,8 +130,53 @@ fn_data_ref = newIORef UK
 data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data"
 
+
+--------------------------------------------------------------------------------
+--          Product and Bom
+--------------------------------------------------------------------------------
+
+Id : Column
+Id = primarySerial64 Bits32 "id" (Just . cast)
+
+Name : Column
+Name = notNull String "name" Text Just id
+
+SKU  : Column
+SKU = notNull String "default_code" Text Just id
+
+Product : Table
+Product = MkTable "product_product"
+         [Id, SKU]
+
+ProductID : Column
+ProductID = notNull Bits32 "product_id" BigInt (Just . cast) cast
+
+BomID : Column
+BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast
+
+BoM : Table
+BoM = MkTable "mrp_bom"
+      [Id,ProductID,BomID]
+
+main_ : HasIO io => MonadError SQLError io => io ()
+main_ = do
+  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-01_1450"
+  --createAndFill c
+  --rows <- get c Product (columns Product) (SKU /= "Eleni")
+  --traverse_ printLn rows
+  
+  rows <- get c BoM (columns BoM) (True)
+  traverse_ printLn rows
+  
+  finish c
+main_pg : IO ()
+main_pg = do Left err <- runEitherT (main_ {io = EitherT SQLError IO})
+              | Right () => pure ()
+             printLn err
+
 main : IO ()
 main = do
+  main_pg
   --ignore $ run forever greet
   
   --c_ref <- fn_data_ref
@@ -196,7 +195,7 @@ main = do
   set_p_int x1 99                    
       
   mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler x1
-  inf_loop p_mgr 1000
+  --inf_loop p_mgr 1000
   mg_mgr_free p_mgr 
   
   --test_demo

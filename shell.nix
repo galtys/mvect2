@@ -10,7 +10,7 @@ in
 
 stdenv.mkDerivation {
   name = "idris-env";
-  #LD_LIBRARY_PATH="${pkgs.postgresql_10.lib}/lib";
+  LD_LIBRARY_PATH="${pkgs.postgresql_10.lib}/lib";
   buildInputs = [
 
     gmp
