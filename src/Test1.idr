@@ -160,7 +160,7 @@ BoM = MkTable "mrp_bom"
 
 main_ : HasIO io => MonadError SQLError io => io ()
 main_ = do
-  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-01_1450"
+  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"
   --createAndFill c
   --rows <- get c Product (columns Product) (SKU /= "Eleni")
   --traverse_ printLn rows
@@ -169,8 +169,21 @@ main_ = do
   traverse_ printLn rows
   
   finish c
+
+main_2 : HasIO io => MonadError SQLError io => io ()
+main_2 = do
+  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+  
+  --rows <- get c BoM [Id] (IsNull BomID)
+  rows <- get c BoM [Id,BomID] (BomID == (Just 1633) )  
+  printLn rows
+  --traverse_ printLn rows
+
+  finish c
+
+
 main_pg : IO ()
-main_pg = do Left err <- runEitherT (main_ {io = EitherT SQLError IO})
+main_pg = do Left err <- runEitherT (main_2 {io = EitherT SQLError IO})
               | Right () => pure ()
              printLn err
 
