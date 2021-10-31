@@ -192,14 +192,47 @@ main_ = do
 toRBoM : (NP I [Bits32, Bits32,Maybe Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )
 
-read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
-read_bom b_id = do
+
+read_bom2 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM)
+read_bom2 c [] = pure [] --pure (Node 0 0 [])
+read_bom2 c (x::xs) = do 
+        case (bom_id x) of
+          Nothing => do
+              muf <- read_bom2 c xs
+              pure [Node (product_qty x) (product_id x) muf]
+              
+          Just b_id => do
+              rows <- get c BoM_NP [ProductID,ProdQty,BomID] (BomID == (Just (cast b_id)) )                
+              let child = [ (toRBoM ox) | ox <- rows ]
+              xu <- read_bom2 c child
+              let ret =Node (product_qty x) (product_id x) xu
+              pure [ret]
+        
+
+
+read_bom : HasIO io => MonadError SQLError io => Connection -> Bits32 -> io (List BoM) --(List RBoM)
+read_bom c b_id = do
+  --c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+  --rows <- get c BoM_NP [Id] (IsNull BomID)  
+  rows <- get c BoM_NP [ProductID,ProdQty,BomID] (ProductID == (cast b_id) )  
+  let ocas = [ toRBoM ox | ox <- rows ]
+  ret <- read_bom2 c ocas
+  pure ret
+  --printLn ocas
+  --traverse_ printLn rows
+
+  --finish c
+
+
+main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
+main_read_bom b_id = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  rows <- get c BoM_NP [Id,ProdQty,BomID] (ProductID == (cast b_id) )  
-  let ocas = [ toRBoM ox | ox <- rows ]
   
-  --printLn ocas
+  boms <- read_bom c b_id
+  printLn boms
+  
+    --printLn ocas
   --traverse_ printLn rows
 
   finish c
@@ -217,7 +250,7 @@ main_2 = do
   finish c
 
 main_3 : IO ()
-main_3 = do Left err <- runEitherT (read_bom {io = EitherT SQLError IO} 3303)
+main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 3303)
               | Right () => pure ()
             printLn err
 
