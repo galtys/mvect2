@@ -77,7 +77,9 @@ data MoveType = Delivery  | Return | Reservation | Payment | Refund
 
 
 public export
-data DocType =  Order | PriceList | Delivery  | Return | Reservation | Payment | Refund 
+--data DocType =  Order | PriceList | Delivery  | Return | Reservation | Payment | Refund 
+data DocType =  WOrder | WInvoice  |  LRes  | LDel --oWnerOrder | oWnerInvoice | LocationReservation | LocationDelivery
+
 
 %runElab derive "DocType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
@@ -89,8 +91,11 @@ Date = Integer
 public export
 data Journal : Type where 
 -- JOrder : Account -> Account ->  Journal
- JAcc :  (type:DocType) -> (date:Date) ->  (a1:Account) -> (a2:Account) ->  Journal
- JSeq : List Journal -> Journal
+ Jo : Journal
+ JPro :  (a1:Account) -> (a2:Account) -> Journal
+ JAcc :  (type:DocType) -> (date:Date) ->  (p1:Journal) -> (p2:Journal) -> (origin:Journal)-> Journal
+
+-- JSeq : List Journal -> Journal
 -- MkCalc : CalcSource -> Journal
 -- JDate:  Date -> Journal -> DocType -> Journal
 -- JDoc :  String -> Journal
