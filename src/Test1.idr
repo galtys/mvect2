@@ -211,11 +211,14 @@ read_bom2 c (x::xs) = do
 
 
 read_bom : HasIO io => MonadError SQLError io => Connection -> Bits32 -> io (List BoM) --(List RBoM)
-read_bom c b_id = do
+read_bom c p_id = do
   --c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  rows <- get c BoM_NP [ProductID,ProdQty,BomID] (ProductID == (cast b_id) )  
+  rows <- get c BoM_NP [ProductID,ProdQty,BomID] (ProductID == (cast p_id) )  
+  
   let ocas = [ toRBoM ox | ox <- rows ]
+  printLn ocas
+  
   ret <- read_bom2 c ocas
   pure ret
   --printLn ocas
@@ -230,14 +233,14 @@ main_read_bom b_id = do
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
   
   boms <- read_bom c b_id
-  printLn boms
+  --printLn boms
   
     --printLn ocas
   --traverse_ printLn rows
 
   finish c
   
-
+{-
 main_2 : HasIO io => MonadError SQLError io => io ()
 main_2 = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
@@ -248,19 +251,19 @@ main_2 = do
   --traverse_ printLn rows
 
   finish c
-
+-}
 main_3 : IO ()
 main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 3303)
               | Right () => pure ()
             printLn err
 
 
-
+{-
 main_pg : IO ()
 main_pg = do Left err <- runEitherT (main_2 {io = EitherT SQLError IO})
               | Right () => pure ()
              printLn err
-
+-}
 main : IO ()
 main = do
   --main_pg
