@@ -32,6 +32,7 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
+%language ElabReflection
 
 data RunIO : Type -> Type where
      Quit : a -> RunIO a
@@ -148,15 +149,33 @@ Product : Table
 Product = MkTable "product_product"
          [Id, SKU]
 
+
+ProdQty : Column
+ProdQty = notNull Bits32 "product_qty" BigInt (Just . cast) cast
+
 ProductID : Column
 ProductID = notNull Bits32 "product_id" BigInt (Just . cast) cast
 
 BomID : Column
 BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast
 
-BoM : Table
-BoM = MkTable "mrp_bom"
-      [Id,ProductID,BomID]
+BoM_NP : Table
+BoM_NP = MkTable "mrp_bom"
+      [Id,ProductID,ProdQty,BomID]
+      
+record RBoM where
+  constructor MkRBoM
+  --id : Bits32
+  product_id : Bits32
+  product_qty : Bits32
+  bom_id : (Maybe Bits32)
+      
+%runElab derive "RBoM" [Generic, Meta, Show, Eq]
+
+--IdTable : Table
+--IdTable = MkTable "id_col"
+--          [BomID]
+
 
 main_ : HasIO io => MonadError SQLError io => io ()
 main_ = do
@@ -165,21 +184,43 @@ main_ = do
   --rows <- get c Product (columns Product) (SKU /= "Eleni")
   --traverse_ printLn rows
   
-  rows <- get c BoM (columns BoM) (True)
+  rows <- get c BoM_NP (columns BoM_NP) (True)
   traverse_ printLn rows
   
   finish c
+
+toRBoM : (NP I [Bits32, Bits32,Maybe Bits32] ) -> RBoM
+toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )
+
+read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
+read_bom b_id = do
+  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+  --rows <- get c BoM_NP [Id] (IsNull BomID)  
+  rows <- get c BoM_NP [Id,ProdQty,BomID] (ProductID == (cast b_id) )  
+  let ocas = [ toRBoM ox | ox <- rows ]
+  
+  --printLn ocas
+  --traverse_ printLn rows
+
+  finish c
+  
 
 main_2 : HasIO io => MonadError SQLError io => io ()
 main_2 = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   
-  --rows <- get c BoM [Id] (IsNull BomID)
-  rows <- get c BoM [Id,BomID] (BomID == (Just 1633) )  
+  --rows <- get c BoM_NP [Id] (IsNull BomID)
+  rows <- get c BoM_NP [Id,BomID] (BomID == (Just 1633) )  
   printLn rows
   --traverse_ printLn rows
 
   finish c
+
+main_3 : IO ()
+main_3 = do Left err <- runEitherT (read_bom {io = EitherT SQLError IO} 3303)
+              | Right () => pure ()
+            printLn err
+
 
 
 main_pg : IO ()
@@ -189,7 +230,9 @@ main_pg = do Left err <- runEitherT (main_2 {io = EitherT SQLError IO})
 
 main : IO ()
 main = do
-  main_pg
+  --main_pg
+  main_3
+--  read_bom 44
   --ignore $ run forever greet
   
   --c_ref <- fn_data_ref

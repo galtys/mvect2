@@ -87,13 +87,21 @@ public export
 Date : Type
 Date = Integer
 
+public export
+record Acc where
+   constructor MkAcc
+   fro : Account
+   to : Account
+
+%runElab derive "Acc" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
 
 public export
 data Journal : Type where 
 -- JOrder : Account -> Account ->  Journal
- Jo : Journal
- JPro :  (a1:Account) -> (a2:Account) -> Journal
- JAcc :  (type:DocType) -> (date:Date) ->  (p1:Journal) -> (p2:Journal) -> (origin:Journal)-> Journal
+ Jnil : Journal
+ --JAcc :  (a1:Account) -> (a2:Account) -> Journal --make it separate type
+ JPro : (type:DocType) -> (date:Date) -> (origin:Journal) -> Journal
+ JProAcc :  (type:DocType) -> (date:Date) ->  (p1:Acc) -> (p2:Acc) -> (origin:Journal)-> Journal
 
 -- JSeq : List Journal -> Journal
 -- MkCalc : CalcSource -> Journal
@@ -194,7 +202,7 @@ record LineExt where
 
 public export
 data BoM : Type where
-   Node : (qty:TQty) -> (sku:ProdKey) -> (components:List BoM) -> BoM
+   BoMNode : (qty:TQty) -> (sku:ProdKey) -> (components:List BoM) -> BoM
 
 %runElab derive "BoM" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 

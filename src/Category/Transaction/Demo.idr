@@ -150,12 +150,14 @@ so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder)
 public export
 so1_j : Journal
 so1_j = 
-    let j_hilton = (JPro hilton hilton)
-        j_pjb = (JPro pjb pjb)
-        j_hilton_loc = (JPro hilton_loc hilton_loc)
-        j_pjb_loc = (JPro pjb_loc pjb_r)
-        j_w = (JAcc WOrder 0 j_hilton j_pjb Jo )     
-        j_l = (JAcc LRes  0 j_hilton_loc j_pjb_loc j_w) in jref j_l
+    let j_hilton = (MkAcc hilton hilton)
+        j_pjb = (MkAcc pjb pjb)
+        
+        j_hilton_loc = (MkAcc hilton_loc hilton_loc)
+        j_pjb_loc = (MkAcc pjb_loc pjb_r)
+        
+        j_w = (JProAcc WOrder 0 j_hilton j_pjb Jnil )     
+        j_l = (JProAcc LRes  0 j_hilton_loc j_pjb_loc j_w) in jref j_l
 
 public export
 so1_l1 : Line
