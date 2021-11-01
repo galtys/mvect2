@@ -7,6 +7,8 @@ import Web.Mongoose.Types
 import Web.Mongoose.FFI
 import Crypto.Hash.SHA256
 
+import Data.SortedMap
+
 import Category.Transaction.Qty
 import Category.Transaction.Types
 import Category.Transaction.Hom
@@ -193,7 +195,7 @@ main_ = do
 toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
-
+{-
 prods_to_bom_ids : HasIO io => MonadError SQLError io => Connection -> List (Bits32) -> io (List Bits32)
 prods_to_bom_ids c [] = pure []
 prods_to_bom_ids c ((p_id)::xs) = do
@@ -235,14 +237,41 @@ read_bom_p_id2 c (b_id::xs) = do
     let ret = read_bom4 this_rbm ch_boms
     u <- read_bom_p_id2 c xs
     pure (ret ++ u)
+-}
+
+read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
+read_root_boms c  = do
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID)
+  let child_rbom = [ toRBoM ox | ox <- child_rows ]
+  pure child_rbom
+                          
+read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
+read_bom_p_id2 c [] = pure []
+read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id id_) :: xs) = do
+
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast id_ ) )  
+  let child_rbom = [ toRBoM ox | ox <- child_rows ]
+  let ret = ((x,child_rbom))
+  xs <- read_bom_p_id2 c xs
+  pure ([ret]++xs) 
+
+safeHead : List x -> Maybe x
+safeHead [] = Nothing
+safeHead (y :: xs) = Just y
+
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
 main_read_bom p_id = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+  boms <- read_root_boms c
+  --printLn (length boms)
+  l1 <- read_bom_p_id2 c boms
+  
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  b_ids <- prods_to_bom_ids c [p_id]
-  boms <- read_bom_p_id2 c b_ids
-  printLn boms
+  --b_ids <- prods_to_bom_ids c [p_id]
+  --boms <- read_bom_p_id2 c b_ids
+  
+  printLn $ safeHead l1
   
     --printLn ocas
   --traverse_ printLn rows
