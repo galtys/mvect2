@@ -204,12 +204,6 @@ prods_to_bom_ids c ((p_id)::xs) = do
   ret_xs <- prods_to_bom_ids c xs
   pure (child_b_ids++ret_xs)
 
-read_bom4 : List RBoM -> List BoM32 -> List BoM32
-read_bom4 [] ch = []
-read_bom4 (x::xs) ch = 
-  let qty = cast (product_qty x)              
-      --ret =Node32 (fromInteger qty) (product_id x) (id_ x) (bom_id x) ch in ([ret]++(read_bom4 xs ch) )
-      ret =Node32 (fromInteger qty) (product_id x) ch in ([ret]++(read_bom4 xs ch) )      
 
 
 read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> io (List BoM32) 
@@ -239,6 +233,17 @@ read_bom_p_id2 c (b_id::xs) = do
     pure (ret ++ u)
 -}
 
+rbom2bom32  : RBoM -> (List BoM32) -> BoM32
+rbom2bom32 (MkRBoM product_id product_qty bom_id id_) xs = let 
+   qty = (cast product_qty) in Node32 (fromInteger qty) product_id xs
+
+chmap2bom32 : (List (RBoM, List RBoM) ) -> List BoM32 -> List BoM32
+chmap2bom32 [] chld= []
+chmap2bom32 ((x, y) :: xs) chld = 
+   let ch=[ (rbom2bom32 ox chld) | ox <- y]
+       b=rbom2bom32 x ch in [b]++chmap2bom32 xs chld
+
+
 read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
 read_root_boms c  = do
   child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID)
@@ -255,24 +260,75 @@ read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id id_) :: xs) = do
   xs <- read_bom_p_id2 c xs
   pure ([ret]++xs) 
 
+child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
+child_map_RBoM [] = empty
+child_map_RBoM (( (MkRBoM product_id product_qty bom_id id_), y) :: xs) = insert product_id y (child_map_RBoM xs)
+
+test_x4 : HasIO io => MonadError SQLError io => Connection -> (List (RBoM, List RBoM) ) ->  io ()
+test_x4 c [] = pure ()
+test_x4 c ((x, y) :: xs) = do
+   lx <- read_bom_p_id2 c y
+   printLn lx
+   test_x4 c xs
+   
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
+
+rbom_to_list : Maybe (List RBoM) -> List (Bits32,Bits32)
+rbom_to_list Nothing = []
+rbom_to_list (Just x) = [ (product_qty u,product_id u) | u<-x]
+
+ret_spaces : Bits32 -> String
+ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
+
+print_ch : HasIO io =>  Bits32 -> Bits32 -> SortedMap Bits32 (List RBoM) -> io()
+print_ch i p_id m = do
+  printLn ( (ret_spaces i) ++(show p_id)++":"++(show $ rbom_to_list $ lookup p_id m))
+
+print_ch_r : HasIO io =>  Bits32 -> List (Bits32,Bits32) -> SortedMap Bits32 (List RBoM) -> io ()
+print_ch_r i [] m = pure ()
+print_ch_r i (muf@(qty,p_id)::xs) m = do
+  let ch = rbom_to_list $ lookup p_id m
+  
+  printLn ( (ret_spaces i) ++(show p_id)++":"++(show ch ))
+  print_ch_r (i+1) ch m
+  
+  print_ch_r (i) xs m
 
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
 main_read_bom p_id = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   boms <- read_root_boms c
+  let root_p_ids = [ (product_qty u,product_id u) | u <- boms]
   --printLn (length boms)
   l1 <- read_bom_p_id2 c boms
-  
+  --let l2 =  chmap2bom32 l1 []
+  let m1 = child_map_RBoM l1
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
   --b_ids <- prods_to_bom_ids c [p_id]
   --boms <- read_bom_p_id2 c b_ids
   
-  printLn $ safeHead l1
+  print_ch_r 0 root_p_ids m1
+  {-
+  print_ch 0 3303 m1
+  print_ch 1 145 m1
+  print_ch 2 2919 m1  
+  print_ch 2 3003 m1  
+  print_ch 1 1670 m1  
+  print_ch 2 1393 m1
+  print_ch 2 1662 m1
+  -}
   
+  --printLn (lookup 3303 m1)
+  --printLn (lookup 145 m1)
+  --printLn (lookup 1670 m1)
+
+  --printLn (lookup 2919 m1)
+          
+  --printLn $ safeHead l2
+  --test_x4 c l1
     --printLn ocas
   --traverse_ printLn rows
 
