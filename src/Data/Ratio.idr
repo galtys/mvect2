@@ -103,7 +103,7 @@ Show QtyRatio where
                   let eq = eval_qtyratio q
                       x=show $ num eq
                       y=show $ den eq
-                      ret = x++"/"++y in if is_whole eq then (show x)  else ret
+                      ret = x++"/"++y in if is_whole eq then x  else ret
 
 
 public export

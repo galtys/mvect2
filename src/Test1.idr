@@ -296,6 +296,28 @@ print_ch_r i (muf@(qty,p_id)::xs) m = do
   
   print_ch_r (i) xs m
 
+ch_map_to_BoM32 : List (Bits32,Bits32) -> SortedMap Bits32 (List RBoM) -> List BoM32
+ch_map_to_BoM32 [] m = []
+ch_map_to_BoM32 (muf@(qty,p_id)::xs) m = 
+  let ch = rbom_to_list $ lookup p_id m
+      bom32_ch = ch_map_to_BoM32 ch m
+      q = cast qty
+      node = Node32 (fromInteger q) p_id bom32_ch in [node]++(ch_map_to_BoM32 xs m)
+      
+print_BoM32 : Bits32 -> List BoM32 -> List String
+print_BoM32 i [] = []
+print_BoM32 i (b32@(Node32 qty sku components) :: xs) = 
+      
+      let ua = ( (ret_spaces i) ++ (show qty) ++ "," ++ (show sku) )
+          uc = print_BoM32 (i+1) components
+          uxs = print_BoM32 i xs in [ua]++uc++uxs
+      
+print_list : HasIO io => List String -> io ()
+print_list [] = pure ()
+print_list (x::xs) = do
+  --printLn x
+  putStrLn x
+  print_list xs
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
 main_read_bom p_id = do
@@ -311,6 +333,10 @@ main_read_bom p_id = do
   --boms <- read_bom_p_id2 c b_ids
   
   print_ch_r 0 root_p_ids m1
+  
+  let m32 = ch_map_to_BoM32 [(1,3303)] m1
+  print_list $ print_BoM32 0 m32
+  
   {-
   print_ch 0 3303 m1
   print_ch 1 145 m1
