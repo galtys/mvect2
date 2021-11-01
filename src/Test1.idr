@@ -16,6 +16,7 @@ import Category.Transaction.Journal
 import Category.Transaction.Demo
 import Category.Transaction.Types
 import Data.Ratio
+import Data.Zippable
 
 import public Language.Reflection.Pretty
 import public Language.Reflection.Syntax
@@ -355,11 +356,25 @@ main_read_bom p_id = do
   let m32x = ch_map_to_BoM32 qp m1
   let m32 = ch_map_to_BoM32 root_p_ids m1
   print_list $ print_BoM32 0 m32x
-  let qp_mult = mult_BoM32 3 m32x 
+  let qp_mult = mult_BoM32 1 m32x 
   print_list $ print_BoM32 0 qp_mult
-  printLn $ variants_BoM32 qp_mult
+  let vr =  variants_BoM32 qp_mult
+  let vr_qty = [ (fst x) | x<-vr ]
+  let sum_vr = sum vr_qty
+  printLn vr_qty
+  --printLn sum_vr
+  let r_sum_vr = (recip sum_vr)
+  let m32_r = mult_BoM32 r_sum_vr m32x
   
+  print_list $ print_BoM32 0 m32_r
   
+  let r_vr =  variants_BoM32 m32_r
+  let r_vr_qty = [ (fst x) | x<-r_vr ]
+  let vr2_qty = [ x*r_sum_vr | x <- vr_qty]
+  printLn vr_qty  
+  printLn vr2_qty
+  printLn $ sum vr2_qty
+        
   {-
   print_ch 0 3303 m1
   print_ch 1 145 m1
