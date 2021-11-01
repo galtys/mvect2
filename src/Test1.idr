@@ -165,11 +165,11 @@ BoM_NP = MkTable "mrp_bom"
       
 record RBoM where
   constructor MkRBoM
-  --id : Bits32
   product_id : Bits32
   product_qty : Bits32
   bom_id : (Maybe Bits32)
-      
+  id_ : Bits32
+        
 %runElab derive "RBoM" [Generic, Meta, Show, Eq]
 
 --IdTable : Table
@@ -189,8 +189,8 @@ main_ = do
   
   finish c
 
-toRBoM : (NP I [Bits32, Bits32,Maybe Bits32] ) -> RBoM
-toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )
+toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
+toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
 
 read_bom2 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM)
@@ -198,42 +198,51 @@ read_bom2 c [] = pure [] --pure (Node 0 0 [])
 read_bom2 c (x::xs) = do 
         case (bom_id x) of
           Nothing => do
-              muf <- read_bom2 c xs
+              --printLn "ocas4"
+              rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast (id_ x) )) )
+              let child = [ (toRBoM ox) | ox <- rows ]
+              muf <- read_bom2 c child
               pure [Node (product_qty x) (product_id x) muf]
               
           Just b_id => do
-              rows <- get c BoM_NP [ProductID,ProdQty,BomID] (BomID == (Just (cast b_id)) )                
-              let child = [ (toRBoM ox) | ox <- rows ]
-              xu <- read_bom2 c child
-              let ret =Node (product_qty x) (product_id x) xu
-              pure [ret]
-        
+              --rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast b_id)) )                
+              --let child = [ (toRBoM ox) | ox <- rows ]
+              xu <- read_bom2 c xs
+              let ret =Node (product_qty x) (product_id x) [] --xu
+              pure ([ret]++xu)
 
+mutual
+  read_bom3 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM)
+  read_bom3 c [] = pure [] --pure (Node 0 0 [])
+  read_bom3 c (x::xs) = do 
+              xu <- read_bom3 c xs
+              --ch <- read_bom_p_id c (product_id x)
+              let ret =Node (product_qty x) (product_id x) [] --xu
+              pure ([ret]++xu)
 
-read_bom : HasIO io => MonadError SQLError io => Connection -> Bits32 -> io (List BoM) --(List RBoM)
-read_bom c p_id = do
-  --c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
-  --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  rows <- get c BoM_NP [ProductID,ProdQty,BomID] (ProductID == (cast p_id) )  
+  read_bom_p_id : HasIO io => MonadError SQLError io => Connection -> Bits32 -> io (List BoM) --(List RBoM)
+  read_bom_p_id c p_id = do
+    --c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+    --rows <- get c BoM_NP [Id] (IsNull BomID)  
+    rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (ProductID == (cast p_id) )  
   
-  let ocas = [ toRBoM ox | ox <- rows ]
-  printLn ocas
-  
-  ret <- read_bom2 c ocas
-  pure ret
-  --printLn ocas
-  --traverse_ printLn rows
+    let ocas = [ toRBoM ox | ox <- rows ]
+    if (length ocas)==0 then pure [] else do
+       ret <- read_bom3 c ocas
+       pure ret
+    --printLn ocas
+    --traverse_ printLn rows
 
-  --finish c
+    --finish c
 
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
-main_read_bom b_id = do
+main_read_bom p_id = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
   
-  boms <- read_bom c b_id
-  --printLn boms
+  boms <- read_bom_p_id c p_id
+  printLn boms
   
     --printLn ocas
   --traverse_ printLn rows
