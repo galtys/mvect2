@@ -303,7 +303,25 @@ ch_map_to_BoM32 (muf@(qty,p_id)::xs) m =
       bom32_ch = ch_map_to_BoM32 ch m
       q = cast qty
       node = Node32 (fromInteger q) p_id bom32_ch in [node]++(ch_map_to_BoM32 xs m)
-      
+
+{-
+mult_BoM32 : TQty -> List BoM32 -> List (TQty,Bits32)
+mult_BoM32 q [] = []
+mult_BoM32 q ((Node32 qty sku [])::xs) = [(q*qty, sku)]++(mult_BoM32 (q*qty) xs)
+mult_BoM32 q xs = (mult_BoM32 q xs)
+-}
+mult_BoM32 : TQty -> List BoM32 -> List BoM32
+mult_BoM32 x [] = []
+mult_BoM32 x ((Node32 qty sku components) :: xs) = 
+    let ch = mult_BoM32 (x*qty) components
+        n = Node32 (x*qty) sku ch in [n] ++ (mult_BoM32 x xs)
+
+variants_BoM32 : List BoM32 -> List (TQty,Bits32)
+variants_BoM32 [] = []
+variants_BoM32 ((Node32 qty sku []) :: xs) = [(qty,sku)] ++ (variants_BoM32 xs)
+variants_BoM32 ((Node32 qty sku c) :: xs) = (variants_BoM32 c)++(variants_BoM32 xs)
+
+
 print_BoM32 : Bits32 -> List BoM32 -> List String
 print_BoM32 i [] = []
 print_BoM32 i (b32@(Node32 qty sku components) :: xs) = 
@@ -333,11 +351,13 @@ main_read_bom p_id = do
   --boms <- read_bom_p_id2 c b_ids
   
   --print_ch_r 0  m1
-  
-  let m32x = ch_map_to_BoM32 [(1,3303)] m1
+  let qp = [(1,3303)]
+  let m32x = ch_map_to_BoM32 qp m1
   let m32 = ch_map_to_BoM32 root_p_ids m1
-  print_list $ print_BoM32 0 m32
-  
+  print_list $ print_BoM32 0 m32x
+  let qp_mult = mult_BoM32 3 m32x 
+  print_list $ print_BoM32 0 qp_mult
+  printLn $ variants_BoM32 qp_mult
   {-
   print_ch 0 3303 m1
   print_ch 1 145 m1
