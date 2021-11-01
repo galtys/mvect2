@@ -358,6 +358,8 @@ main_read_bom p_id = do
   let qp_mult = mult_BoM32 3 m32x 
   print_list $ print_BoM32 0 qp_mult
   printLn $ variants_BoM32 qp_mult
+  
+  
   {-
   print_ch 0 3303 m1
   print_ch 1 145 m1
