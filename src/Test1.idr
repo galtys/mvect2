@@ -193,36 +193,18 @@ toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
 
-read_bom2 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM32)
-read_bom2 c [] = pure [] --pure (Node32 0 0 [])
-read_bom2 c (x::xs) = do 
-        case (bom_id x) of
-          Nothing => do
-              --printLn "ocas4"
-              rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast (id_ x) )) )
-              let child = [ (toRBoM ox) | ox <- rows ]
-              muf <- read_bom2 c child
-              pure [Node32 (product_qty x) (product_id x) muf]
-              
-          Just b_id => do
-              --rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast b_id)) )                
-              --let child = [ (toRBoM ox) | ox <- rows ]
-              xu <- read_bom2 c xs
-              let ret =Node32 (product_qty x) (product_id x) [] --xu
-              pure ([ret]++xu)
-
 mutual
   read_bom3 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM32)
   read_bom3 c [] = pure []
   read_bom3 c (x::xs) = do 
-              xu <- read_bom3 c xs
+              --xu <- read_bom3 c xs
               
               rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast (id_ x) )) )
               let child = [ product_id (toRBoM ox) | ox <- rows ]
               
               ch <- read_bom_p_id c child
-                            
-              let ret =Node32 (product_qty x) (product_id x) ch --xu
+              let qty = cast (product_qty x)              
+              let ret =Node32 (fromInteger qty) (product_id x) (id_ x) (bom_id x) ch --xu
               pure ([ret])
 
   read_bom_p_id : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> io (List BoM32) 
