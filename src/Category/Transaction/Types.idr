@@ -201,11 +201,10 @@ record LineExt where
 
 
 public export
-data BoM : Type where  
-   Node : (qty:Bits32) -> (sku:Bits32) -> (components:List BoM) -> BoM
---   Nil :  BoM
+data BoM32 : Type where  
+   Node32 : (qty:Bits32) -> (sku:Bits32) -> (components:List BoM32) -> BoM32
    
-%runElab derive "BoM" [Generic, Meta, Show, Eq] --,RecordToJSON,RecordFromJSON]
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
 public export
 data LineTerm : Type where
