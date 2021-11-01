@@ -202,8 +202,8 @@ record LineExt where
 
 public export
 data BoM32 : Type where  
-   Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32
-   
+   --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
+   Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
 public export

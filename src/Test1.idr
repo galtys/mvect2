@@ -33,6 +33,7 @@ import PQ.Schema
 import PQ.Types
 
 %language ElabReflection
+%ambiguity_depth 10
 
 data RunIO : Type -> Type where
      Quit : a -> RunIO a
@@ -193,34 +194,54 @@ toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
 
-mutual
-  read_bom3 : HasIO io => MonadError SQLError io => Connection -> List RBoM -> io (List BoM32)
-  read_bom3 c [] = pure []
-  read_bom3 c (x::xs) = do 
-              --xu <- read_bom3 c xs
-              
-              rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == (Just (cast (id_ x) )) )
-              let child = [ product_id (toRBoM ox) | ox <- rows ]
-              
-              ch <- read_bom_p_id c child
-              let qty = cast (product_qty x)              
-              let ret =Node32 (fromInteger qty) (product_id x) (id_ x) (bom_id x) ch --xu
-              pure ([ret])
+prods_to_bom_ids : HasIO io => MonadError SQLError io => Connection -> List (Bits32) -> io (List Bits32)
+prods_to_bom_ids c [] = pure []
+prods_to_bom_ids c ((p_id)::xs) = do
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID  && ProductID==(cast p_id) )
+  let child_b_ids = [ (id_ (toRBoM ox)) | ox <- child_rows ]
+  ret_xs <- prods_to_bom_ids c xs
+  pure (child_b_ids++ret_xs)
 
-  read_bom_p_id : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> io (List BoM32) 
-  read_bom_p_id c [] = pure []
-  read_bom_p_id c (p_id::xs) = do
-    rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (ProductID == (cast p_id) )  
-    ret <- read_bom3 c [ toRBoM ox | ox <- rows ]
-    xu <- read_bom_p_id c xs
-    pure (ret++xu)
+read_bom4 : List RBoM -> List BoM32 -> List BoM32
+read_bom4 [] ch = []
+read_bom4 (x::xs) ch = 
+  let qty = cast (product_qty x)              
+      --ret =Node32 (fromInteger qty) (product_id x) (id_ x) (bom_id x) ch in ([ret]++(read_bom4 xs ch) )
+      ret =Node32 (fromInteger qty) (product_id x) ch in ([ret]++(read_bom4 xs ch) )      
+
+
+read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> io (List BoM32) 
+read_bom_p_id2 c [] = pure []
+read_bom_p_id2 c (b_id::xs) = do  
+    --child skus
+    child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast b_id) )  
+    let child_rbom = [ toRBoM ox | ox <- child_rows ]
+    let child_p_ids = [ product_id ox | ox <-child_rbom ]
+    
+    --printLn "p_ids"
+    --printLn child_p_ids    
+    child_b_ids <- prods_to_bom_ids c child_p_ids    
+    --printLn child_b_ids
+    
+    
+    ch_boms <- read_bom_p_id2 c  child_b_ids   
+    
+    
+    --this bom
+    this <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (Id == (cast b_id) )  
+    let this_rbm = [ toRBoM ox | ox <- this ]
+    
+    --let ret=if (length child_b_ids==0) then read_bom4 child_rbom [] else read_bom4 this_rbm ch_boms
+    let ret = read_bom4 this_rbm ch_boms
+    u <- read_bom_p_id2 c xs
+    pure (ret ++ u)
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
 main_read_bom p_id = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  
-  boms <- read_bom_p_id c [p_id]
+  b_ids <- prods_to_bom_ids c [p_id]
+  boms <- read_bom_p_id2 c b_ids
   printLn boms
   
     --printLn ocas
@@ -228,20 +249,8 @@ main_read_bom p_id = do
 
   finish c
   
-{-
-main_2 : HasIO io => MonadError SQLError io => io ()
-main_2 = do
-  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
-  
-  --rows <- get c BoM_NP [Id] (IsNull BomID)
-  rows <- get c BoM_NP [Id,BomID] (BomID == (Just 1633) )  
-  printLn rows
-  --traverse_ printLn rows
-
-  finish c
--}
 main_3 : IO ()
-main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 3303)
+main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 145)
               | Right () => pure ()
             printLn err
 
