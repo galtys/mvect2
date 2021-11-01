@@ -332,9 +332,10 @@ main_read_bom p_id = do
   --b_ids <- prods_to_bom_ids c [p_id]
   --boms <- read_bom_p_id2 c b_ids
   
-  print_ch_r 0 root_p_ids m1
+  --print_ch_r 0  m1
   
-  let m32 = ch_map_to_BoM32 [(1,3303)] m1
+  let m32x = ch_map_to_BoM32 [(1,3303)] m1
+  let m32 = ch_map_to_BoM32 root_p_ids m1
   print_list $ print_BoM32 0 m32
   
   {-
