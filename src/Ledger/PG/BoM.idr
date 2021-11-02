@@ -83,9 +83,10 @@ BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast
 
 BoM_NP : Table
 BoM_NP = MkTable "mrp_bom"
-      [Id,ProductID,ProdQty,BomID]
+      [ProductID,ProdQty,BomID,Id]
       
-
+ --[Id,ProductID,ProdQty,BomID]
+      
 toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
@@ -167,18 +168,18 @@ print_list (x::xs) = do
   
 read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
 read_root_boms c  = do
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID)
+  child_rows <- get c BoM_NP (columns BoM_NP) (IsNull BomID)
   let child_rbom = [ toRBoM ox | ox <- child_rows ]
   pure child_rbom
                           
-read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
-read_bom_p_id2 c [] = pure []
-read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
+read_boms_ : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
+read_boms_ c [] = pure []
+read_boms_ c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
 
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast pk ) )  
+  child_rows <- get c BoM_NP (columns BoM_NP) (BomID == Just (cast pk ) )  
   let child_rbom = [ toRBoM ox | ox <- child_rows ]
   let ret = ((x,child_rbom))
-  xs <- read_bom_p_id2 c xs
+  xs <- read_boms_ c xs
   pure ([ret]++xs) 
 
 
@@ -189,7 +190,7 @@ main_read_bom  = do
   boms <- read_root_boms c
   let root_p_ids = [ (product_qty u,product_id u) | u <- boms]
   --printLn (length boms)
-  l1 <- read_bom_p_id2 c boms
+  l1 <- read_boms_ c boms
   --let l2 =  chmap2bom32 l1 []
   let m1 = child_map_RBoM l1
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
@@ -234,5 +235,4 @@ export
 muf_3 : HasIO io => io (List (RBoM, List RBoM) )
 muf_3 = do  
      l1 <- (liftIO main_3)
-     printLn "ocas"
      pure l1
