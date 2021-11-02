@@ -114,7 +114,7 @@ x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
                     pure ()
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
-                    --l1 <- main_3
+                    l1 <- muf_3
                     putStrLn ("EV WS  val: " ++ (show (get_p_int p_fn)))
                     let p_wm = (ev_to_ws_message p_ev)
                     msg <- mg_ws_receive_as_String p_conn p_wm                 
@@ -143,7 +143,7 @@ data_store_dir = "/home/jan/github.com/mvect2/data"
 main : IO ()
 main = do
   --main_pg
-  l1 <- main_3
+  l1 <- muf_3
 --  read_bom 44
   --ignore $ run forever greet
   

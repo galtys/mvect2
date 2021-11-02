@@ -222,9 +222,17 @@ main_read_bom  = do
   finish c
   pure l1
   
+  
 export  
 main_3 : IO (List (RBoM, List RBoM) )
 main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} )
               | Right l1 => pure l1
             printLn err
             pure []
+
+export
+muf_3 : HasIO io => io (List (RBoM, List RBoM) )
+muf_3 = do  
+     l1 <- (liftIO main_3)
+     printLn "ocas"
+     pure l1
