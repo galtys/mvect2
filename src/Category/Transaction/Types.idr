@@ -27,6 +27,14 @@ data TaxCode = ZeroVAT | INC20 | EX20
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
 public export
+record Price where
+  constructor MkPrice
+  price : Maybe TQty
+  tax : TaxCode
+%runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+  
+  
+public export
 record Address where
   constructor MkA
   street : String
