@@ -24,6 +24,15 @@ import PQ.Types
 
 %language ElabReflection
 
+record RBoM where
+  constructor MkRBoM
+  product_id : Bits32
+  product_qty : Bits32
+  bom_id : (Maybe Bits32)
+  id_ : Bits32
+        
+%runElab derive "RBoM" [Generic, Meta, Show, Eq]
+
 --------------------------------------------------------------------------------
 --          Product and Bom
 --------------------------------------------------------------------------------
@@ -34,13 +43,34 @@ Id = primarySerial64 Bits32 "id" (Just . cast)
 Name : Column
 Name = notNull String "name" Text Just id
 
+ListPrice : Column
+ListPrice = nullable Double "list_price" DoublePrecision (Just . cast) cast
+
+-- Product Template Table
+
+ProductTemplate : Table
+ProductTemplate = MkTable "product_template"
+         [Id, Name, ListPrice]
+
+
+-- Product table
+
+ProductTmplID : Column
+ProductTmplID = notNull Bits32 "product_tmpl_id" BigInt (Just . cast) cast
+
+TradePrice : Column
+TradePrice = nullable Double "trade" DoublePrecision (Just . cast) cast
+
+
 SKU  : Column
 SKU = notNull String "default_code" Text Just id
 
+
 Product : Table
 Product = MkTable "product_product"
-         [Id, SKU]
+         [Id,ProductTmplID, SKU, TradePrice]
 
+-- BoM table
 
 ProdQty : Column
 ProdQty = notNull Bits32 "product_qty" BigInt (Just . cast) cast
@@ -55,15 +85,6 @@ BoM_NP : Table
 BoM_NP = MkTable "mrp_bom"
       [Id,ProductID,ProdQty,BomID]
       
-record RBoM where
-  constructor MkRBoM
-  product_id : Bits32
-  product_qty : Bits32
-  bom_id : (Maybe Bits32)
-  id_ : Bits32
-        
-%runElab derive "RBoM" [Generic, Meta, Show, Eq]
-
 
 toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
