@@ -48,8 +48,8 @@ ListPrice = nullable Double "list_price" DoublePrecision (Just . cast) cast
 
 -- Product Template Table
 
-ProductTemplate : Table
-ProductTemplate = MkTable "product_template"
+ProductTemplate_NP : Table
+ProductTemplate_NP = MkTable "product_template"
          [Id, Name, ListPrice]
 
 
@@ -66,8 +66,8 @@ SKU  : Column
 SKU = notNull String "default_code" Text Just id
 
 
-Product : Table
-Product = MkTable "product_product"
+Product_NP : Table
+Product_NP = MkTable "product_product"
          [Id,ProductTmplID, SKU, TradePrice]
 
 -- BoM table
@@ -182,17 +182,27 @@ read_boms_ c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
   xs <- read_boms_ c xs
   pure ([ret]++xs) 
 
-
-
+read_product_templates : HasIO io => MonadError SQLError io => Connection -> io ()
+read_product_templates c = do
+  rows <- get c ProductTemplate_NP (columns ProductTemplate_NP) (True)  
+  printLn ( rows)
+  printLn (length rows)
+  
 main_read_bom : HasIO io => MonadError SQLError io => io (List (RBoM, List RBoM) )
 main_read_bom  = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
+  
+  read_product_templates c
+  
+  
   boms <- read_root_boms c
   let root_p_ids = [ (product_qty u,product_id u) | u <- boms]
   --printLn (length boms)
   l1 <- read_boms_ c boms
   --let l2 =  chmap2bom32 l1 []
   let m1 = child_map_RBoM l1
+  
+
   --rows <- get c BoM_NP [Id] (IsNull BomID)  
   --b_ids <- prods_to_bom_ids c [p_id]
   --boms <- read_bom_p_id2 c b_ids

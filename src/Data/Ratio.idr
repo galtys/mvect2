@@ -110,21 +110,6 @@ public export
 Eq QtyRatio where
    (==) = eq_qtyratio
 
-{-      
-public export
-Ord QtyRatio where
-   compare (MkQr a b) (MkQr c d) = if (b==d) || ((b==1) && (d==1)) || ((b==0) || (d==0)) then (compare a c)
-           else
-                let xa = qty2int a
-                    xc = qty2int c
-                    xb = qty2int b
-                    xd = qty2int d                    
-                    bd_lcm = test_lcm xb xd                    
-                    na = (div bd_lcm xa)
-                    nc = (div bd_lcm xc)
-                    in if (na==nc) then EQ
-                          else if (na>nc) then LT else GT
--}
 public export
 Ord QtyRatio where
    compare (MkQr a1 b1) (MkQr a2 b2) = 
@@ -138,18 +123,23 @@ Num QtyRatio where
    (*) x y = {-eval_qtyratio $-}  mul_qtyratio x y
    fromInteger = fromWhole
 
-{-
-public export
-Neg QtyRatio where
-   (-) x y = {-eval_qtyratio $-} sub_qtyratio x y
-   negate (MkQr x y) = {-eval_qtyratio-} (MkQr ((-1)*x) y )
--}
- 
 public export
 Fractional QtyRatio where
    (/) x y = {-eval_qtyratio $-} div_qtyratio x y
    recip x = {-eval_qtyratio $-} recip_qtyratio x
 
+public export
+Cast QtyRatio Double where
+   cast (MkQr num den) = if (den==0) then 0 else ((cast num)/(cast den))
+
+
+PRECISION : Double
+PRECISION = 1000
+
+public export
+Cast Double QtyRatio where
+   cast x = (MkQr (cast $ abs (PRECISION*x)) (cast PRECISION))
+   
 public export
 d1 : Double
 d1 = 43.32
@@ -180,6 +170,15 @@ data T a = Debit a | Credit a
 public export
 TQty : Type
 TQty = T QtyRatio
+
+public export
+Cast TQty Double where
+   cast (Debit x) = (cast x)
+   cast (Credit x) = (-1.0)*(cast x)
+
+public export
+Cast Double TQty where
+   cast x = if (x>=0.0) then Debit (cast x) else Credit (cast x)
 
 public export
 percent : Qty -> TQty
