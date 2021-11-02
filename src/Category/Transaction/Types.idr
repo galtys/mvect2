@@ -165,9 +165,20 @@ data Term : Type where
      --Adj : Journal -> Term -> Term -> Term
 %runElab derive "Term" [Generic, Meta, Eq, Show, ToJSON,FromJSON]
 -}
+--public export
+--ProdKey : Type
+--ProdKey = String
+
 public export
-ProdKey : Type
-ProdKey = String
+data ProdKey = PKUser String | PK32 Bits32 | PKTax String
+
+public export
+FromString ProdKey where
+   fromString s = PKUser s
+
+%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]     
+
+
 
 public export
 record Line where
@@ -204,7 +215,7 @@ public export
 data BoM32 : Type where  
    --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
    Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
-%runElab derive "BoM32" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
 
 public export
 data LineTerm : Type where

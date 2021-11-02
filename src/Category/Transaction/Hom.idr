@@ -155,7 +155,7 @@ get_tax_codes (LEAdd l1 l2) = (get_tax_codes l1)++(get_tax_codes l2)
 get_tax_codes (LEMul u mu l) = (get_tax_codes l)
 
 get_tc_prodkey : List TaxCode -> ProdKey
-get_tc_prodkey xs = (concat [(show x) | x <- xs] )
+get_tc_prodkey xs = PKTax (concat [(show x) | x <- xs] )
 
 eqLineTerm_TaxMult : LineTerm -> LineTerm -> Bool
 eqLineTerm_TaxMult l1 l2 = 

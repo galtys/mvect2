@@ -64,63 +64,10 @@ record RBoM where
         
 %runElab derive "RBoM" [Generic, Meta, Show, Eq]
 
---IdTable : Table
---IdTable = MkTable "id_col"
---          [BomID]
-
-
-main_ : HasIO io => MonadError SQLError io => io ()
-main_ = do
-  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"
-  --createAndFill c
-  --rows <- get c Product (columns Product) (SKU /= "Eleni")
-  --traverse_ printLn rows
-  
-  rows <- get c BoM_NP (columns BoM_NP) (True)
-  traverse_ printLn rows
-  
-  finish c
 
 toRBoM : (NP I [Bits32, Bits32,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
-{-
-prods_to_bom_ids : HasIO io => MonadError SQLError io => Connection -> List (Bits32) -> io (List Bits32)
-prods_to_bom_ids c [] = pure []
-prods_to_bom_ids c ((p_id)::xs) = do
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID  && ProductID==(cast p_id) )
-  let child_b_ids = [ (id_ (toRBoM ox)) | ox <- child_rows ]
-  ret_xs <- prods_to_bom_ids c xs
-  pure (child_b_ids++ret_xs)
-
-
-
-read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> io (List BoM32) 
-read_bom_p_id2 c [] = pure []
-read_bom_p_id2 c (b_id::xs) = do  
-    --child skus
-    child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast b_id) )  
-    let child_rbom = [ toRBoM ox | ox <- child_rows ]
-    let child_p_ids = [ product_id ox | ox <-child_rbom ]
-    
-    --printLn "p_ids"
-    --printLn child_p_ids    
-    child_b_ids <- prods_to_bom_ids c child_p_ids    
-    --printLn child_b_ids
-    
-    
-    ch_boms <- read_bom_p_id2 c  child_b_ids   
-    
-    
-    --this bom
-    this <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (Id == (cast b_id) )  
-    let this_rbm = [ toRBoM ox | ox <- this ]
-    
-    --let ret=if (length child_b_ids==0) then read_bom4 child_rbom [] else read_bom4 this_rbm ch_boms
-    let ret = read_bom4 this_rbm ch_boms
-    u <- read_bom_p_id2 c xs
-    pure (ret ++ u)
--}
 
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
 rbom2bom32 (MkRBoM product_id product_qty bom_id id_) xs = let 

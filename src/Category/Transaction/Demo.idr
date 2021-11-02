@@ -76,7 +76,7 @@ prices: List TQty
 prices = [10,7,5,2,11,9,50,1,33,100]
 
 skus : List ProdKey
-skus = [("p"++show i) | i <- [1..(length prices)]]
+skus = [ PKUser ("p"++show i) | i <- [1..(length prices)]]
 
 public export
 pricelist : List (ProdKey,TQty)
