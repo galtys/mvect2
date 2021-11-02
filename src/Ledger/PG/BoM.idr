@@ -29,7 +29,7 @@ record RBoM where
   product_id : Bits32
   product_qty : Bits32
   bom_id : (Maybe Bits32)
-  id_ : Bits32
+  pk : Bits32
         
 %runElab derive "RBoM" [Generic, Meta, Show, Eq]
 
@@ -91,7 +91,7 @@ toRBoM x = MkRBoM (get Bits32 x)  (get Bits32 (tl x)) (get (Maybe Bits32) (tl (t
 
 
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
-rbom2bom32 (MkRBoM product_id product_qty bom_id id_) xs = let 
+rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
    qty = (cast product_qty) in Node32 (fromInteger qty) product_id xs
 
 chmap2bom32 : (List (RBoM, List RBoM) ) -> List BoM32 -> List BoM32
@@ -109,9 +109,9 @@ read_root_boms c  = do
                           
 read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
 read_bom_p_id2 c [] = pure []
-read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id id_) :: xs) = do
+read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
 
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast id_ ) )  
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast pk ) )  
   let child_rbom = [ toRBoM ox | ox <- child_rows ]
   let ret = ((x,child_rbom))
   xs <- read_bom_p_id2 c xs
@@ -119,7 +119,7 @@ read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id id_) :: xs) = do
 
 child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
 child_map_RBoM [] = empty
-child_map_RBoM (( (MkRBoM product_id product_qty bom_id id_), y) :: xs) = insert product_id y (child_map_RBoM xs)
+child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
 
 test_x4 : HasIO io => MonadError SQLError io => Connection -> (List (RBoM, List RBoM) ) ->  io ()
 test_x4 c [] = pure ()
