@@ -181,8 +181,10 @@ read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
   xs <- read_bom_p_id2 c xs
   pure ([ret]++xs) 
 
-main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
-main_read_bom p_id = do
+
+
+main_read_bom : HasIO io => MonadError SQLError io => io (List (RBoM, List RBoM) )
+main_read_bom  = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   boms <- read_root_boms c
   let root_p_ids = [ (product_qty u,product_id u) | u <- boms]
@@ -218,10 +220,11 @@ main_read_bom p_id = do
   printLn vr2_qty
   printLn $ sum vr2_qty
   finish c
-
+  pure l1
+  
 export  
-main_3 : IO ()
-main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 145)
-              | Right () => pure ()
+main_3 : IO (List (RBoM, List RBoM) )
+main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} )
+              | Right l1 => pure l1
             printLn err
-
+            pure []

@@ -41,6 +41,7 @@ import PQ.Types
 %language ElabReflection
 %ambiguity_depth 10
 
+{-
 data RunIO : Type -> Type where
      Quit : a -> RunIO a
      Do : IO a -> (a -> Inf (RunIO b)) -> RunIO b
@@ -52,7 +53,6 @@ data RunIO : Type -> Type where
 (>>) : IO () -> Inf (RunIO b) -> RunIO b
 (>>) = Seq
 
-{-
 data Fuel = Dry | More (Lazy Fuel)
 
 run : Fuel -> RunIO a -> IO (Maybe a)
@@ -66,6 +66,21 @@ run Dry p = pure Nothing
 partial
 forever : Fuel
 forever = More forever
+
+greet : RunIO ()
+greet = do putStr "Enter your name: "
+           name <- getLine
+           if name == ""
+              then do putStrLn "Bye bye!"
+                      Quit ()
+              else do putStrLn ("Hello " ++ name)
+                      greet
+
+inf_loop2 : (Ptr MG_MGR) -> Int -> RunIO ()
+inf_loop2 p_mgr time_out = do
+  mg_mgr_poll p_mgr time_out
+  inf_loop2 p_mgr time_out
+
 -}
 
 json_result : String
@@ -99,6 +114,7 @@ x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
                     pure ()
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
+                    --l1 <- main_3
                     putStrLn ("EV WS  val: " ++ (show (get_p_int p_fn)))
                     let p_wm = (ev_to_ws_message p_ev)
                     msg <- mg_ws_receive_as_String p_conn p_wm                 
@@ -109,21 +125,6 @@ x_my_http_handler p_conn ev p_ev p_fn = do
 my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
 
-{-
-greet : RunIO ()
-greet = do putStr "Enter your name: "
-           name <- getLine
-           if name == ""
-              then do putStrLn "Bye bye!"
-                      Quit ()
-              else do putStrLn ("Hello " ++ name)
-                      greet
-
-inf_loop2 : (Ptr MG_MGR) -> Int -> RunIO ()
-inf_loop2 p_mgr time_out = do
-  mg_mgr_poll p_mgr time_out
-  inf_loop2 p_mgr time_out
--}
 
 partial
 inf_loop : (Ptr MG_MGR) -> Int -> IO ()
@@ -142,7 +143,7 @@ data_store_dir = "/home/jan/github.com/mvect2/data"
 main : IO ()
 main = do
   --main_pg
-  main_3
+  l1 <- main_3
 --  read_bom 44
   --ignore $ run forever greet
   
