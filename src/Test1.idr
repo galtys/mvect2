@@ -29,6 +29,7 @@ import Generics.Derive
 import JSON
 
 import Ledger.PG.BoM
+import Ledger.PG.Order
 {-
 import Control.Monad.Either
 
