@@ -101,33 +101,10 @@ chmap2bom32 ((x, y) :: xs) chld =
        b=rbom2bom32 x ch in [b]++chmap2bom32 xs chld
 
 
-read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
-read_root_boms c  = do
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID)
-  let child_rbom = [ toRBoM ox | ox <- child_rows ]
-  pure child_rbom
-                          
-read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
-read_bom_p_id2 c [] = pure []
-read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
-
-  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast pk ) )  
-  let child_rbom = [ toRBoM ox | ox <- child_rows ]
-  let ret = ((x,child_rbom))
-  xs <- read_bom_p_id2 c xs
-  pure ([ret]++xs) 
-
 child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
 child_map_RBoM [] = empty
 child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
 
-test_x4 : HasIO io => MonadError SQLError io => Connection -> (List (RBoM, List RBoM) ) ->  io ()
-test_x4 c [] = pure ()
-test_x4 c ((x, y) :: xs) = do
-   lx <- read_bom_p_id2 c y
-   printLn lx
-   test_x4 c xs
-   
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
@@ -161,12 +138,6 @@ ch_map_to_BoM32 (muf@(qty,p_id)::xs) m =
       q = cast qty
       node = Node32 (fromInteger q) p_id bom32_ch in [node]++(ch_map_to_BoM32 xs m)
 
-{-
-mult_BoM32 : TQty -> List BoM32 -> List (TQty,Bits32)
-mult_BoM32 q [] = []
-mult_BoM32 q ((Node32 qty sku [])::xs) = [(q*qty, sku)]++(mult_BoM32 (q*qty) xs)
-mult_BoM32 q xs = (mult_BoM32 q xs)
--}
 mult_BoM32 : TQty -> List BoM32 -> List BoM32
 mult_BoM32 x [] = []
 mult_BoM32 x ((Node32 qty sku components) :: xs) = 
@@ -193,6 +164,22 @@ print_list (x::xs) = do
   --printLn x
   putStrLn x
   print_list xs
+  
+read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
+read_root_boms c  = do
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (IsNull BomID)
+  let child_rbom = [ toRBoM ox | ox <- child_rows ]
+  pure child_rbom
+                          
+read_bom_p_id2 : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
+read_bom_p_id2 c [] = pure []
+read_bom_p_id2 c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
+
+  child_rows <- get c BoM_NP [ProductID,ProdQty,BomID,Id] (BomID == Just (cast pk ) )  
+  let child_rbom = [ toRBoM ox | ox <- child_rows ]
+  let ret = ((x,child_rbom))
+  xs <- read_bom_p_id2 c xs
+  pure ([ret]++xs) 
 
 main_read_bom : HasIO io => MonadError SQLError io => Bits32 -> io ()
 main_read_bom p_id = do
@@ -230,28 +217,6 @@ main_read_bom p_id = do
   printLn vr_qty  
   printLn vr2_qty
   printLn $ sum vr2_qty
-        
-  {-
-  print_ch 0 3303 m1
-  print_ch 1 145 m1
-  print_ch 2 2919 m1  
-  print_ch 2 3003 m1  
-  print_ch 1 1670 m1  
-  print_ch 2 1393 m1
-  print_ch 2 1662 m1
-  -}
-  
-  --printLn (lookup 3303 m1)
-  --printLn (lookup 145 m1)
-  --printLn (lookup 1670 m1)
-
-  --printLn (lookup 2919 m1)
-          
-  --printLn $ safeHead l2
-  --test_x4 c l1
-    --printLn ocas
-  --traverse_ printLn rows
-
   finish c
 
 export  
@@ -260,10 +225,3 @@ main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} 145
               | Right () => pure ()
             printLn err
 
-
-{-
-main_pg : IO ()
-main_pg = do Left err <- runEitherT (main_2 {io = EitherT SQLError IO})
-              | Right () => pure ()
-             printLn err
--}
