@@ -87,7 +87,7 @@ Note: Column
 Note = nullable String "note" Text (Just . cast) cast OT
 
 AmountTax : Column
-AmountTax = nullable TQty "amount_tax" DoublePrecision (Just . cast) cast OT
+AmountTax = nullable Price "amount_tax" DoublePrecision (Just . toTaxA) cast OT
 
 StateOT : Column
 StateOT = nullable String "state" Text (Just . cast) cast OT
@@ -99,10 +99,10 @@ PartnerInvoiceID : Column
 PartnerInvoiceID = notNull Bits32 "partner_invoice_id" BigInt (Just . cast) cast OT
 
 AmountUntaxed : Column
-AmountUntaxed = nullable TQty "amount_untaxed" DoublePrecision (Just . cast) cast OT
+AmountUntaxed = nullable Price "amount_untaxed" DoublePrecision (Just . toEX20) cast OT
 
 AmountTotal : Column
-AmountTotal = nullable TQty "amount_total" DoublePrecision (Just . cast) cast OT
+AmountTotal = nullable Price "amount_total" DoublePrecision (Just . toINC20) cast OT
 
 NameOT: Column
 NameOT = nullable String "name" (VarChar 64) (Just . cast) cast OT

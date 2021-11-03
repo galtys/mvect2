@@ -22,7 +22,7 @@ data Country = UK | CZ | US | DE | FR
 %runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
 public export
-data TaxCode = ZeroVAT | INC20 | EX20
+data TaxCode = ZeroVAT | INC20 | EX20 | TAXAMOUNT
 
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
@@ -44,6 +44,11 @@ fromPrice (MkPrice x tax) = (cast x)
 export
 toEX20 : Double -> Price
 toEX20 x = MkPrice (cast x) EX20
+
+export
+toTaxA : Double -> Price
+toTaxA x = MkPrice (cast x) TAXAMOUNT
+
 
 public export
 Cast Price Double where

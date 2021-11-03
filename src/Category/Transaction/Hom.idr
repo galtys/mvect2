@@ -108,7 +108,7 @@ taxRatio : TaxCode -> TQty
 taxRatio ZeroVAT = 0
 taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
-
+taxRatio TAXAMOUNT = 0
 
 ||| Hom2
 public export
