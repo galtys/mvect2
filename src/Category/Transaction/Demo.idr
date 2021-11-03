@@ -13,6 +13,8 @@ import Category.Transaction.Journal
 import Crypto.Hash.SHA256
 import Data.Ratio
 
+import Ledger.PG.Order
+
 %language ElabReflection
 
 %runElab derive "UserName" [Generic, Meta,Eq, ToJSON,FromJSON]
@@ -39,7 +41,7 @@ aInfo = getInfo "Address"
 
 export
 lineInfo : TypeInfo
-lineInfo = getInfo "Category.Transaction.Types.Line"
+lineInfo = getInfo "Ledger.PG.Order.Line"
 
 
 public export

@@ -189,37 +189,6 @@ FromString ProdKey where
 
 
 public export
-record Line where
-  constructor MkLine
-  sku : ProdKey
-  qty : TQty
-  --Unit of Measure
-  --company pricelist is input  , "price_unit" modifies it, as a multiple
-  currency : ProdKey   
-  price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
-  tax_code : TaxCode
-  --reference to List Price  
-                      --SubTotal ... calculated
-
-%runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
-
-
-public export
-record LineExt where
-  constructor MkLineExt
-  sku : ProdKey
-  qty : TQty
-  currency : ProdKey   
-  price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
-  tax_code : List TaxCode
-
-%runElab derive "LineExt" [Generic, Meta, Show, Eq]
---%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
-
-
-public export
 data BoM32 : Type where  
    --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
    Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
