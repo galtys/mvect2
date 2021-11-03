@@ -101,9 +101,10 @@ public export
 Show QtyRatio where
     show q@(MkQr n d) = 
                   let eq = eval_qtyratio q
+                      xx=num eq
                       x=show $ num eq
                       y=show $ den eq
-                      ret = x++"/"++y in if is_whole eq then x  else ret
+                      ret = x++"/"++y in if (xx==0) then "0" else (if is_whole eq then x else ret)
 
 
 public export

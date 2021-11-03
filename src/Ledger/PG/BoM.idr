@@ -125,14 +125,21 @@ public export
 GetRSOP cs = SOP I [(GetTypes cs)]
 
 toRBoM : GetRow (columns BoM_NP) -> RBoM
-toRBoM =  toRBoMx . tosop5 where
-  tosop5 : GetRow (columns BoM_NP) -> GetRSOP (columns BoM_NP)
-  tosop5 x = MkSOP $ Z x
+toRBoM =  toR . tosop where
+  tosop : GetRow (columns BoM_NP) -> GetRSOP (columns BoM_NP)
+  tosop x = MkSOP $ Z x
 
-  toRBoMx : GetRSOP (columns BoM_NP) -> RBoM
-  toRBoMx = to
+  toR : GetRSOP (columns BoM_NP) -> RBoM
+  toR = to
 
+toRProduct : GetRow ListProdCols -> RProduct
+toRProduct = toR . tosop where
+  tosop : GetRow (ListProdCols) -> GetRSOP (ListProdCols)
+  tosop x = MkSOP $ Z x
 
+  toR : GetRSOP (ListProdCols) -> RProduct
+  toR = to
+{-
 toRProduct : GetRow ListProdCols -> RProduct
 toRProduct x = 
    let lp = (get (Maybe Price) (tl (tl (tl x))))
@@ -141,6 +148,7 @@ toRProduct x =
        cp = (get (Maybe Price) (tl (tl (tl (tl (tl (tl x)))))))
        xn =(get String (tl (tl x)))
        prod =MkRProduct (get Bits32 x) (get String (tl x)) xn lp tp rp cp in prod
+-}
 
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
 rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
