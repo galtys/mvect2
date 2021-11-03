@@ -66,20 +66,6 @@ Id_PT = primarySerial64 Bits32 "id" (Just . cast) PT
 Name : Column
 Name = notNull String "name" Text Just id PT
 
-
-toINC20 : Double -> Price
-toINC20 x = MkPrice (cast x) INC20
-
-fromPrice : Price -> Double
-fromPrice (MkPrice x tax) = (cast x)
-
-toEX20 : Double -> Price
-toEX20 x = MkPrice (cast x) EX20
-
-
-Cast Price Double where
-  cast = fromPrice
-
 ListPrice : Column
 ListPrice = nullable Price "list_price" DoublePrecision (Just . toINC20) cast PT
 

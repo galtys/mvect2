@@ -32,7 +32,23 @@ record Price where
   price : TQty
   tax : TaxCode
 %runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-  
+
+export  
+toINC20 : Double -> Price
+toINC20 x = MkPrice (cast x) INC20
+
+export
+fromPrice : Price -> Double
+fromPrice (MkPrice x tax) = (cast x)
+
+export
+toEX20 : Double -> Price
+toEX20 x = MkPrice (cast x) EX20
+
+public export
+Cast Price Double where
+  cast = fromPrice
+
   
 public export
 record Address where
