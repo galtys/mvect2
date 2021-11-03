@@ -120,18 +120,14 @@ Prod_NP_R : Table
 Prod_NP_R = MkTable "x"
             ListProdCols
 
-public export
-0 GetRSOP : List Column -> Type
-GetRSOP cs = SOP I [(GetTypes cs)]
+--public export
+--0 GetRSOP : List Column -> Type
+--GetRSOP cs = SOP I [(GetTypes cs)]
 
 toRBoM : GetRow (columns BoM_NP) -> RBoM
-toRBoM =  toR . tosop where
-  tosop : GetRow (columns BoM_NP) -> GetRSOP (columns BoM_NP)
-  tosop x = MkSOP $ Z x
+toRBoM =  to . (\x => MkSOP $ Z x)
 
-  toR : GetRSOP (columns BoM_NP) -> RBoM
-  toR = to
-
+{-
 toRProduct : GetRow ListProdCols -> RProduct
 toRProduct = toR . tosop where
   tosop : GetRow (ListProdCols) -> GetRSOP (ListProdCols)
@@ -139,6 +135,10 @@ toRProduct = toR . tosop where
 
   toR : GetRSOP (ListProdCols) -> RProduct
   toR = to
+-}
+toRProduct : GetRow ListProdCols -> RProduct
+toRProduct = to . (\x => MkSOP $ Z x)
+
 {-
 toRProduct : GetRow ListProdCols -> RProduct
 toRProduct x = 
