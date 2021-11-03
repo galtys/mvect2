@@ -38,10 +38,10 @@ record RProduct where
   pk : Bits32
   sku : String  
   name : String
-  list_price : Price
-  trade : Price
-  retail : Price
-  contract : Price
+  list_price : Maybe Price
+  trade : Maybe Price
+  retail : Maybe Price
+  contract : Maybe Price
 
 %runElab derive "RProduct" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 --- Join
@@ -66,13 +66,26 @@ Id_PT = primarySerial64 Bits32 "id" (Just . cast) PT
 Name : Column
 Name = notNull String "name" Text Just id PT
 
+
+toINC20 : Double -> Price
+toINC20 x = MkPrice (cast x) INC20
+
+fromPrice : Price -> Double
+fromPrice (MkPrice x tax) = (cast x)
+
+toEX20 : Double -> Price
+toEX20 x = MkPrice (cast x) EX20
+
+
+Cast Price Double where
+  cast = fromPrice
+
 ListPrice : Column
-ListPrice = nullable TQty "list_price" DoublePrecision (Just . cast) cast PT
+ListPrice = nullable Price "list_price" DoublePrecision (Just . toINC20) cast PT
 
 ProductTemplate_NP : Table
 ProductTemplate_NP = MkTable PT
          [Id_PT, Name, ListPrice]
-
 
 -- Product table
 Id_PP : Column
@@ -82,13 +95,13 @@ ProductTmplID : Column
 ProductTmplID = notNull Bits32 "product_tmpl_id" BigInt (Just . cast) cast PP
 
 TradePrice : Column
-TradePrice = nullable TQty "trade" DoublePrecision (Just . cast) cast PP
+TradePrice = nullable Price "trade" DoublePrecision (Just . toEX20) cast PP
 
 RetailPrice : Column
-RetailPrice = nullable TQty "retail" DoublePrecision (Just . cast) cast PP
+RetailPrice = nullable Price "retail" DoublePrecision (Just . toINC20) cast PP
 
 ContractPrice : Column
-ContractPrice = nullable TQty "contract" DoublePrecision (Just . cast) cast PP
+ContractPrice = nullable Price "contract" DoublePrecision (Just . toEX20) cast PP
 
 SKU  : Column
 SKU = notNull String "default_code" Text Just id PP
@@ -115,19 +128,22 @@ BoM_NP = MkTable "mrp_bom"
       [ProductID,ProdQty,BomID,Id_BM]
       
  --[Id,ProductID,ProdQty,BomID]
-      
+ocas : (NP I [Bits32, TQty,Maybe Bits32,Bits32] ) 
+
+
+            
 toRBoM : (NP I [Bits32, TQty,Maybe Bits32,Bits32] ) -> RBoM
 toRBoM x = MkRBoM (get Bits32 x)  (get TQty (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
 
 
-toRProduct : (NP I [Bits32,String,String,Maybe TQty,Maybe TQty,Maybe TQty,Maybe TQty] ) -> RProduct
+toRProduct : (NP I [Bits32,String,String,Maybe Price,Maybe Price,Maybe Price,Maybe Price] ) -> RProduct
 toRProduct x = 
-   let lp = (get (Maybe TQty) (tl (tl (tl x))))
-       tp = (get (Maybe TQty) (tl (tl (tl (tl x)))))
-       rp = (get (Maybe TQty) (tl (tl (tl (tl (tl x))))))
-       cp = (get (Maybe TQty) (tl (tl (tl (tl (tl (tl x)))))))
-       prod =MkRProduct (get Bits32 x) (get String (tl x)) (get String (tl (tl x))) (MkPrice lp INC20) (MkPrice tp EX20)  (MkPrice rp INC20)  (MkPrice cp EX20) in prod
-         
+   let lp = (get (Maybe Price) (tl (tl (tl x))))
+       tp = (get (Maybe Price) (tl (tl (tl (tl x)))))
+       rp = (get (Maybe Price) (tl (tl (tl (tl (tl x))))))
+       cp = (get (Maybe Price) (tl (tl (tl (tl (tl (tl x)))))))
+       xn =(get String (tl (tl x)))
+       prod =MkRProduct (get Bits32 x) (get String (tl x)) xn lp tp rp cp in prod
 
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
 rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
@@ -220,8 +236,6 @@ read_boms_ c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
   xs <- read_boms_ c xs
   pure ([ret]++xs) 
 
---toRProduct
-
 read_product_templates : HasIO io => MonadError SQLError io => Connection -> io ()
 read_product_templates c = do
   rows <- get c ProductTemplate_NP (columns ProductTemplate_NP) (Name == "test product") --(True)  
@@ -230,6 +244,7 @@ read_product_templates c = do
   rows2 <- getJoin c ProductTemplate_NP Product_NP [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice] ((JC ProductTmplID Id_PT)) --(True)  
   let rprod = [toRProduct ox | ox <- rows2 ]
   traverse_ printLn rprod
+  pure ()
   
 main_read_bom : HasIO io => MonadError SQLError io => io (List (RBoM, List RBoM) )
 main_read_bom  = do

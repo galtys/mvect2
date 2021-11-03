@@ -67,6 +67,7 @@ OLT = "sale_order_line"
 Id_OT : Column
 Id_OT = primarySerial64 Bits32 "id" (Just . cast) OT
 
+
 Origin: Column
 Origin = nullable String "origin" (VarChar 64) (Just . cast) cast OT
 
@@ -114,4 +115,5 @@ CarrierID = notNull Bits32 "carrier_id" BigInt (Just . cast) cast OT
 
 RequestedDate : Column
 RequestedDate = notNull Date "requested_date" (VarChar 10) (Just . cast) cast OT
+
 

@@ -29,7 +29,7 @@ data TaxCode = ZeroVAT | INC20 | EX20
 public export
 record Price where
   constructor MkPrice
-  price : Maybe TQty
+  price : TQty
   tax : TaxCode
 %runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
   
