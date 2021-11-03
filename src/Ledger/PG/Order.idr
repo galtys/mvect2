@@ -1,5 +1,6 @@
 module Ledger.PG.Order
 
+import Ledger.PG.Types
 
 import Data.SortedMap
 
@@ -24,7 +25,6 @@ import PQ.Types
 
 %language ElabReflection
 
-
 public export
 record Line where
   constructor MkLine
@@ -40,7 +40,6 @@ record Line where
                       --SubTotal ... calculated
 
 %runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
-
 
 public export
 record LineExt where
@@ -118,10 +117,6 @@ DeliveryNotes = nullable String "delivery_notes" Text (Just . cast) cast OT
 ListSaleOrderCols : List Column
 ListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate]
 
-SO_NP : Table
-SO_NP = MkTable "sale_order"
-        ListSaleOrderCols
-
 record RSaleOrder where
   constructor MkRSO
   pk : Bits32
@@ -145,8 +140,96 @@ record RSaleOrder where
 toRSO : GetRow ListSaleOrderCols -> RSaleOrder
 toRSO =  to . (\x => MkSOP $ Z x)
 
--- IO
 
+----- SO Line
+Id_OLT : Column
+Id_OLT = primarySerial64 Bits32 "id" (Just . cast) OLT
+PrimOrderID : Column
+PrimOrderID = notNull Bits32 "order_id" BigInt (Just . cast) cast OLT
+PriceUnit : Column
+PriceUnit = notNull TQty "price_unit" DoublePrecision (Just . cast) cast OLT
+ProductUomQty : Column
+ProductUomQty = notNull TQty "product_uom_qty" DoublePrecision (Just . cast) cast OLT
+Discount : Column
+Discount = nullable TQty "discount" DoublePrecision (Just . cast) cast OLT
+ProductID : Column
+ProductID = nullable Bits32 "product_id" BigInt (Just . cast) cast OLT
+DeliveryLine : Column
+DeliveryLine = nullable Bool "delivery_line" Boolean (Just . cast) cast OLT
+
+record RSaleOrderLine where
+  constructor MkRSOL
+  pk : Bits32
+  --order_id : Bits32
+  price_unit : TQty
+  product_uom_qty : TQty
+  discount : Maybe TQty
+  product_id : Maybe Bits32
+  delivery_line : Maybe Bool
+
+%runElab derive "RSaleOrderLine" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+ListSaleOrderLineCols : List Column
+ListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,ProductID,DeliveryLine]
+
+PrimSoFields : List Field
+PrimSoFields = toFields ListSaleOrderCols 
+
+PrimSolFields : List Field
+PrimSolFields = toFields ListSaleOrderLineCols
+
+mutual  
+  SaleOrder : Model
+  SaleOrder = MkM (PrimSoFields++[OrderLines] ) 
+  
+  OrderID : Field
+  OrderID = M2O SaleOrder PrimOrderID
+ 
+  SaleOrderLine : Model
+  SaleOrderLine = MkM (PrimSolFields ++ [OrderID])
+
+  OrderLines : Field
+  OrderLines = O2M SaleOrderLine
+
+
+toRSOL : GetRow ListSaleOrderLineCols -> RSaleOrderLine
+toRSOL =  to . (\x => MkSOP $ Z x)
+
+record RSaleOrderXX where
+  constructor MkRSOXX
+  pk : Bits32
+  origin : Maybe String
+  OrderPolicy : String
+  date_order : Date
+  partner_id : Bits32
+  amount_tax : Price --
+  state : String
+  partner_invoice_id : Bits32
+  amount_untaxed : Price
+  amount_total : Price
+  name : String
+  partner_shipping_id : Bits32
+  picking_policy : String
+  carrier_id : Maybe Bits32
+  requested_date : Maybe String
+
+SO_NP : Table
+SO_NP = MkTable "sale_order"
+        ListSaleOrderCols
+SOL_NP : Table
+SOL_NP = MkTable "sale_order_line"
+        ListSaleOrderCols
+
+--getPrimCols : List Field -> 
+
+-- IO
+read_sale_model : HasIO io => MonadError SQLError io => Connection -> io () 
+read_sale_model c = do
+  
+  rows <- get c SO_NP (columns SO_NP) (StateOT /= "cancel")
+  
+  pure ()
+  
 read_sale_orders : HasIO io => MonadError SQLError io => Connection -> io (List RSaleOrder) 
 read_sale_orders c  = do
   rows <- get c SO_NP (columns SO_NP) (StateOT /= "cancel")
