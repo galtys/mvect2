@@ -113,16 +113,27 @@ BoM_NP : Table
 BoM_NP = MkTable "mrp_bom"
       [ProductID,ProdQty,BomID,Id_BM]
       
- --[Id,ProductID,ProdQty,BomID]
-ocas : (NP I [Bits32, TQty,Maybe Bits32,Bits32] ) 
+ListProdCols : List Column
+ListProdCols = [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice]
+
+Prod_NP_R : Table
+Prod_NP_R = MkTable "x"
+            ListProdCols
+
+public export
+0 GetRSOP : List Column -> Type
+GetRSOP cs = SOP I [(GetTypes cs)]
+
+toRBoM : GetRow (columns BoM_NP) -> RBoM
+toRBoM =  toRBoMx . tosop5 where
+  tosop5 : GetRow (columns BoM_NP) -> GetRSOP (columns BoM_NP)
+  tosop5 x = MkSOP $ Z x
+
+  toRBoMx : GetRSOP (columns BoM_NP) -> RBoM
+  toRBoMx = to
 
 
-            
-toRBoM : (NP I [Bits32, TQty,Maybe Bits32,Bits32] ) -> RBoM
-toRBoM x = MkRBoM (get Bits32 x)  (get TQty (tl x)) (get (Maybe Bits32) (tl (tl x) ) )     (get (Bits32) (tl (tl (tl x)) ) )
-
-
-toRProduct : (NP I [Bits32,String,String,Maybe Price,Maybe Price,Maybe Price,Maybe Price] ) -> RProduct
+toRProduct : GetRow ListProdCols -> RProduct
 toRProduct x = 
    let lp = (get (Maybe Price) (tl (tl (tl x))))
        tp = (get (Maybe Price) (tl (tl (tl (tl x)))))
@@ -227,7 +238,8 @@ read_product_templates c = do
   rows <- get c ProductTemplate_NP (columns ProductTemplate_NP) (Name == "test product") --(True)  
   printLn ( rows)
   printLn (length rows)
-  rows2 <- getJoin c ProductTemplate_NP Product_NP [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice] ((JC ProductTmplID Id_PT)) --(True)  
+  rows2 <- getJoin c ProductTemplate_NP Product_NP ListProdCols (JC ProductTmplID Id_PT)
+  
   let rprod = [toRProduct ox | ox <- rows2 ]
   traverse_ printLn rprod
   pure ()
