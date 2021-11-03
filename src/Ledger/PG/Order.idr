@@ -55,18 +55,6 @@ record LineExt where
 %runElab derive "LineExt" [Generic, Meta, Show, Eq]
 --%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
-
-
-
-record RBoM where
-  constructor MkRBoM
-  product_id : Bits32
-  product_qty : TQty
-  bom_id : (Maybe Bits32)
-  pk : Bits32
-        
-%runElab derive "RBoM" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-
 -- Order and Order Line (odoo)
 
 OT : String
@@ -78,4 +66,52 @@ OLT = "sale_order_line"
 -- Order
 Id_OT : Column
 Id_OT = primarySerial64 Bits32 "id" (Just . cast) OT
+
+Origin: Column
+Origin = nullable String "origin" (VarChar 64) (Just . cast) cast OT
+
+ShopID : Column
+ShopID = notNull Bits32 "shop_id" BigInt (Just . cast) cast OT
+
+ClientOrderRef: Column
+ClientOrderRef = nullable String "client_order_ref" (VarChar 64) (Just . cast) cast OT
+
+DateOrder : Column
+DateOrder = notNull Date "date_order" (VarChar 10) (Just . cast) cast OT
+
+PartnerID : Column
+PartnerID = notNull Bits32 "partner_id" BigInt (Just . cast) cast OT
+
+Note: Column
+Note = nullable String "note" Text (Just . cast) cast OT
+
+AmountTax : Column
+AmountTax = nullable TQty "amount_tax" DoublePrecision (Just . cast) cast OT
+
+StateOT : Column
+StateOT = nullable String "state" Text (Just . cast) cast OT
+
+PricelistID : Column
+PricelistID = notNull Bits32 "pricelist_id" BigInt (Just . cast) cast OT
+
+PartnerInvoiceID : Column
+PartnerInvoiceID = notNull Bits32 "partner_invoice_id" BigInt (Just . cast) cast OT
+
+AmountUntaxed : Column
+AmountUntaxed = nullable TQty "amount_untaxed" DoublePrecision (Just . cast) cast OT
+
+AmountTotal : Column
+AmountTotal = nullable TQty "amount_total" DoublePrecision (Just . cast) cast OT
+
+NameOT: Column
+NameOT = nullable String "name" (VarChar 64) (Just . cast) cast OT
+
+PartnerShippingID : Column
+PartnerShippingID = notNull Bits32 "partner_shipping_id" BigInt (Just . cast) cast OT
+
+CarrierID : Column
+CarrierID = notNull Bits32 "carrier_id" BigInt (Just . cast) cast OT
+
+RequestedDate : Column
+RequestedDate = notNull Date "requested_date" (VarChar 10) (Just . cast) cast OT
 

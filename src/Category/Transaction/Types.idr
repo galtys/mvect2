@@ -93,7 +93,7 @@ data DocType =  WOrder | WInvoice  |  LRes  | LDel --oWnerOrder | oWnerInvoice |
 
 public export
 Date : Type
-Date = Integer
+Date = String
 
 public export
 record Acc where
