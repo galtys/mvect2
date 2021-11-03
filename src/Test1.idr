@@ -144,7 +144,11 @@ data_store_dir = "/home/jan/github.com/mvect2/data"
 main : IO ()
 main = do
   --main_pg
-  l1 <- muf_3
+  --l1 <- muf_3
+  l1 <- main_so
+  printLn (length l1)
+  --traverse_ printLn l1
+  
 --  read_bom 44
   --ignore $ run forever greet
   
