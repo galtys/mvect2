@@ -24,29 +24,6 @@ import PQ.Types
 
 %language ElabReflection
 
-record RBoM where
-  constructor MkRBoM
-  product_id : Bits32
-  product_qty : TQty
-  bom_id : (Maybe Bits32)
-  pk : Bits32
-        
-%runElab derive "RBoM" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-
-record RProduct where
-  constructor MkRProduct
-  pk : Bits32
-  sku : String  
-  name : String
-  list_price : Maybe Price
-  trade : Maybe Price
-  retail : Maybe Price
-  contract : Maybe Price
-
-%runElab derive "RProduct" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
---- Join
-
-
 --------------------------------------------------------------------------------
 --          Product and Bom
 --------------------------------------------------------------------------------
@@ -109,9 +86,29 @@ ProductID = notNull Bits32 "product_id" BigInt (Just . cast) cast BM
 BomID : Column
 BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast BM
 
+record RBoM where
+  constructor MkRBoM
+  product_id : Bits32
+  product_qty : TQty
+  bom_id : (Maybe Bits32)
+  pk : Bits32
+        
+%runElab derive "RBoM" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
 BoM_NP : Table
 BoM_NP = MkTable "mrp_bom"
       [ProductID,ProdQty,BomID,Id_BM]
+
+record RProduct where
+  constructor MkRProduct
+  pk : Bits32
+  sku : String  
+  name : String
+  list_price : Maybe Price
+  trade : Maybe Price
+  retail : Maybe Price
+  contract : Maybe Price
+%runElab derive "RProduct" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       
 ListProdCols : List Column
 ListProdCols = [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice]

@@ -67,9 +67,11 @@ OLT = "sale_order_line"
 Id_OT : Column
 Id_OT = primarySerial64 Bits32 "id" (Just . cast) OT
 
-
 Origin: Column
 Origin = nullable String "origin" (VarChar 64) (Just . cast) cast OT
+
+OrderPolicy : Column
+OrderPolicy = notNull String "order_policy" (VarChar 64) (Just . cast) cast OT
 
 ShopID : Column
 ShopID = notNull Bits32 "shop_id" BigInt (Just . cast) cast OT
@@ -86,6 +88,12 @@ PartnerID = notNull Bits32 "partner_id" BigInt (Just . cast) cast OT
 Note: Column
 Note = nullable String "note" Text (Just . cast) cast OT
 
+FiscalPosition : Column
+FiscalPosition = nullable Bits32 "fiscal_position" BigInt (Just . cast) cast OT
+
+UserID : Column
+UserID = nullable Bits32 "user_id" BigInt (Just . cast) cast OT
+
 AmountTax : Column
 AmountTax = nullable Price "amount_tax" DoublePrecision (Just . toTaxA) cast OT
 
@@ -101,6 +109,9 @@ PartnerInvoiceID = notNull Bits32 "partner_invoice_id" BigInt (Just . cast) cast
 AmountUntaxed : Column
 AmountUntaxed = nullable Price "amount_untaxed" DoublePrecision (Just . toEX20) cast OT
 
+DateConfirm : Column
+DateConfirm = nullable Date "date_confirm" (VarChar 10) (Just . cast) cast OT
+
 AmountTotal : Column
 AmountTotal = nullable Price "amount_total" DoublePrecision (Just . toINC20) cast OT
 
@@ -110,10 +121,25 @@ NameOT = nullable String "name" (VarChar 64) (Just . cast) cast OT
 PartnerShippingID : Column
 PartnerShippingID = notNull Bits32 "partner_shipping_id" BigInt (Just . cast) cast OT
 
+PickingPolicy : Column
+PickingPolicy = nullable String "picking_policy" Text (Just . cast) cast OT
+
 CarrierID : Column
 CarrierID = notNull Bits32 "carrier_id" BigInt (Just . cast) cast OT
 
+EffectiveDate : Column
+EffectiveDate = nullable Date "effective_date" (VarChar 10) (Just . cast) cast OT
+
 RequestedDate : Column
-RequestedDate = notNull Date "requested_date" (VarChar 10) (Just . cast) cast OT
+RequestedDate = nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
 
+CommitmentdDate : Column
+CommitmentdDate = nullable Date "commitmentd_date" (VarChar 10) (Just . cast) cast OT
 
+DeliveryNotes: Column
+DeliveryNotes = nullable String "delivery_notes" Text (Just . cast) cast OT
+
+record RSaleOrder where
+  constructor MkRSO
+  pk : Bits32
+  
