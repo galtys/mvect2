@@ -2,7 +2,6 @@ module Ledger.PG.Order
 
 import Ledger.PG.Types
 
-import Data.SortedMap
 
 import Category.Transaction.Qty
 --import Category.Transaction.Types
@@ -55,6 +54,7 @@ record LineExt where
 --%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
 
 -- Order and Order Line (odoo)
+
 
 OT : String
 OT = "sale_order"
@@ -114,8 +114,8 @@ CommitmentdDate = nullable Date "commitmentd_date" (VarChar 10) (Just . cast) ca
 DeliveryNotes: Column
 DeliveryNotes = nullable String "delivery_notes" Text (Just . cast) cast OT
 
-ListSaleOrderCols : List Column
-ListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate]
+PrimListSaleOrderCols : List Column
+PrimListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate]
 
 record RSaleOrder where
   constructor MkRSO
@@ -137,7 +137,7 @@ record RSaleOrder where
 
 %runElab derive "RSaleOrder" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
  
-toRSO : GetRow ListSaleOrderCols -> RSaleOrder
+toRSO : GetRow PrimListSaleOrderCols -> RSaleOrder
 toRSO =  to . (\x => MkSOP $ Z x)
 
 
@@ -169,30 +169,38 @@ record RSaleOrderLine where
 
 %runElab derive "RSaleOrderLine" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-ListSaleOrderLineCols : List Column
-ListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,ProductID,DeliveryLine]
+PrimListSaleOrderLineCols : List Column
+PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,ProductID,DeliveryLine]
 
-PrimSoFields : List Field
-PrimSoFields = toFields ListSaleOrderCols 
+--PrimSoFields : List Field
+--PrimSoFields = toFields PrimListSaleOrderCols 
 
-PrimSolFields : List Field
-PrimSolFields = toFields ListSaleOrderLineCols
+--PrimSolFields : List Field
+--PrimSolFields = toFields ListSaleOrderLineCols
+
+so_t : Table
+so_t = MkTable "sale_order" PrimListSaleOrderCols
+
+sol_t : Table
+sol_t = MkTable "sale_order_line" PrimListSaleOrderCols
+
+--(getPrimCols (fields SaleOrder))
 
 mutual  
   SaleOrder : Model
-  SaleOrder = MkM (PrimSoFields++[OrderLines] ) 
+  SaleOrder = MkM so_t ([OrderLines] ) 
   
   OrderID : Field
   OrderID = M2O SaleOrder PrimOrderID
  
   SaleOrderLine : Model
-  SaleOrderLine = MkM (PrimSolFields ++ [OrderID])
+  SaleOrderLine = MkM sol_t ([OrderID])
 
   OrderLines : Field
   OrderLines = O2M SaleOrderLine
 
 
-toRSOL : GetRow ListSaleOrderLineCols -> RSaleOrderLine
+toRSOL : GetRow PrimListSaleOrderLineCols -> RSaleOrderLine
 toRSOL =  to . (\x => MkSOP $ Z x)
 
 record RSaleOrderXX where
@@ -215,19 +223,22 @@ record RSaleOrderXX where
 
 SO_NP : Table
 SO_NP = MkTable "sale_order"
-        ListSaleOrderCols
+        PrimListSaleOrderCols
 SOL_NP : Table
 SOL_NP = MkTable "sale_order_line"
-        ListSaleOrderCols
-
---getPrimCols : List Field -> 
+        PrimListSaleOrderCols
 
 -- IO
-read_sale_model : HasIO io => MonadError SQLError io => Connection -> io () 
+    
+so_c : List Column
+so_c = (columns so_t)
+
+read_sale_model : HasIO io => MonadError SQLError io => Connection -> io () --(List (GetRow (columns so_t)))
 read_sale_model c = do
-  
-  rows <- get c SO_NP (columns SO_NP) (StateOT /= "cancel")
-  
+  --let m = SaleOrder
+  --let cls = columns so_t
+  rows <- get c so_t (columns so_t) (True) --StateOT /= "cancel")
+  --printLn rows
   pure ()
   
 read_sale_orders : HasIO io => MonadError SQLError io => Connection -> io (List RSaleOrder) 
