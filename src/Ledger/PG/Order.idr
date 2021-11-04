@@ -119,9 +119,9 @@ PrimListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,
 
 record RSaleOrder where
   constructor MkRSO
-  pk : Bits32
-  origin : Maybe String
-  OrderPolicy : String
+  pk : Bits32 --(idrisTpe Id_OT)
+  origin : Maybe String --(idrisTpe Origin)
+  order_policy : String --(idrisTpe OrderPolicy)
   date_order : Date
   partner_id : Bits32
   amount_tax : Price --
@@ -136,10 +136,9 @@ record RSaleOrder where
   requested_date : Maybe String
 
 %runElab derive "RSaleOrder" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
- 
+   
 toRSO : GetRow PrimListSaleOrderCols -> RSaleOrder
 toRSO =  to . (\x => MkSOP $ Z x)
-
 
 ----- SO Line
 Id_OLT : Column
@@ -189,13 +188,13 @@ SOL_NP = MkTable "sale_order_line"
 
 mutual  
   SaleOrder : Model
-  SaleOrder = MkM SO_NP ((toFields (columns SO_NP))++[OrderLines] ) 
+  SaleOrder = MkM SO_NP (Id_OT) ((toFields (columns SO_NP))++[OrderLines] ) 
   
   OrderID : Field
   OrderID = M2O SaleOrder PrimOrderID
  
   SaleOrderLine : Model
-  SaleOrderLine = MkM SOL_NP ((toFields (columns SOL_NP))++[OrderID])
+  SaleOrderLine = MkM SOL_NP (Id_OLT) ((toFields (columns SOL_NP))++[OrderID])
 
   OrderLines : Field
   OrderLines = O2M SaleOrderLine
@@ -204,26 +203,8 @@ mutual
 toRSOL : GetRow PrimListSaleOrderLineCols -> RSaleOrderLine
 toRSOL =  to . (\x => MkSOP $ Z x)
 
-record RSaleOrderXX where
-  constructor MkRSOXX
-  pk : Bits32
-  origin : Maybe String
-  OrderPolicy : String
-  date_order : Date
-  partner_id : Bits32
-  amount_tax : Price --
-  state : String
-  partner_invoice_id : Bits32
-  amount_untaxed : Price
-  amount_total : Price
-  name : String
-  partner_shipping_id : Bits32
-  picking_policy : String
-  carrier_id : Maybe Bits32
-  requested_date : Maybe String
-
 -- IO
-{-
+
 getSQLt :  (t        : Table)
        ---> (cs       : List Column)
        ---> {auto 0 _ : Elems cs (columns t)}
@@ -243,23 +224,54 @@ get_t :  HasIO io
 get_t c t query = do
   res <- exec c (getSQLt t query) TUPLES_OK
   getRows (names (columns t)) (readers (columns t)) res
--}
-  
-  --(List (GetRow (columns so_t)))
-  
-read_table : HasIO io => MonadError SQLError io => Connection -> (t:Table) -> (cs:List Column) -> {auto 0 _ : Elems cs (columns t)} -> io (List (GetRow cs)) 
-read_table c t cls = do 
-    rows <- get c t cls (StateOT /= "cancel")
-    
-    --StateOT /= "cancel")
-  --rows <- get c SO_NP (columns SO_NP) (True) --
-    --printLn rows
+
+{-  
+read_table_t : HasIO io => MonadError SQLError io => Connection -> (t:Table) -> (op:Op) -> io (List (GetRow (columns t)))   
+read_table_t c t op = do
+    rows <- get_t c t op--(StateOT /= "cancel")
     pure rows
 
-  
+
+read_model_v : HasIO io => MonadError SQLError io => Connection -> (m:Model) -> (opx:Op) -> Bits32 -> io (List (GetRow (columns (table m) )))   
+read_model_v c (MkM t pk fields) opx val= do
+    rows <- read_table_t c t ((O2M pk val)&&opx) --(pk == (cast val))
+    pure rows
+    
+
+read_join_model : HasIO io => MonadError SQLError io => Connection -> (m:Model) -> List Bits32 -> io ()
+read_join_model c m [] = pure ()
+read_join_model c m (x::xs) = ret where
+       read_fk_one : Connection -> (fk_m:Model) -> (fk_c:Column) -> Bits32 -> io (List (GetRow (columns (table fk_m) )) )
+       read_fk_one c fk_m fk_col val = do
+           r <- read_table_t c (table fk_m) ((JC fk_col (pk fk_m)) && (O2M (pk m) val))
+           pure r
+           
+       read_fk : Connection -> List (Model,Column) -> io ()
+       read_fk c [] = pure ()
+       read_fk c ((fk_m, fk_col) :: uuu) = do
+          r <- read_fk_one c fk_m fk_col x
+          
+          --printLn r
+          
+          --r <- get c (table fk_m) (columns (table fk_m)) 
+          --rx <- read_table_t c (table fk_m) (fk_col == x ) --JC fk_col)
+          
+          
+          pure ()
+       
+       --rows <- get c 
+       ret : io ()
+       ret = pure ()
+-}
+       
 read_sale_orders : HasIO io => MonadError SQLError io => Connection -> io (List RSaleOrder) 
 read_sale_orders c  = do
   rows <- get c SO_NP (columns SO_NP) (StateOT /= "cancel")
+  --rows <- read_table_t c SO_NP (StateOT /= "cancel") 
+  --rows <- read_prim_model c SaleOrder (StateOT /= "cancel") 
+  --rows <- get c (table SaleOrder) (columns (table SaleOrder)) (StateOT /= "cancel")   
+  --lines <- read_prim_model c SaleOrderLine 
+  
   let so_s= [ toRSO ox | ox <- rows ]
   pure so_s
 

@@ -20,9 +20,20 @@ mutual --add Enum Type as selection, add Interface Is Enum type
   record Model where
     constructor MkM
     table : Table
+    pk : Column
     fields : (List Field)
-  
+
+export
+getM2OColsL : List Field -> List (Model,Column)
+getM2OColsL [] = []
+getM2OColsL ((Prim x) :: xs) = getM2OColsL xs
+getM2OColsL ((M2O x y) :: xs) = [(( x),y)]++getM2OColsL xs
+getM2OColsL ((O2M x) :: xs) = getM2OColsL xs
+
 --  data Model = MkM 
+export
+getM2OCols : Model -> List (Model,Column)
+getM2OCols (MkM table pk fields) = getM2OColsL fields
 
 export
 toFields : List Column -> List Field
