@@ -12,6 +12,7 @@ import JSON
 %language ElabReflection
 
 mutual --add Enum Type as selection, add Interface Is Enum type
+  --for m2o,add a proof that column is in model table
   public export
   data Field = Prim Column | M2O Model Column | O2M Model --| M2M Model 
 

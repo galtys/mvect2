@@ -178,23 +178,24 @@ PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,ProductID,D
 --PrimSolFields : List Field
 --PrimSolFields = toFields ListSaleOrderLineCols
 
-so_t : Table
-so_t = MkTable "sale_order" PrimListSaleOrderCols
-
-sol_t : Table
-sol_t = MkTable "sale_order_line" PrimListSaleOrderCols
+SO_NP : Table
+SO_NP = MkTable "sale_order"
+        PrimListSaleOrderCols
+SOL_NP : Table
+SOL_NP = MkTable "sale_order_line"
+        PrimListSaleOrderCols
 
 --(getPrimCols (fields SaleOrder))
 
 mutual  
   SaleOrder : Model
-  SaleOrder = MkM so_t ([OrderLines] ) 
+  SaleOrder = MkM SO_NP ((toFields (columns SO_NP))++[OrderLines] ) 
   
   OrderID : Field
   OrderID = M2O SaleOrder PrimOrderID
  
   SaleOrderLine : Model
-  SaleOrderLine = MkM sol_t ([OrderID])
+  SaleOrderLine = MkM SOL_NP ((toFields (columns SOL_NP))++[OrderID])
 
   OrderLines : Field
   OrderLines = O2M SaleOrderLine
@@ -221,23 +222,16 @@ record RSaleOrderXX where
   carrier_id : Maybe Bits32
   requested_date : Maybe String
 
-SO_NP : Table
-SO_NP = MkTable "sale_order"
-        PrimListSaleOrderCols
-SOL_NP : Table
-SOL_NP = MkTable "sale_order_line"
-        PrimListSaleOrderCols
-
 -- IO
     
-so_c : List Column
-so_c = (columns so_t)
+--so_c : List Column
+--so_c = (columns so_t)
 
 read_sale_model : HasIO io => MonadError SQLError io => Connection -> io () --(List (GetRow (columns so_t)))
 read_sale_model c = do
   --let m = SaleOrder
   --let cls = columns so_t
-  rows <- get c so_t (columns so_t) (True) --StateOT /= "cancel")
+  rows <- get c SO_NP (columns SO_NP) (True) --StateOT /= "cancel")
   --printLn rows
   pure ()
   
