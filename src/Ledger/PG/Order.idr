@@ -223,17 +223,39 @@ record RSaleOrderXX where
   requested_date : Maybe String
 
 -- IO
+{-
+getSQLt :  (t        : Table)
+       ---> (cs       : List Column)
+       ---> {auto 0 _ : Elems cs (columns t)}
+       -> (query    : Op)
+       -> String
+getSQLt t query =
+  let cols = fastConcat $ intersperse ", " $ map name (columns t)
+   in #"SELECT \#{cols} FROM \#{t.name} WHERE \#{opToSQL query};"#
     
---so_c : List Column
---so_c = (columns so_t)
+export
+get_t :  HasIO io
+    => MonadError SQLError io
+    => Connection
+    -> (t        : Table)
+    -> (query : Op)
+    -> io (List $ GetRow (columns t))
+get_t c t query = do
+  res <- exec c (getSQLt t query) TUPLES_OK
+  getRows (names (columns t)) (readers (columns t)) res
+-}
+  
+  --(List (GetRow (columns so_t)))
+  
+read_table : HasIO io => MonadError SQLError io => Connection -> (t:Table) -> (cs:List Column) -> {auto 0 _ : Elems cs (columns t)} -> io (List (GetRow cs)) 
+read_table c t cls = do 
+    rows <- get c t cls (StateOT /= "cancel")
+    
+    --StateOT /= "cancel")
+  --rows <- get c SO_NP (columns SO_NP) (True) --
+    --printLn rows
+    pure rows
 
-read_sale_model : HasIO io => MonadError SQLError io => Connection -> io () --(List (GetRow (columns so_t)))
-read_sale_model c = do
-  --let m = SaleOrder
-  --let cls = columns so_t
-  rows <- get c SO_NP (columns SO_NP) (True) --StateOT /= "cancel")
-  --printLn rows
-  pure ()
   
 read_sale_orders : HasIO io => MonadError SQLError io => Connection -> io (List RSaleOrder) 
 read_sale_orders c  = do
