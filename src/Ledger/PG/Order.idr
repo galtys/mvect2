@@ -140,32 +140,6 @@ DeliveryLine = nullable Bool "delivery_line" Boolean (Just . cast) cast OLT
 PrimListSaleOrderLineCols : List Column
 PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]
 
-record RSaleOrderLineS where
-  constructor MkRSOL
-  pk : (idrisTpe Id_OLT)
-  price_unit : (idrisTpe PriceUnit)
-  product_uom_qty : (idrisTpe ProductUomQty)
-  discount : (idrisTpe Discount)
-  delivery_line : (idrisTpe DeliveryLine)
-%runElab derive "RSaleOrderLineS" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-
-
-
-toRSOL : GetRow PrimListSaleOrderLineCols -> RSaleOrderLineS
-toRSOL =  to . (\x => MkSOP $ Z x)
- 
- 
-  --product_id: (idrisTpe ProductID) 
-  
-  
--- ProductID
-
---PrimSoFields : List Field
---PrimSoFields = toFields PrimListSaleOrderCols 
-
---PrimSolFields : List Field
---PrimSolFields = toFields ListSaleOrderLineCols
-
 SO_NP : Table
 SO_NP = MkTable "sale_order"
         PrimListSaleOrderCols
@@ -240,12 +214,44 @@ namespace SO_Simple
   read op = do  
      l1 <- (liftIO $ main_runET op)
      pure l1
-{-
-read_sale_order_lines : HasIO io => MonadError SQLError io => Connection -> io (List RSaleOrderLineS) 
-read_sale_order_lines c  = do
-  rows <- get c (table SaleOrderLine) (columns (table SaleOrderLine)) (True)
 
-  let sol_s= [ toRecordL ox | ox <- rows ]
-  pure sol_s
+namespace SOL_Simple
+  model : Model
+  model = SaleOrderLine
+  domain : Op
+  domain = (True)
+  PrimCols : List Column
+  PrimCols = PrimListSaleOrderLineCols
+  
+  record RecordSimpleCols where
+    constructor MkRSOL
+    pk : (idrisTpe Id_OLT)
+    price_unit : (idrisTpe PriceUnit)
+    product_uom_qty : (idrisTpe ProductUomQty)
+    discount : (idrisTpe Discount)
+    delivery_line : (idrisTpe DeliveryLine)
+    
+  %runElab derive "SOL_Simple.RecordSimpleCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+   
+  toRecord : GetRow SOL_Simple.PrimCols -> SOL_Simple.RecordSimpleCols
+  toRecord =  to . (\x => MkSOP $ Z x)
+          
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SOL_Simple.RecordSimpleCols) 
+  read_records op= do
+    c <- connect DB_URI
+    rows <- get c (table SOL_Simple.model) (columns (table SOL_Simple.model)) (SOL_Simple.domain&&op)
+    let so_s= [ toRecord ox | ox <- rows ]
+    finish c    
+    pure so_s
+  
+  main_runET : (op:Op) -> IO (List SOL_Simple.RecordSimpleCols)
+  main_runET op = do Left err <- runEitherT (SOL_Simple.read_records op {io = EitherT SQLError IO} )
+                       | Right l1 => pure l1
+                     printLn err
+                     pure []
 
--}
+  export
+  read : HasIO io => (op:Op) -> io (List SOL_Simple.RecordSimpleCols)
+  read op = do  
+     l1 <- (liftIO $ main_runET op)
+     pure l1

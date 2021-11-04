@@ -147,9 +147,13 @@ main = do
 
   --l1 <- muf_3
   l1 <- SO_Simple.read (True)
-
   traverse_ printLn l1
-  printLn (length l1)  
+  printLn (length l1)
+  
+  l2 <- SOL_Simple.read (True)
+  traverse_ printLn l2
+  printLn (length l2)  
+  
 --  read_bom 44
   --ignore $ run forever greet
   
