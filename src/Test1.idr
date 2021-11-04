@@ -141,6 +141,8 @@ fn_data_ref = newIORef UK
 data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data"
 
+gen_adder : Int -> (Int ->Int)
+gen_adder x = (\a => a+x)
 
 main : IO ()
 main = do

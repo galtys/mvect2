@@ -169,7 +169,7 @@ namespace SO_Simple
   PrimCols : List Column
   PrimCols = PrimListSaleOrderCols
   
-  record RecordSimpleCols where
+  record RecordCols where
     constructor MkRSO
     pk : (idrisTpe Id_OT)
     origin : (idrisTpe Origin)
@@ -190,12 +190,12 @@ namespace SO_Simple
   -----------------
   ---- Can copy ---
   -----------------
-  %runElab derive "RecordSimpleCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+  %runElab derive "RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
-  toRecord : GetRow PrimCols -> RecordSimpleCols
+  toRecord : GetRow PrimCols -> RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
           
-  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordSimpleCols) 
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols) 
   read_records op= do
     c <- connect DB_URI
     rows <- get c (table model) (columns (table model)) (domain&&op)
@@ -203,14 +203,14 @@ namespace SO_Simple
     finish c    
     pure so_s
   
-  main_runET : (op:Op) -> IO (List RecordSimpleCols)
+  main_runET : (op:Op) -> IO (List RecordCols)
   main_runET op = do Left err <- runEitherT (read_records op {io = EitherT SQLError IO} )
                        | Right l1 => pure l1
                      printLn err
                      pure []
 
   export
-  read : HasIO io => (op:Op) -> io (List RecordSimpleCols)
+  read : HasIO io => (op:Op) -> io (List RecordCols)
   read op = do  
      l1 <- (liftIO $ main_runET op)
      pure l1
@@ -223,7 +223,7 @@ namespace SOL_Simple
   PrimCols : List Column
   PrimCols = PrimListSaleOrderLineCols
   
-  record RecordSimpleCols where
+  record RecordCols where
     constructor MkRSOL
     pk : (idrisTpe Id_OLT)
     price_unit : (idrisTpe PriceUnit)
@@ -231,27 +231,80 @@ namespace SOL_Simple
     discount : (idrisTpe Discount)
     delivery_line : (idrisTpe DeliveryLine)
     
-  %runElab derive "SOL_Simple.RecordSimpleCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+  %runElab derive "SOL_Simple.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
-  toRecord : GetRow SOL_Simple.PrimCols -> SOL_Simple.RecordSimpleCols
+  toRecord : GetRow SOL_Simple.PrimCols -> SOL_Simple.RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
           
-  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SOL_Simple.RecordSimpleCols) 
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SOL_Simple.RecordCols) 
   read_records op= do
     c <- connect DB_URI
     rows <- get c (table SOL_Simple.model) (columns (table SOL_Simple.model)) (SOL_Simple.domain&&op)
     let so_s= [ toRecord ox | ox <- rows ]
     finish c    
     pure so_s
-  
-  main_runET : (op:Op) -> IO (List SOL_Simple.RecordSimpleCols)
+      
+  main_runET : (op:Op) -> IO (List SOL_Simple.RecordCols)
   main_runET op = do Left err <- runEitherT (SOL_Simple.read_records op {io = EitherT SQLError IO} )
                        | Right l1 => pure l1
                      printLn err
                      pure []
 
   export
-  read : HasIO io => (op:Op) -> io (List SOL_Simple.RecordSimpleCols)
+  read : HasIO io => (op:Op) -> io (List SOL_Simple.RecordCols)
   read op = do  
      l1 <- (liftIO $ main_runET op)
      pure l1
+
+namespace SO_O2M
+  model : Model
+  model = SaleOrder
+  domain : Op
+  domain = (StateOT /= "cancel")
+  --PrimCols : List Column
+  --PrimCols = PrimListSaleOrderCols
+  
+  record RecordCols where
+    constructor MkRSO
+    pk : (idrisTpe Id_OT)
+    origin : (idrisTpe Origin)
+    order_policy : (idrisTpe OrderPolicy)
+    date_order : (idrisTpe DateOrder)
+    partner_id : (idrisTpe PartnerID)
+    amount_tax : (idrisTpe AmountTax)
+    state : (idrisTpe StateOT)
+    partner_invoice_id : (idrisTpe PartnerInvoiceID)
+    amount_untaxed : (idrisTpe AmountUntaxed)
+    amount_total : (idrisTpe AmountTotal)
+    name : (idrisTpe NameOT)
+    partner_shipping_id : (idrisTpe PartnerShippingID)
+    picking_policy : (idrisTpe PickingPolicy)
+    carrier_id : (idrisTpe CarrierID)
+    requested_date : (idrisTpe RequestedDate)    
+    lines : List SOL_Simple.RecordCols
+    
+  %runElab derive "SO_O2M.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+{-   
+  toRecord : GetRow PrimCols -> RecordCols
+  toRecord =  to . (\x => MkSOP $ Z x)
+          
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols) 
+  read_records op= do
+    c <- connect DB_URI
+    rows <- get c (table model) (columns (table model)) (domain&&op)
+    let so_s= [ toRecord ox | ox <- rows ]
+    finish c    
+    pure so_s
+  
+  main_runET : (op:Op) -> IO (List RecordCols)
+  main_runET op = do Left err <- runEitherT (read_records op {io = EitherT SQLError IO} )
+                       | Right l1 => pure l1
+                     printLn err
+                     pure []
+
+  export
+  read : HasIO io => (op:Op) -> io (List RecordCols)
+  read op = do  
+     l1 <- (liftIO $ main_runET op)
+     pure l1
+-}
