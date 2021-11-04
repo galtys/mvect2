@@ -22,6 +22,7 @@ import public Language.Reflection.Pretty
 import public Language.Reflection.Syntax
 import public Language.Reflection.Types
 
+import PQ.Schema
 --import System.FFI
 import JSON
 
@@ -145,10 +146,10 @@ main : IO ()
 main = do
 
   --l1 <- muf_3
-  l1 <- main_so
-  printLn (l1)
-  --traverse_ printLn l1
-  
+  l1 <- SO_Simple.read (True)
+
+  traverse_ printLn l1
+  printLn (length l1)  
 --  read_bom 44
   --ignore $ run forever greet
   
