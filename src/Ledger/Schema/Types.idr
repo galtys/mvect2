@@ -11,7 +11,7 @@ namespace OE
    data PrimTypes = I_Bits32|I_Price|I_Date|I_String
    %runElab derive "PrimTypes" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON] 
    public export
-   data PgTypes = BigInt | Text | PG_Double | VarChar Int
+   data PgTypes = BigInt | Text | DoublePrecision | VarChar Int
    %runElab derive "PgTypes" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
    public export
    data ToPG = Nto String -- will be Name of the function

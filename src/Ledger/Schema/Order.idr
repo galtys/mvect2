@@ -25,37 +25,39 @@ ClientOrderRef = Prim (MkF Nullable I_String "client_order_ref" (VarChar 64) "(J
 
 DateOrder : Schema
 DateOrder = Prim (MkF NotNull I_Date "date_order" (VarChar 10) "(Just . cast)" "cast" OT)
-{-
+
 PartnerID : Schema
-PartnerID = notNull Bits32 "partner_id" BigInt (Just . cast) cast OT
+PartnerID = Prim (MkF NotNull I_Bits32 "partner_id" BigInt "(Just . cast)" "cast" OT)
 
 Note: Schema
-Note = nullable String "note" Text (Just . cast) cast OT
+Note = Prim (MkF Nullable I_String "note" Text "(Just . cast)" "cast" OT)
+
 
 FiscalPosition : Schema
-FiscalPosition = nullable Bits32 "fiscal_position" BigInt (Just . cast) cast OT
+FiscalPosition = Prim (MkF Nullable I_Bits32 "fiscal_position" BigInt "(Just . cast)" "cast" OT)
 
 UserID : Schema
-UserID = nullable Bits32 "user_id" BigInt (Just . cast) cast OT
+UserID = Prim (MkF Nullable I_Bits32 "user_id" BigInt "(Just . cast)" "cast" OT)
 
 AmountTax : Schema
-AmountTax = notNull Price "amount_tax" DoublePrecision (Just . toTaxA) cast OT
+AmountTax = Prim (MkF NotNull I_Price "amount_tax" DoublePrecision "(Just . toTaxA)" "cast" OT)
+
 
 StateOT : Schema
-StateOT = notNull String "state" Text (Just . cast) cast OT
+StateOT = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" OT)
 
 PricelistID : Schema
-PricelistID = notNull Bits32 "pricelist_id" BigInt (Just . cast) cast OT
+PricelistID = Prim (MkF NotNull I_Bits32 "pricelist_id" BigInt "(Just . cast)" "cast" OT)
 
 PartnerInvoiceID : Schema
-PartnerInvoiceID = notNull Bits32 "partner_invoice_id" BigInt (Just . cast) cast OT
+PartnerInvoiceID = Prim (MkF NotNull I_Bits32 "partner_invoice_id" BigInt "(Just . cast)" "cast" OT)
 
 AmountUntaxed : Schema
-AmountUntaxed = notNull Price "amount_untaxed" DoublePrecision (Just . toEX20) cast OT
+AmountUntaxed = Prim (MkF NotNull I_Price "amount_untaxed" DoublePrecision "(Just . toEX20)" "cast" OT)
 
 DateConfirm : Schema
-DateConfirm = nullable Date "date_confirm" (VarChar 10) (Just . cast) cast OT
+DateConfirm = Prim (MkF Nullable I_Date "date_confirm" (VarChar 10) "(Just . cast)" "cast" OT)
 
 AmountTotal : Schema
-AmountTotal = notNull Price "amount_total" DoublePrecision (Just . toINC20) cast OT
--}
+AmountTotal = Prim (MkF NotNull I_Price "amount_total" DoublePrecision "(Just . toINC20)" "cast" OT)
+
