@@ -11,7 +11,7 @@ namespace OE
    data PrimTypes = I_Bits32|I_Price|I_Date|I_String
    %runElab derive "PrimTypes" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON] 
    public export
-   data PgTypes = PG_BigInt | PG_Text | PG_VCH Int | PG_Double
+   data PgTypes = BigInt | Text | PG_Double | VarChar Int
    %runElab derive "PgTypes" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
    public export
    data ToPG = Nto String -- will be Name of the function
@@ -25,21 +25,25 @@ namespace OE
    TableName = String
          
    public export
+   data IsNull = Nullable | NotNull
+   %runElab derive "IsNull" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
+   
+   public export
    record Field where
      constructor MkF
-     isNull : Bool
-     primType : PrimTypes
+     isNull : IsNull
+     primType : PrimTypes          
      name : String
-     db_field : String
+--     db_field : String
      pg_type : PgTypes
-     castTo : ToPG
-     castFrom : FromPG
+     castTo : String --ToPG
+     castFrom : String --FromPG
      table : TableName
    %runElab derive "Field" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]  
 
    public export
    data Schema : Type where
-     Pk : (pk:OE.Field) -> Schema
+     Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema --prim field
      M2O : (model: Schema) -> (col : OE.Field) -> Schema
      O2M : (model: Schema) -> Schema
@@ -67,7 +71,7 @@ namespace OE
 
    public export
    validateSchema : Schema -> Bool
-   validateSchema (Pk pk) = True
+   validateSchema (Pk pk dbf t) = True
    validateSchema (Prim pk) = True   
    validateSchema (M2O model col) = ?validateSchema_rhs_2
    validateSchema (O2M model) = ?validateSchema_rhs_3
