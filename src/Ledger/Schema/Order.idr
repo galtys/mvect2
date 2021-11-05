@@ -129,7 +129,7 @@ Id_OLT : Schema
 Id_OLT = Pk "Id_OLT" "id" OLT
 export
 PrimOrderID : Schema
-PrimOrderID = M2O OT (MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
+PrimOrderID = M2O OT "order_id" OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
 export
 PriceUnit : Schema
 PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)

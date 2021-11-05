@@ -46,7 +46,7 @@ namespace OE
    data Schema : Type where
      Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema --prim field
-     M2O : (tn: TableName) -> (col : OE.Field) -> Schema
+     M2O : (rel: TableName) -> (db_field:String) ->(table:TableName) -> Schema -- ->(col : OE.Field)
      O2M : (db_field:String) -> (tn: TableName) -> Schema
      M2M : (f1:String) -> (f2:String) -> (tn: TableName) -> Schema
      --(table:TableName)->(pk:Schema)->
@@ -72,7 +72,7 @@ namespace OE
    validateSchema : Schema -> Bool
    validateSchema (Pk pk dbf t) = True
    validateSchema (Prim pk) = True   
-   validateSchema (M2O model col) = True
+   validateSchema (M2O rel f t) = True
    validateSchema (O2M dbf model) = True
    validateSchema (M2M f1 f2 model) = True
    validateSchema (Model fields) = ?validateSchema_rhs_5
