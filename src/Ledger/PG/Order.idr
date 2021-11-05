@@ -65,6 +65,7 @@ OLT : String
 OLT = "sale_order_line"
 
 -- Order
+export
 Id_OT : Column
 Id_OT = primarySerial64 Bits32 "id" (Just . cast) OT
 Origin: Column
@@ -99,8 +100,13 @@ DateConfirm : Column
 DateConfirm = nullable Date "date_confirm" (VarChar 10) (Just . cast) cast OT
 AmountTotal : Column
 AmountTotal = notNull Price "amount_total" DoublePrecision (Just . toINC20) cast OT
+
+--NameOT: Column
+--NameOT = notNull String "name" (VarChar 64) (Just . cast) cast OT
+export
 NameOT: Column
-NameOT = notNull String "name" (VarChar 64) (Just . cast) cast OT
+NameOT = notNull String "name" (Text) (Just . cast) cast OT
+
 PartnerShippingID : Column
 PartnerShippingID = notNull Bits32 "partner_shipping_id" BigInt (Just . cast) cast OT
 PickingPolicy : Column
@@ -138,7 +144,7 @@ DeliveryLine = nullable Bool "delivery_line" Boolean (Just . cast) cast OLT
 
 
 PrimListSaleOrderLineCols : List Column
-PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]
+PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID]
 
 SO_NP : Table
 SO_NP = MkTable "sale_order"
@@ -165,7 +171,7 @@ namespace SO_Simple
   model : Model
   model = SaleOrder
   domain : Op
-  domain = (StateOT /= "cancel")
+  domain = (True) --(StateOT /= "cancel")
   PrimCols : List Column
   PrimCols = PrimListSaleOrderCols
   
@@ -191,13 +197,17 @@ namespace SO_Simple
    
   toRecord : GetRow PrimCols -> RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
-          
+  
+  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RecordCols )
+  read_records_c c op = do
+    rows <- get c (table model) (columns (table model)) (domain&&op)
+    let so_s= [ toRecord ox | ox <- rows ]
+    pure so_s
+            
   read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols )
   read_records op= do
     c <- connect DB_URI
-    rows <- get c (table model) (columns (table model)) (domain&&op)
-    let so_s= [ toRecord ox | ox <- rows ]
-    finish c    
+    so_s <- read_records_c c op
     pure so_s
   
   main_runET : (op:Op) -> IO (List RecordCols)
@@ -227,18 +237,22 @@ namespace SOL_Simple
     product_uom_qty : (idrisTpe ProductUomQty)
     discount : (idrisTpe Discount)
     delivery_line : (idrisTpe DeliveryLine)
-    
+    order_id : (idrisTpe PrimOrderID)
   %runElab derive "SOL_Simple.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
   toRecord : GetRow SOL_Simple.PrimCols -> SOL_Simple.RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
-          
+  
+  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List SOL_Simple.RecordCols) 
+  read_records_c c op= do
+    rows <- get c (table SOL_Simple.model) (columns (table SOL_Simple.model)) (SOL_Simple.domain&&op)
+    let so_s= [ SOL_Simple.toRecord ox | ox <- rows ]
+    pure so_s  
+
   read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SOL_Simple.RecordCols) 
   read_records op= do
     c <- connect DB_URI
-    rows <- get c (table SOL_Simple.model) (columns (table SOL_Simple.model)) (SOL_Simple.domain&&op)
-    let so_s= [ toRecord ox | ox <- rows ]
-    finish c    
+    so_s <- read_records_c c op
     pure so_s
       
   main_runET : (op:Op) -> IO (List SOL_Simple.RecordCols)
@@ -257,7 +271,7 @@ namespace SO_O2M
   model : Model
   model = SaleOrder
   domain : Op
-  domain = (StateOT /= "cancel")
+  domain = ((StateOT /= "cancel")&&(NameOT == (cast "SO44512")))
   --PrimCols : List Column
   --PrimCols = PrimListSaleOrderCols
   export
@@ -281,24 +295,43 @@ namespace SO_O2M
     lines : List SOL_Simple.RecordCols
     
   %runElab derive "SO_O2M.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-  
-  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SO_O2M.RecordCols)
-  read_records op = ret where 
+  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List SO_O2M.RecordCols)
+  read_records_c c op = ret where 
     add_lines : SO_Simple.RecordCols -> List SOL_Simple.RecordCols -> SO_O2M.RecordCols
+    add_lines (SO_Simple.MkRSO pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date) xs = (SO_O2M.MkRSO pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date xs)
+    
+    read_lines : Connection -> List Bits32 -> (op:Op) -> io (List (List SOL_Simple.RecordCols))
+    read_lines c [] op = pure []
+    read_lines c (x::xs) op = do
+         rl <- SOL_Simple.read_records_c c ((PrimOrderID == (cast x))&&op)
+         r <- read_lines c xs op
+         pure ([rl]++r) 
       
-    read_lines : Connection -> List Bits32 -> io (List (List SOL_Simple.RecordCols))
-  
     ret : io (List SO_O2M.RecordCols)
     ret = do 
-       c <- connect DB_URI
-       rows <- SO_Simple.read_records op
-    
-       lns <- read_lines c (map pk rows)
-       
+       rows <- SO_Simple.read_records_c c op    
+       lns <- read_lines c (map pk rows) (True)
        let so_s = [add_lines r l | (r,l) <- zip rows lns]
-        
-       finish c    
        pure so_s
+  
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SO_O2M.RecordCols)
+  read_records op = do 
+       c <- connect DB_URI
+       r <- read_records_c c op
+       finish c    
+       pure r
+       
+  main_runET : (op:Op) -> IO (List SO_O2M.RecordCols)
+  main_runET op = do Left err <- runEitherT (SO_O2M.read_records op {io = EitherT SQLError IO} )
+                       | Right l1 => pure l1
+                     printLn err
+                     pure []
+
+  export
+  read : HasIO io => (op:Op) -> io (List SO_O2M.RecordCols)
+  read op = do  
+     l1 <- (liftIO $ SO_O2M.main_runET (SO_O2M.domain&&op))
+     pure l1
   
 
 {-   

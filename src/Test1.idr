@@ -29,6 +29,8 @@ import JSON
 import Generics.Derive
 import JSON
 
+import PQ.Schema
+
 import Ledger.PG.BoM
 import Ledger.PG.Order
 {-
@@ -144,17 +146,28 @@ data_store_dir = "/home/jan/github.com/mvect2/data"
 gen_adder : Int -> (Int ->Int)
 gen_adder x = (\a => a+x)
 
+so_id_44575 : Bits32
+so_id_44575 = 44575
+
+--Cast Bits32 (DBType (pqType Id_OT)) where
+--  cast = ?mufs
+
+
+
 main : IO ()
 main = do
 
   --l1 <- muf_3
-  l1 <- SO_Simple.read (True)
+  --l1 <- SO_Simple.read (Id_OT == (cast so_id_44575)) --no implementation
+  --l1 <- SO_Simple.read (NameOT == (cast "SO44512"))
+  l1 <- SO_O2M.read (True)
+      
   traverse_ printLn l1
   printLn (length l1)
   
-  l2 <- SOL_Simple.read (True)
-  traverse_ printLn l2
-  printLn (length l2)  
+  --l2 <- SOL_Simple.read (True)
+  --traverse_ printLn l2
+  --printLn (length l2)  
   
 --  read_bom 44
   --ignore $ run forever greet
