@@ -45,12 +45,14 @@ namespace OE
 
    public export
    data Schema : Type where
+     --Ref : (ref:String) -> Schema
      Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema --prim field
-     M2O : (model: Schema) -> (col : OE.Field) -> Schema
-     O2M : (model: Schema) -> Schema
-     M2M : (model: Schema) -> Schema
-     Model : (table:TableName)->(pk:Schema)->(fields:List Schema) -> Schema
+     M2O : (tn: TableName) -> (col : OE.Field) -> Schema
+     O2M : (db_field:String) -> (tn: TableName) -> Schema
+     M2M : (tn: TableName) -> Schema
+     --(table:TableName)->(pk:Schema)->
+     Model : (fields:List Schema) -> Schema
      Sch : (models: List Schema) -> Schema
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]             
    
@@ -73,11 +75,12 @@ namespace OE
 
    public export
    validateSchema : Schema -> Bool
+   --validateSchema (Ref x) = ?mufds
    validateSchema (Pk pk dbf t) = True
    validateSchema (Prim pk) = True   
    validateSchema (M2O model col) = ?validateSchema_rhs_2
-   validateSchema (O2M model) = ?validateSchema_rhs_3
+   validateSchema (O2M dbf model) = ?validateSchema_rhs_3
    validateSchema (M2M model) = ?validateSchema_rhs_4
-   validateSchema (Model table pk fields) = ?validateSchema_rhs_5
+   validateSchema (Model fields) = ?validateSchema_rhs_5
    validateSchema (Sch models) = ?validateSchema_rhs_6
 

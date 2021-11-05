@@ -6,6 +6,9 @@ import Ledger.Schema.Types
 export
 OT : TableName
 OT = MkTN "OT" "sale_order"
+export
+OLT : TableName
+OLT = MkTN "OLT" "sale_order_line"
 
 export
 Id_OT : Schema
@@ -84,41 +87,49 @@ CommitmentdDate = Prim (MkF Nullable I_Date "commitmentd_date" (VarChar 10) "(Ju
 export
 DeliveryNotes: Schema
 DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)" "cast" OT)
+OrderLines : Schema
+OrderLines = O2M "order_line" OLT
+
+export
+SaleOrder : Schema
+SaleOrder = Model [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate,OrderLines]
+
 
 ----- Odoo/OpenERP Tax Code 
 export
-OdooTax : TableName
-OdooTax = MkTN "OdooTax" "account_tax"
+OdooTaxTable : TableName
+OdooTaxTable = MkTN "OdooTax" "account_tax"
 export
 Id_Tax : Schema
-Id_Tax = Pk "Id_Tax" "id" OdooTax
+Id_Tax = Pk "Id_Tax" "id" OdooTaxTable
 export
 NameTax : Schema
-NameTax = Prim (MkF NotNull I_String "name" (VarChar 64) "(Just . cast)" "cast" OdooTax)
+NameTax = Prim (MkF NotNull I_String "name" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
 export
 DescriptionTax : Schema
-DescriptionTax = Prim (MkF Nullable I_String "description" (VarChar 64) "(Just . cast)" "cast" OdooTax)
+DescriptionTax = Prim (MkF Nullable I_String "description" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
 export
 AmountT : Schema
-AmountT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTax)
+AmountT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTaxTable)
 export
 TypeTax : Schema
-TypeTax = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" OdooTax)
+TypeTax = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
 export
 PriceInclude : Schema
-PriceInclude = Prim (MkF Nullable I_Bool "price_include" Boolean "(Just . cast)" "cast" OdooTax)
+PriceInclude = Prim (MkF Nullable I_Bool "price_include" Boolean "(Just . cast)" "cast" OdooTaxTable)
 
+export
+OdooTax : Schema
+OdooTax = Model [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
 
 -- Order Line
-export
-OLT : TableName
-OLT = MkTN "OLT" "sale_order_line"
+
 export
 Id_OLT : Schema
 Id_OLT = Pk "Id_OLT" "id" OLT
 export
 PrimOrderID : Schema
-PrimOrderID = Prim (MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
+PrimOrderID = M2O OT (MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
 export
 PriceUnit : Schema
 PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
@@ -135,4 +146,10 @@ export
 DeliveryLine : Schema
 DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
 
+export
+OrderLineCols : Schema
+OrderLineCols = Model ([Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID])
 
+export
+PJB : Schema
+PJB = Sch [SaleOrder,OdooTax,OrderLineCols]
