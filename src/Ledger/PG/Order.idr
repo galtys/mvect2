@@ -187,15 +187,12 @@ namespace SO_Simple
     carrier_id : (idrisTpe CarrierID)
     requested_date : (idrisTpe RequestedDate)
 
-  -----------------
-  ---- Can copy ---
-  -----------------
   %runElab derive "RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
   toRecord : GetRow PrimCols -> RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
           
-  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols) 
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols )
   read_records op= do
     c <- connect DB_URI
     rows <- get c (table model) (columns (table model)) (domain&&op)
@@ -222,7 +219,7 @@ namespace SOL_Simple
   domain = (True)
   PrimCols : List Column
   PrimCols = PrimListSaleOrderLineCols
-  
+  export
   record RecordCols where
     constructor MkRSOL
     pk : (idrisTpe Id_OLT)
@@ -263,7 +260,7 @@ namespace SO_O2M
   domain = (StateOT /= "cancel")
   --PrimCols : List Column
   --PrimCols = PrimListSaleOrderCols
-  
+  export
   record RecordCols where
     constructor MkRSO
     pk : (idrisTpe Id_OT)
@@ -284,6 +281,26 @@ namespace SO_O2M
     lines : List SOL_Simple.RecordCols
     
   %runElab derive "SO_O2M.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+  
+  read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List SO_O2M.RecordCols)
+  read_records op = ret where 
+    add_lines : SO_Simple.RecordCols -> List SOL_Simple.RecordCols -> SO_O2M.RecordCols
+      
+    read_lines : Connection -> List Bits32 -> io (List (List SOL_Simple.RecordCols))
+  
+    ret : io (List SO_O2M.RecordCols)
+    ret = do 
+       c <- connect DB_URI
+       rows <- SO_Simple.read_records op
+    
+       lns <- read_lines c (map pk rows)
+       
+       let so_s = [add_lines r l | (r,l) <- zip rows lns]
+        
+       finish c    
+       pure so_s
+  
+
 {-   
   toRecord : GetRow PrimCols -> RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
