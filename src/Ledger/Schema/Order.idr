@@ -61,6 +61,8 @@ AmountTotal = Prim (MkF NotNull I_Price "amount_total" DoublePrecision "(Just . 
 export
 NameOT: Schema
 NameOT = Prim (MkF NotNull I_String "name" Text "(Just . cast)" "cast" OT)
+--NameOT: Column
+--NameOT = notNull String "name" (VarChar 64) (Just . cast) cast OT
 export
 PartnerShippingID : Schema
 PartnerShippingID = Prim (MkF NotNull I_Bits32 "partner_shipping_id" BigInt "(Just . cast)" "cast" OT)
