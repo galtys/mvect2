@@ -10,7 +10,7 @@ import Control.Monad.Either
 import JSON
 
 %language ElabReflection
-
+{-
 namespace TF
    mutual --add Enum Type as selection, add Interface Is Enum type
      --for m2o,add a proof that column is in model table
@@ -23,7 +23,7 @@ namespace TF
        table : Table
        pk : Column
        fields : (List Field)
-
+-}
 namespace OE
    public export
    data PrimTypes = I_Bits32|I_Price|I_Date|I_String
@@ -72,7 +72,7 @@ namespace OE
    validateSchema (Model table pk fields) = ?validateSchema_rhs_5
    validateSchema (Sch models) = ?validateSchema_rhs_6
    
-
+{-
 export
 getM2OColsL : List TF.Field -> List (Model,Column)
 getM2OColsL [] = []
@@ -95,6 +95,7 @@ getPrimCols : List TF.Field -> List Column
 getPrimCols [] = []
 getPrimCols ((Prim x) :: xs) = [x] ++ (getPrimCols xs)
 getPrimCols (x :: xs) = (getPrimCols xs)
+-}
 
 {-
 copyCol : Column -> Column

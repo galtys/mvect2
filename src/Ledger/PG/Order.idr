@@ -160,13 +160,7 @@ DeliveryLine = nullable Bool "delivery_line" Boolean (Just . cast) cast OLT
 PrimListSaleOrderLineCols : List Column
 PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
 
-SO_NP : Table
-SO_NP = MkTable "sale_order"
-        PrimListSaleOrderCols
-SOL_NP : Table
-SOL_NP = MkTable "sale_order_line"
-        PrimListSaleOrderLineCols
-
+{-
 mutual  
   SaleOrder : Model
   SaleOrder = MkM SO_NP (Id_OT) ((toFields (columns SO_NP))++[OrderLines] ) 
@@ -179,11 +173,18 @@ mutual
 
   OrderLines : TF.Field
   OrderLines = O2M SaleOrderLine
-
+-}
+SO_NP : Table
+SO_NP = MkTable "sale_order"
+        PrimListSaleOrderCols
+SOL_NP : Table
+SOL_NP = MkTable "sale_order_line"
+        PrimListSaleOrderLineCols
 
 namespace SO_Simple
-  model : Model
-  model = SaleOrder
+  --model : Model
+  --model = SaleOrder
+  
   domain : Op
   domain = (True) --(StateOT /= "cancel")
   PrimCols : List Column
@@ -214,7 +215,7 @@ namespace SO_Simple
   
   read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RecordCols )
   read_records_c c op = do
-    rows <- get c (table model) (columns (table model)) (domain&&op)
+    rows <- get c SO_NP (columns SO_NP) (domain&&op)
     let so_s= [ toRecord ox | ox <- rows ]
     pure so_s
             
@@ -237,8 +238,8 @@ namespace SO_Simple
      pure l1
 
 namespace SOL_Simple
-  model : Model
-  model = SaleOrderLine
+  --model : Model
+  --model = SaleOrderLine
   domain : Op
   domain = (True)
   PrimCols : List Column
@@ -260,7 +261,7 @@ namespace SOL_Simple
   
   read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List SOL_Simple.RecordCols) 
   read_records_c c op= do
-    rows <- get c (table SOL_Simple.model) (columns (table SOL_Simple.model)) (SOL_Simple.domain&&op)
+    rows <- get c SOL_NP (columns SOL_NP) (SOL_Simple.domain&&op)
     let so_s= [ SOL_Simple.toRecord ox | ox <- rows ]
     pure so_s  
 
@@ -283,8 +284,9 @@ namespace SOL_Simple
      pure l1
 
 namespace SO_O2M
+  {-
   model : Model
-  model = SaleOrder
+  model = SaleOrder -}
   domain : Op
   domain = ((StateOT /= "cancel")&& (NameOT == (cast "SO44512")) )
   --PrimCols : List Column
