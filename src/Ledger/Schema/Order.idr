@@ -152,7 +152,7 @@ OrderLineCols = Model ([Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[
 
 export
 PJB : Schema
-PJB = Sch [SaleOrder,OdooTax,OrderLineCols]
+PJB = Sch [SaleOrder,OdooTax, OrderLineCols] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
@@ -160,15 +160,22 @@ ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 printSDoc : HasIO io => SDoc -> io ()
 printSDoc (Line i t) = do
      let sp = (ret_spaces i)
-     putStrLn (sp++t)     
+     putStrLn (sp++t)
+printSDoc Sep = putStrLn ""     
 printSDoc (Def []) = pure ()
 printSDoc (Def (x :: xs)) = do
      printSDoc x
      printSDoc (Def xs)
      
---printSDoc Sep = ?printSDoc_rhs_3
+--schema2SDoc : HasIO io => Schema
 
 export
 test_main_x : HasIO io => io ()
 test_main_x = do
-  printSDoc $ tn_show OdooTaxTable
+  
+  --let tbs = Def (map tn_show (schema_tables PJB))
+  let xu = schema_show OdooTax --OrderLineCols --SaleOrder
+  printSDoc xu
+  
+  --printSDoc $ schema_show DeliveryLine --tn_show OdooTaxTable
+  --printSDoc $ schema_show Id_OLT --tn_show OdooTaxTable  

@@ -10,7 +10,7 @@ public export
 data SDoc : Type where
    Line : (i:Bits32) -> (t:String) -> SDoc
    Def : (lines:List SDoc) -> SDoc
-   --Sep : SDoc
+   Sep : SDoc
    
 %runElab derive "SDoc" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
    
@@ -100,9 +100,9 @@ namespace OE
    export   
    field_show : Field -> SDoc         
    field_show xf@(MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable)) = Def [(Line 0 #"\#{field2Ref xf}:Column"#),
-                                                                              (Line 0 df)] where
+                                                                                              (Line 0 #"\#{field2Ref xf}=\#{df}"#)] where
          df:String
-         df=(show isNull)++" "++(show primType)++" "++"("++(show pg_type)++")"++castTo++castFrom++ref
+         df=(show isNull)++" "++(show primType)++" "++(add_quote name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++ref
    
    public export
    data Schema : Type where
@@ -114,19 +114,31 @@ namespace OE
      --(table:TableName)->(pk:Schema)->
      Model : (fields:List Schema) -> Schema
      Sch : (models: List Schema) -> Schema
-     
+
+   public export
+   schema_tables : Schema -> List TableName
+   schema_tables (Pk name db_field table) = [table]
+   schema_tables (Prim prim) = []
+   schema_tables (M2O rel db_field table) = []
+   schema_tables (O2M db_field tn) = []
+   schema_tables (M2M f1 f2 tn) = []
+   schema_tables (Model []) = []
+   schema_tables (Model (x :: xs)) = (schema_tables x) ++ (schema_tables (Model xs))
+   schema_tables (Sch []) = []
+   schema_tables (Sch (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch xs))
+   
+
    export
    schema_show : Schema -> SDoc
-   schema_show (Pk name db_field table) = field_show $ (MkF NotNull I_Bits32 name BigInt "(Just . cast)" "" table)
+   schema_show (Pk name db_field table) = field_show $ (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "" table)
    schema_show (Prim prim) = field_show $ prim
    schema_show (M2O rel db_field table) = Line 0 "M2O"
    schema_show (O2M db_field tn) = Line 0 "O2M"
    schema_show (M2M f1 f2 tn) = Line 0 "M2M"
-   schema_show (Model fields) = Line 0 "Model"
-   schema_show (Sch models) = Line 0 "Sch"
-   
-        
-     
+   schema_show (Model []) = Def [] 
+   schema_show (Model xs) = Def (map schema_show xs)
+   schema_show (Sch []) = Def []
+   schema_show (Sch (x::xs)) = Def (map schema_show xs) --?ret2 --(schema_show x) ++ (schema_show (Sch xs))
      
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
    public export
