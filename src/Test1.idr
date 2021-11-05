@@ -36,6 +36,9 @@ import PQ.Types
 
 import Ledger.PG.BoM
 import Ledger.PG.Order
+
+import Ledger.Schema.Types
+
 {-
 import Control.Monad.Either
 

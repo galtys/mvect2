@@ -4,10 +4,6 @@ import Ledger.PG.Types
 
 
 import Category.Transaction.Qty
---import Category.Transaction.Types
---import Category.Transaction.Hom
---import Category.Transaction.Journal
---import Category.Transaction.Demo
 import Category.Transaction.Types
 import Data.Ratio
 --import Data.Zippable
@@ -26,45 +22,11 @@ import Ledger.PG.Config
 
 %language ElabReflection
 
-public export
-record Line where
-  constructor MkLine
-  sku : ProdKey
-  qty : TQty
-  --Unit of Measure
-  --company pricelist is input  , "price_unit" modifies it, as a multiple
-  currency : ProdKey   
-  price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
-  tax_code : TaxCode
-  --reference to List Price  
-                      --SubTotal ... calculated
 
-%runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
-
-public export
-record LineExt where
-  constructor MkLineExt
-  sku : ProdKey
-  qty : TQty
-  currency : ProdKey   
-  price_unit : TQty --together with discount,turn it into a function Qty->Qty
-  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
-  tax_code : List TaxCode
-
-%runElab derive "LineExt" [Generic, Meta, Show, Eq]
---%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
-
--- Order and Order Line (odoo)
-
-
+-- Order
 OT : String
 OT = "sale_order"
 
-OLT : String
-OLT = "sale_order_line"
-
--- Order
 export
 Id_OT : Column
 Id_OT = primarySerial64 Bits32 "id" (Just . cast) OT
@@ -100,13 +62,11 @@ DateConfirm : Column
 DateConfirm = nullable Date "date_confirm" (VarChar 10) (Just . cast) cast OT
 AmountTotal : Column
 AmountTotal = notNull Price "amount_total" DoublePrecision (Just . toINC20) cast OT
-
 --NameOT: Column
 --NameOT = notNull String "name" (VarChar 64) (Just . cast) cast OT
 export
 NameOT: Column
 NameOT = notNull String "name" (Text) (Just . cast) cast OT
-
 PartnerShippingID : Column
 PartnerShippingID = notNull Bits32 "partner_shipping_id" BigInt (Just . cast) cast OT
 PickingPolicy : Column
@@ -125,22 +85,27 @@ DeliveryNotes = nullable String "delivery_notes" Text (Just . cast) cast OT
 PrimListSaleOrderCols : List Column
 PrimListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate]
 
-
 ----- Odoo/OpenERP Tax Code 
 OdooTax : String
 OdooTax = "account_tax"
 
 Id_Tax : Column
 Id_Tax = primarySerial64 Bits32 "id" (Just . cast) OdooTax
-
 NameTax : Column
 NameTax = notNull String "name" (VarChar 64) (Just . cast) cast OdooTax
-
 DescriptionTax : Column
-DescriptionTax = notNull String "description" (VarChar 64) (Just . cast) cast OdooTax
-
+DescriptionTax = nullable String "description" (VarChar 64) (Just . cast) cast OdooTax
+AmountT : Column
+AmountT = notNull TQty "amount" DoublePrecision (Just . cast) cast OdooTax
+TypeTax : Column
+TypeTax = nullable String "type" (VarChar 64) (Just . cast) cast OdooTax
+PriceInclude : Column
+PriceInclude = nullable Bool "delivery_line" Boolean (Just . cast) cast OdooTax
 
 ----- SO Line
+OLT : String
+OLT = "sale_order_line"
+
 Id_OLT : Column
 Id_OLT = primarySerial64 Bits32 "id" (Just . cast) OLT
 PrimOrderID : Column
@@ -375,3 +340,32 @@ namespace SO_O2M
      l1 <- (liftIO $ main_runET op)
      pure l1
 -}
+
+public export
+record Line where
+  constructor MkLine
+  sku : ProdKey
+  qty : TQty
+  --Unit of Measure
+  --company pricelist is input  , "price_unit" modifies it, as a multiple
+  currency : ProdKey   
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
+  tax_code : TaxCode
+  --reference to List Price  
+                      --SubTotal ... calculated
+
+%runElab derive "Line" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
+
+public export
+record LineExt where
+  constructor MkLineExt
+  sku : ProdKey
+  qty : TQty
+  currency : ProdKey   
+  price_unit : TQty --together with discount,turn it into a function Qty->Qty
+  discount : TQty   --idea, in amendments, fix price_unit and let the user change the discount   
+  tax_code : List TaxCode
+
+%runElab derive "LineExt" [Generic, Meta, Show, Eq]
+--%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
