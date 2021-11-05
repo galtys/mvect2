@@ -56,6 +56,7 @@ namespace OE
    public export
    data Schema : Type where
      Pk : (pk:OE.Field) -> Schema
+     Prim : (prim:OE.Field) -> Schema --prim field
      M2O : (model: Schema) -> (col : OE.Field) -> Schema
      O2M : (model: Schema) -> Schema
      M2M : (model: Schema) -> Schema
@@ -66,6 +67,7 @@ namespace OE
 
    validateSchema : Schema -> Bool
    validateSchema (Pk pk) = True
+   validateSchema (Prim pk) = True   
    validateSchema (M2O model col) = ?validateSchema_rhs_2
    validateSchema (O2M model) = ?validateSchema_rhs_3
    validateSchema (M2M model) = ?validateSchema_rhs_4
