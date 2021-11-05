@@ -8,10 +8,10 @@ import JSON
 
 namespace OE
    public export
-   data PrimTypes = I_Bits32|I_Price|I_Date|I_String
+   data PrimTypes = I_Bits32|I_Price|I_Date|I_String|I_TQty|I_Bool
    %runElab derive "PrimTypes" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON] 
    public export
-   data PgTypes = BigInt | Text | DoublePrecision | VarChar Int
+   data PgTypes = BigInt | Text | DoublePrecision | VarChar Int|Boolean
    %runElab derive "PgTypes" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
    public export
    data ToPG = Nto String -- will be Name of the function
@@ -21,9 +21,11 @@ namespace OE
    %runElab derive "FromPG" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]   
 
    public export
-   TableName : Type
-   TableName = String
-         
+   record TableName where
+     constructor MkTN
+     ref : String     
+     dbtable : String
+   %runElab derive "TableName" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]       
    public export
    data IsNull = Nullable | NotNull
    %runElab derive "IsNull" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
