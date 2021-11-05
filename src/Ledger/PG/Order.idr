@@ -144,7 +144,7 @@ DeliveryLine = nullable Bool "delivery_line" Boolean (Just . cast) cast OLT
 
 
 PrimListSaleOrderLineCols : List Column
-PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID]
+PrimListSaleOrderLineCols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
 
 SO_NP : Table
 SO_NP = MkTable "sale_order"
@@ -238,6 +238,7 @@ namespace SOL_Simple
     discount : (idrisTpe Discount)
     delivery_line : (idrisTpe DeliveryLine)
     order_id : (idrisTpe PrimOrderID)
+    product_id : (idrisTpe ProductID)
   %runElab derive "SOL_Simple.RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
   toRecord : GetRow SOL_Simple.PrimCols -> SOL_Simple.RecordCols
@@ -271,7 +272,7 @@ namespace SO_O2M
   model : Model
   model = SaleOrder
   domain : Op
-  domain = ((StateOT /= "cancel")&&(NameOT == (cast "SO44512")))
+  domain = ((StateOT /= "cancel")&& (NameOT == (cast "SO44512")) )
   --PrimCols : List Column
   --PrimCols = PrimListSaleOrderCols
   export
