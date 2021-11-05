@@ -6,12 +6,13 @@ import JSON
 
 %language ElabReflection
 
+public export
 data SDoc : Type where
-   Line : (i:Int) -> (t:String) -> SDoc
+   Line : (i:Bits32) -> (t:String) -> SDoc
    Def : (lines:List SDoc) -> SDoc
-   Sep : SDoc
+   --Sep : SDoc
    
-%runElab derive "SDoc" [Generic, Meta, Eq, Ord, ToJSON,FromJSON]
+%runElab derive "SDoc" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
    
 namespace OE
    public export
@@ -50,9 +51,13 @@ namespace OE
      dbtable : String
    %runElab derive "TableName" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
    
+   add_quote : String -> String
+   add_quote x = "\"" ++ x ++ "\""
+   
+   export
    tn_show : TableName -> SDoc
    tn_show (MkTN ref dbtable) = Def [(Line 0 #"\#{ref}:String"#),
-                                     (Line 0 #"\#{ref} = \"\#{dbtable}\" "#)]   
+                                     (Line 0 #"\#{ref} = \#{add_quote dbtable}"#)]   
    
    public export
    data IsNull = Nullable | NotNull --| PrimarySerial64
@@ -85,7 +90,7 @@ namespace OE
    export
    id2pk : String -> String
    id2pk x = if (x=="id") then "pk" else x
-   
+      
    export
    field2Ref : Field -> String
    field2Ref (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable)) = (db_field2Ref (id2pk name))++"_"++ref
@@ -93,8 +98,8 @@ namespace OE
    
    
    export   
-   filed_show : Field -> SDoc         
-   filed_show xf@(MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable)) = Def [(Line 0 #"\#{field2Ref xf}:Column"#),
+   field_show : Field -> SDoc         
+   field_show xf@(MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable)) = Def [(Line 0 #"\#{field2Ref xf}:Column"#),
                                                                               (Line 0 df)] where
          df:String
          df=(show isNull)++" "++(show primType)++" "++"("++(show pg_type)++")"++castTo++castFrom++ref
@@ -110,7 +115,17 @@ namespace OE
      Model : (fields:List Schema) -> Schema
      Sch : (models: List Schema) -> Schema
      
-     
+   export
+   schema_show : Schema -> SDoc
+   schema_show (Pk name db_field table) = field_show $ (MkF NotNull I_Bits32 name BigInt "(Just . cast)" "" table)
+   schema_show (Prim prim) = field_show $ prim
+   schema_show (M2O rel db_field table) = Line 0 "M2O"
+   schema_show (O2M db_field tn) = Line 0 "O2M"
+   schema_show (M2M f1 f2 tn) = Line 0 "M2M"
+   schema_show (Model fields) = Line 0 "Model"
+   schema_show (Sch models) = Line 0 "Sch"
+   
+        
      
      
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
