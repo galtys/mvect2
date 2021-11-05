@@ -126,6 +126,20 @@ PrimListSaleOrderCols : List Column
 PrimListSaleOrderCols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate]
 
 
+----- Odoo/OpenERP Tax Code 
+OdooTax : String
+OdooTax = "account_tax"
+
+Id_Tax : Column
+Id_Tax = primarySerial64 Bits32 "id" (Just . cast) OdooTax
+
+NameTax : Column
+NameTax = notNull String "name" (VarChar 64) (Just . cast) cast OdooTax
+
+DescriptionTax : Column
+DescriptionTax = notNull String "description" (VarChar 64) (Just . cast) cast OdooTax
+
+
 ----- SO Line
 Id_OLT : Column
 Id_OLT = primarySerial64 Bits32 "id" (Just . cast) OLT
@@ -157,13 +171,13 @@ mutual
   SaleOrder : Model
   SaleOrder = MkM SO_NP (Id_OT) ((toFields (columns SO_NP))++[OrderLines] ) 
   
-  OrderID : Field
+  OrderID : TF.Field
   OrderID = M2O SaleOrder PrimOrderID
  
   SaleOrderLine : Model
   SaleOrderLine = MkM SOL_NP (Id_OLT) ((toFields (columns SOL_NP))++[OrderID])
 
-  OrderLines : Field
+  OrderLines : TF.Field
   OrderLines = O2M SaleOrderLine
 
 

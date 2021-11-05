@@ -11,20 +11,70 @@ import JSON
 
 %language ElabReflection
 
-mutual --add Enum Type as selection, add Interface Is Enum type
-  --for m2o,add a proof that column is in model table
-  public export
-  data Field = Prim Column | M2O Model Column | O2M Model --| M2M Model 
+namespace TF
+   mutual --add Enum Type as selection, add Interface Is Enum type
+     --for m2o,add a proof that column is in model table
+     public export
+     data Field = Prim Column | M2O Model Column | O2M Model --| M2M Model 
 
-  public export  
-  record Model where
-    constructor MkM
-    table : Table
-    pk : Column
-    fields : (List Field)
+     public export  
+     record Model where
+       constructor MkM
+       table : Table
+       pk : Column
+       fields : (List Field)
+
+namespace OE
+   public export
+   data PrimTypes = I_Bits32|I_Price|I_Date|I_String
+   %runElab derive "PrimTypes" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON] 
+   data PgTypes = PG_BigInt | PG_Text | PG_VCH Int | PG_Double
+   %runElab derive "PgTypes" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
+
+   data ToPG = Nto String -- will be Name of the function
+   %runElab derive "ToPG" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
+   
+   data FromPG = Nfrom String 
+   %runElab derive "FromPG" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]   
+
+   public export
+   TableName : Type
+   TableName = String
+         
+   public export
+   record Field where
+     constructor MkF
+     isNull : Bool
+     primType : PrimTypes
+     name : String
+     pg_type : PgTypes
+     castTo : ToPG
+     castFrom : FromPG
+     table : TableName
+   %runElab derive "Field" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]  
+              
+   public export
+   data Schema : Type where
+     Pk : (pk:OE.Field) -> Schema
+     M2O : (model: Schema) -> (col : OE.Field) -> Schema
+     O2M : (model: Schema) -> Schema
+     M2M : (model: Schema) -> Schema
+     Model : (table:TableName)->(pk:Schema)->(fields:List Schema) -> Schema
+     Sch : (models: List Schema) -> Schema
+     
+   %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]        
+
+   validateSchema : Schema -> Bool
+   validateSchema (Pk pk) = True
+   validateSchema (M2O model col) = ?validateSchema_rhs_2
+   validateSchema (O2M model) = ?validateSchema_rhs_3
+   validateSchema (M2M model) = ?validateSchema_rhs_4
+   validateSchema (Model table pk fields) = ?validateSchema_rhs_5
+   validateSchema (Sch models) = ?validateSchema_rhs_6
+   
 
 export
-getM2OColsL : List Field -> List (Model,Column)
+getM2OColsL : List TF.Field -> List (Model,Column)
 getM2OColsL [] = []
 getM2OColsL ((Prim x) :: xs) = getM2OColsL xs
 getM2OColsL ((M2O x y) :: xs) = [(( x),y)]++getM2OColsL xs
@@ -36,12 +86,12 @@ getM2OCols : Model -> List (Model,Column)
 getM2OCols (MkM table pk fields) = getM2OColsL fields
 
 export
-toFields : List Column -> List Field
+toFields : List Column -> List TF.Field
 toFields [] = []
 toFields (x :: xs) = [Prim x] ++ (toFields  xs)
 
 export
-getPrimCols : List Field -> List Column
+getPrimCols : List TF.Field -> List Column
 getPrimCols [] = []
 getPrimCols ((Prim x) :: xs) = [x] ++ (getPrimCols xs)
 getPrimCols (x :: xs) = (getPrimCols xs)
