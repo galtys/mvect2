@@ -113,7 +113,7 @@ namespace OE
      M2M : (f1:String) -> (f2:String) -> (tn: TableName) -> Schema
      --(table:TableName)->(pk:Schema)->
      Model : (fields:List Schema) -> Schema
-     Sch : (models: List Schema) -> Schema
+     Sch : (name:String) -> (models: List Schema) -> Schema
 
    public export
    schema_tables : Schema -> List TableName
@@ -124,21 +124,34 @@ namespace OE
    schema_tables (M2M f1 f2 tn) = []
    schema_tables (Model []) = []
    schema_tables (Model (x :: xs)) = (schema_tables x) ++ (schema_tables (Model xs))
-   schema_tables (Sch []) = []
-   schema_tables (Sch (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch xs))
+   schema_tables (Sch n []) = []
+   schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
    
 
    export
    schema_show : Schema -> SDoc
-   schema_show (Pk name db_field table) = field_show $ (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "" table)
+   schema_show (Pk name db_field table) = field_show $ (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "cast" table)
    schema_show (Prim prim) = field_show $ prim
-   schema_show (M2O rel db_field table) = Line 0 "M2O"
-   schema_show (O2M db_field tn) = Line 0 "O2M"
-   schema_show (M2M f1 f2 tn) = Line 0 "M2M"
+   schema_show (M2O rel db_field table) = Line 0 "--M2O"
+   schema_show (O2M db_field tn) = Line 0 "--O2M"
+   schema_show (M2M f1 f2 tn) = Line 0 "--M2M"
    schema_show (Model []) = Def [] 
-   schema_show (Model xs) = Def (map schema_show xs)
-   schema_show (Sch []) = Def []
-   schema_show (Sch (x::xs)) = Def (map schema_show xs) --?ret2 --(schema_show x) ++ (schema_show (Sch xs))
+   schema_show (Model xs) = Def ([Sep]++(map schema_show xs))
+   schema_show (Sch n []) = Def []
+   schema_show s@(Sch n xs) = Def (s_imp++t_names++modules) where
+       s_imp:List SDoc
+       s_imp=[Line 0 #"module \#{n}"#, Sep,
+              Line 0 "import PQ.CRUD",
+              Line 0 "import PQ.FFI",
+              Line 0 "import PQ.Schema",
+              Line 0 "import PQ.Types", Sep,
+              Line 0 "import Category.Transaction.Types",
+              Line 0 "import Data.Ratio",Sep]
+              
+       t_names:List SDoc
+       t_names = map tn_show (schema_tables s)
+       modules:List SDoc
+       modules = map schema_show xs
      
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
    public export
@@ -156,6 +169,7 @@ namespace OE
       MenuItem : (view:View) -> Menu
       Parent : (items:List Menu) -> Menu
 
+{-
    public export
    validateSchema : Schema -> Bool
    validateSchema (Pk pk dbf t) = True
@@ -166,3 +180,4 @@ namespace OE
    validateSchema (Model fields) = ?validateSchema_rhs_5
    validateSchema (Sch models) = ?validateSchema_rhs_6
 
+-}

@@ -90,9 +90,12 @@ DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)
 OrderLines : Schema
 OrderLines = O2M "order_line" OLT
 
+so_cols : List Schema
+so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate,OrderLines]
+
 export
 SaleOrder : Schema
-SaleOrder = Model [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate,OrderLines]
+SaleOrder = Model so_cols
 
 
 ----- Odoo/OpenERP Tax Code 
@@ -119,8 +122,12 @@ PriceInclude : Schema
 PriceInclude = Prim (MkF Nullable I_Bool "price_include" Boolean "(Just . cast)" "cast" OdooTaxTable)
 
 export
+tax_cols : List Schema
+tax_cols = [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
+
+export
 OdooTax : Schema
-OdooTax = Model [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
+OdooTax = Model tax_cols
 
 -- Order Line
 
@@ -146,13 +153,16 @@ export
 DeliveryLine : Schema
 DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
 
+order_line_cols : List Schema
+order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
+
 export
 OrderLineCols : Schema
-OrderLineCols = Model ([Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID])
+OrderLineCols = Model order_line_cols
 
 export
 PJB : Schema
-PJB = Sch [SaleOrder,OdooTax, OrderLineCols] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [SaleOrder,OdooTax, OrderLineCols] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
@@ -174,8 +184,9 @@ test_main_x : HasIO io => io ()
 test_main_x = do
   
   --let tbs = Def (map tn_show (schema_tables PJB))
-  let xu = schema_show OdooTax --OrderLineCols --SaleOrder
+--  let xu = schema_show OrderLineCols
+  let xu = schema_show PJB--SaleOrder
   printSDoc xu
-  
+  --printLn (length order_line_cols)
   --printSDoc $ schema_show DeliveryLine --tn_show OdooTaxTable
   --printSDoc $ schema_show Id_OLT --tn_show OdooTaxTable  
