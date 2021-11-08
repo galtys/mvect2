@@ -5,10 +5,13 @@ import Ledger.Schema.Types
 -- Order
 export
 OT : TableName
-OT = MkTN "OT" "sale_order"
+OT = MkTN "Order" "sale_order"
 export
 OLT : TableName
-OLT = MkTN "OLT" "sale_order_line"
+OLT = MkTN "OrderLine" "sale_order_line"
+export
+OdooTaxTable : TableName
+OdooTaxTable = MkTN "Tax" "account_tax"
 
 export
 Id_OT : Schema
@@ -99,9 +102,6 @@ SaleOrder = Model OT so_cols
 
 
 ----- Odoo/OpenERP Tax Code 
-export
-OdooTaxTable : TableName
-OdooTaxTable = MkTN "OdooTax" "account_tax"
 export
 Id_Tax : Schema
 Id_Tax = Pk "Id_Tax" "id" OdooTaxTable
