@@ -29,8 +29,8 @@ primDomainRef tn = (primModelRef tn)++".domain"
 primColsRef : TableName -> String
 primColsRef tn = (primModelRef tn)++".PrimCols"
 
-getTableR : TableName -> String
-getTableR tn = (ref tn)++"_NP"
+tableRef : TableName -> String
+tableRef tn = (ref tn)++"_NP"
 
 
 --Field
@@ -100,8 +100,8 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
              Line 2 "PrimCols : List Column",
              Line 2 #"PrimCols = [\#{cols}]"# ]
    primTab : SDoc
-   primTab = Def [Line 2 #"\#{getTableR table} : Table"#,
-                  Line 2 #"\#{getTableR table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
+   primTab = Def [Line 2 #"\#{tableRef table} : Table"#,
+                  Line 2 #"\#{tableRef table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
 
    rec : SDoc
    rec = Def ([Line 2 "record RecordPrim where",Line 4 "constructor MkRecordPrim"]++(map getPrimSDoc fields))
@@ -115,7 +115,7 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
    read_rec_c = Def [Line 2  "export",
                      Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{primRecRef table} )"#,
                      Line 2  "read_records_c c op = do",
-                     Line 4     #"rows <- get c \#{getTableR table} (columns \#{getTableR table}) (\#{primDomainRef table}&&op)"#,
+                     Line 4     #"rows <- get c \#{tableRef table} (columns \#{tableRef table}) (\#{primDomainRef table}&&op)"#,
                      Line 4     #"let ret_s = [ \#{primModelRef table}.toRecord ox | ox <- rows]"#,
                      Line 4      "pure ret_s"]
    read_rec : SDoc
@@ -139,22 +139,8 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                     Line 2  "read op = do",
                     Line 4 #"l1 <- (liftIO $ (\#{primModelRef table}.main_runET op))"#,
                     Line 4 "pure l1"]
-
-
 getPrimSDoc (Sch name models) = Sep
-{-
-main_runET : (op:Op) -> IO (List RecordCols)
-main_runET op = do Left err <- runEitherT (read_records op {io = EitherT SQLError IO} )
-                    | Right l1 => pure l1
-                  printLn err
-                  pure []
 
-export
-read : HasIO io => (op:Op) -> io (List RecordCols)
-read op = do  
-  l1 <- (liftIO $ main_runET op)
-  pure l1
--}   
 public export
 schema_tables : Schema -> List TableName
 schema_tables (Pk name db_field table) = [table]
@@ -177,7 +163,7 @@ schema_show (M2M f1 f2 tn) = Line 0 "--M2M"
 schema_show (Model tn []) = Def [] 
 schema_show (Model tn xs) = Def ([Sep]++(map schema_show xs))
 schema_show (Sch n []) = Def []
-schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,rec] where       
+schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where       
     s_imp:SDoc
     s_imp=Def [Line 0 #"module \#{n}"#, Sep,
            Line 0 "import PQ.CRUD",
@@ -196,7 +182,7 @@ schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,rec] where
     t_names = Def (map tn_show (schema_tables s))
     modules:SDoc
     modules = Def (map schema_show xs)
-    rec : SDoc
-    rec = Def (map getPrimSDoc xs)
+    prim : SDoc
+    prim = Def (map getPrimSDoc xs)
 
 
