@@ -112,7 +112,7 @@ namespace OE
      O2M : (db_field:String) -> (tn: TableName) -> Schema
      M2M : (f1:String) -> (f2:String) -> (tn: TableName) -> Schema
      --(table:TableName)->(pk:Schema)->
-     Model : (fields:List Schema) -> Schema
+     Model : (table:TableName) -> (fields:List Schema) -> Schema
      Sch : (name:String) -> (models: List Schema) -> Schema
 
    public export
@@ -122,8 +122,8 @@ namespace OE
    schema_tables (M2O rel db_field table) = []
    schema_tables (O2M db_field tn) = []
    schema_tables (M2M f1 f2 tn) = []
-   schema_tables (Model []) = []
-   schema_tables (Model (x :: xs)) = (schema_tables x) ++ (schema_tables (Model xs))
+   schema_tables (Model tn []) = []
+   schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
    schema_tables (Sch n []) = []
    schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
    
@@ -135,8 +135,8 @@ namespace OE
    schema_show (M2O rel db_field table) = Line 0 "--M2O"
    schema_show (O2M db_field tn) = Line 0 "--O2M"
    schema_show (M2M f1 f2 tn) = Line 0 "--M2M"
-   schema_show (Model []) = Def [] 
-   schema_show (Model xs) = Def ([Sep]++(map schema_show xs))
+   schema_show (Model tn []) = Def [] 
+   schema_show (Model tn xs) = Def ([Sep]++(map schema_show xs))
    schema_show (Sch n []) = Def []
    schema_show s@(Sch n xs) = Def (s_imp++t_names++modules) where
        s_imp:List SDoc

@@ -95,7 +95,7 @@ so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,Partne
 
 export
 SaleOrder : Schema
-SaleOrder = Model so_cols
+SaleOrder = Model OLT so_cols
 
 
 ----- Odoo/OpenERP Tax Code 
@@ -127,7 +127,7 @@ tax_cols = [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
 
 export
 OdooTax : Schema
-OdooTax = Model tax_cols
+OdooTax = Model OdooTaxTable tax_cols
 
 -- Order Line
 
@@ -158,7 +158,7 @@ order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimO
 
 export
 OrderLineCols : Schema
-OrderLineCols = Model order_line_cols
+OrderLineCols = Model OLT order_line_cols
 
 export
 PJB : Schema
