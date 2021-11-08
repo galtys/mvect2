@@ -160,7 +160,7 @@ namespace OE
    getPrimSDoc (M2O rel db_field table) = Line 4 "--M2O"
    getPrimSDoc (O2M db_field tn) = Line 4 "--O2M"
    getPrimSDoc (M2M f1 f2 tn) = Line 4 "M2M"
-   getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,np2Rec,Sep,read_rec_c] where
+   getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,np2Rec,Sep,read_rec_c,Sep,read_rec,main_read] where
       getPrimRecName : TableName -> String
       getPrimRecName tn = (getPrimModelNs tn)++".RecordPrim"
       getDomN : TableName -> String
@@ -198,23 +198,49 @@ namespace OE
                     Line 2 #"toRecord : GetRow \#{getPrimModelNs table}.PrimCols -> \#{getPrimRecName table}"#,
                     Line 2 "toRecord = to . (\\x => MkSOP $ Z x)"]
       read_rec_c : SDoc
-      read_rec_c = Def [Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{getPrimRecName table} )"#,
+      read_rec_c = Def [Line 2  "export",
+                        Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{getPrimRecName table} )"#,
                         Line 2  "read_records_c c op = do",
                         Line 4     #"rows <- get c \#{getTableR table} (columns \#{getTableR table}) (\#{getDomN table}&&op)"#,
                         Line 4     #"let ret_s = [ \#{getPrimModelNs table}.toRecord ox | ox <- rows]"#,
                         Line 4      "pure ret_s"]
-
+      read_rec : SDoc
+      read_rec = Def [Line 2  "export",
+                      Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{getPrimRecName table} )"#,
+                      Line 2  "read_records op = do",
+                      Line 4     "c <- connect DB_URI",
+                      Line 4     #"ret <- \#{getPrimModelNs table}.read_records_c c op"#,
+                      Line 4     "pure ret"]
+      main_read : SDoc
+      main_read = Def [Sep,Line 2 "export",
+                       Line 2 #"main_runET : (op:Op) -> IO (List \#{getPrimRecName table} )"#,
+                       Line 2 #"main_runET op = do "#,
+                       Line 4 #"Left err <- runEitherT (\#{getPrimModelNs table}.read_records op {io = EitherT SQLError IO} )"#,
+                       Line 5     "| Right l1 => pure l1",
+                       Line 4 "printLn err",
+                       Line 4 "pure []",
+                       Sep,
+                       Line 2 "export",
+                       Line 2 #"read : HasIO io => (op:Op) -> io (List \#{getPrimRecName table} )"#,
+                       Line 2  "read op = do",
+                       Line 4 #"l1 <- (liftIO $ (\#{getPrimModelNs table}.main_runET op))"#,
+                       Line 4 "pure l1"]
+      
+      
    getPrimSDoc (Sch name models) = Sep
-   
-   --t@(MkTN ref dbtable m)
-  {- 
-  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RecordCols )
-  read_records_c c op = do
-    rows <- get c SO_NP (columns SO_NP) (domain&&op)
-    let so_s= [ toRecord ox | ox <- rows ]
-    pure so_s
-   -}
-   
+{-
+  main_runET : (op:Op) -> IO (List RecordCols)
+  main_runET op = do Left err <- runEitherT (read_records op {io = EitherT SQLError IO} )
+                       | Right l1 => pure l1
+                     printLn err
+                     pure []
+
+  export
+  read : HasIO io => (op:Op) -> io (List RecordCols)
+  read op = do  
+     l1 <- (liftIO $ main_runET op)
+     pure l1
+-}   
    public export
    schema_tables : Schema -> List TableName
    schema_tables (Pk name db_field table) = [table]

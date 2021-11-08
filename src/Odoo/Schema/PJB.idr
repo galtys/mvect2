@@ -114,11 +114,33 @@ namespace PrimOrder
       toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordPrim
       toRecord = to . (\x => MkSOP $ Z x)
 
+      export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrder.RecordPrim )
       read_records_c c op = do
           rows <- get c OT_NP (columns OT_NP) (PrimOrder.domain&&op)
           let ret_s = [ PrimOrder.toRecord ox | ox <- rows]
           pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimOrder.RecordPrim )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimOrder.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimOrder.RecordPrim )
+      main_runET op = do 
+          Left err <- runEitherT (PrimOrder.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimOrder.RecordPrim )
+      read op = do
+          l1 <- (liftIO $ (PrimOrder.main_runET op))
+          pure l1
 
 namespace PrimOrderTax
       domain : Op
@@ -142,11 +164,33 @@ namespace PrimOrderTax
       toRecord : GetRow PrimOrderTax.PrimCols -> PrimOrderTax.RecordPrim
       toRecord = to . (\x => MkSOP $ Z x)
 
+      export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderTax.RecordPrim )
       read_records_c c op = do
           rows <- get c OTax_NP (columns OTax_NP) (PrimOrderTax.domain&&op)
           let ret_s = [ PrimOrderTax.toRecord ox | ox <- rows]
           pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimOrderTax.RecordPrim )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimOrderTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimOrderTax.RecordPrim )
+      main_runET op = do 
+          Left err <- runEitherT (PrimOrderTax.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimOrderTax.RecordPrim )
+      read op = do
+          l1 <- (liftIO $ (PrimOrderTax.main_runET op))
+          pure l1
 
 namespace PrimOrderLine
       domain : Op
@@ -171,8 +215,30 @@ namespace PrimOrderLine
       toRecord : GetRow PrimOrderLine.PrimCols -> PrimOrderLine.RecordPrim
       toRecord = to . (\x => MkSOP $ Z x)
 
+      export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderLine.RecordPrim )
       read_records_c c op = do
           rows <- get c OLT_NP (columns OLT_NP) (PrimOrderLine.domain&&op)
           let ret_s = [ PrimOrderLine.toRecord ox | ox <- rows]
           pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimOrderLine.RecordPrim )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimOrderLine.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimOrderLine.RecordPrim )
+      main_runET op = do 
+          Left err <- runEitherT (PrimOrderLine.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimOrderLine.RecordPrim )
+      read op = do
+          l1 <- (liftIO $ (PrimOrderLine.main_runET op))
+          pure l1
