@@ -179,6 +179,12 @@ printSDoc (Def (x :: xs)) = do
      printSDoc (Def xs)
      
 --schema2SDoc : HasIO io => Schema
+export
+indentSDoc : Bits32 -> SDoc -> SDoc
+indentSDoc x (Line i t) = (Line (i+x) t)
+indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
+indentSDoc x Sep = Sep
+
 
 export
 test_main_x : HasIO io => io ()

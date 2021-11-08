@@ -8,37 +8,48 @@ import Ledger.Schema.Types
 add_quotes : String -> String
 add_quotes x = "\"" ++ x ++ "\""
 
+--TableName
+
 export
-getPrimModelNs : TableName -> String
-getPrimModelNs (MkTN ref dbtable m) = ("Prim"++m)
+primModelRef : TableName -> String
+primModelRef (MkTN ref dbtable m) = ("Prim"++m)
 
 export
 tn_show : TableName -> SDoc
 tn_show (MkTN ref dbtable m) = Def [(Line 0 #"\#{ref}:String"#),
                                   (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
 
-db_field2Ref : String -> String
-db_field2Ref x = pack (map toUpper (unpack x))
+export
+primRecRef : TableName -> String
+primRecRef tn = (primModelRef tn)++".RecordPrim"
 
+primDomainRef : TableName -> String
+primDomainRef tn = (primModelRef tn)++".domain"
+
+primColsRef : TableName -> String
+primColsRef tn = (primModelRef tn)++".PrimCols"
+
+getTableR : TableName -> String
+getTableR tn = (ref tn)++"_NP"
+
+
+--Field
 
 export
 id2pk : String -> String
 id2pk x = if (x=="id") then "pk" else x
 
 export
-field2Ref : Field -> String
-field2Ref (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref)
+fieldRef : Field -> String
+fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref) where 
+  db_field2Ref : String -> String
+  db_field2Ref x = pack (map toUpper (unpack x))
 
-export
-indentSDoc : Bits32 -> SDoc -> SDoc
-indentSDoc x (Line i t) = (Line (i+x) t)
-indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
-indentSDoc x Sep = Sep
 
 export   
 field_show : Field -> SDoc         
-field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m)) = Def [(Line 0 #"\#{field2Ref f}:Column"#),
-                                                                                              (Line 0 #"\#{field2Ref f}=\#{df}"#)] where
+field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
+                                                                                              (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
       df:String
       df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
 
@@ -60,32 +71,21 @@ export
 getFieldRefs : List (Maybe Field) -> List String
 getFieldRefs [] = []
 getFieldRefs (Nothing :: xs) = (getFieldRefs xs)
-getFieldRefs ((Just x) :: xs) = [(field2Ref x)]++(getFieldRefs xs)
+getFieldRefs ((Just x) :: xs) = [(fieldRef x)]++(getFieldRefs xs)
 
 
 public export
 getPrimSDoc : Schema -> SDoc
-getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{field2Ref f})"# where
+getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
    f : Field
    f = (getPK_Field db_field table)      
-getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{field2Ref prim})"# 
+getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
 
 getPrimSDoc (M2O rel db_field table) = Line 4 "--M2O"
 getPrimSDoc (O2M db_field tn) = Line 4 "--O2M"
 getPrimSDoc (M2M f1 f2 tn) = Line 4 "M2M"
 getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                                             np2Rec,Sep,read_rec_c,Sep,read_rec,main_read] where
-   getPrimRecName : TableName -> String
-   getPrimRecName tn = (getPrimModelNs tn)++".RecordPrim"
-   getDomN : TableName -> String
-   getDomN tn = (getPrimModelNs tn)++".domain"
-
-   primColsR : TableName -> String
-   primColsR tn = (getPrimModelNs tn)++".PrimCols"
-
-   getTableR : TableName -> String
-   getTableR tn = (ref tn)++"_NP"
-
    --table_Ref : String
    --table_Ref = (getTable4 table)
 
@@ -94,50 +94,50 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
    cols : String
    cols = fastConcat $ intersperse ", " fs
    ns : SDoc 
-   ns = Def [Line 0 #"namespace \#{getPrimModelNs table}"#,
+   ns = Def [Line 0 #"namespace \#{primModelRef table}"#,
              Line 2 "domain : Op",
              Line 2 "domain = (True)",
              Line 2 "PrimCols : List Column",
              Line 2 #"PrimCols = [\#{cols}]"# ]
    primTab : SDoc
    primTab = Def [Line 2 #"\#{getTableR table} : Table"#,
-                  Line 2 #"\#{getTableR table} = MkTable \#{add_quotes (dbtable table)} \#{primColsR table}"#]
+                  Line 2 #"\#{getTableR table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
 
    rec : SDoc
    rec = Def ([Line 2 "record RecordPrim where",Line 4 "constructor MkRecordPrim"]++(map getPrimSDoc fields))
    elabRec : SDoc
-   elabRec = Line 2 #"%runElab derive \#{add_quotes (getPrimRecName table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+   elabRec = Line 2 #"%runElab derive \#{add_quotes (primRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
    np2Rec :SDoc
    np2Rec = Def [Sep,
-                 Line 2 #"toRecord : GetRow \#{getPrimModelNs table}.PrimCols -> \#{getPrimRecName table}"#,
+                 Line 2 #"toRecord : GetRow \#{primModelRef table}.PrimCols -> \#{primRecRef table}"#,
                  Line 2 "toRecord = to . (\\x => MkSOP $ Z x)"]
    read_rec_c : SDoc
    read_rec_c = Def [Line 2  "export",
-                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{getPrimRecName table} )"#,
+                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{primRecRef table} )"#,
                      Line 2  "read_records_c c op = do",
-                     Line 4     #"rows <- get c \#{getTableR table} (columns \#{getTableR table}) (\#{getDomN table}&&op)"#,
-                     Line 4     #"let ret_s = [ \#{getPrimModelNs table}.toRecord ox | ox <- rows]"#,
+                     Line 4     #"rows <- get c \#{getTableR table} (columns \#{getTableR table}) (\#{primDomainRef table}&&op)"#,
+                     Line 4     #"let ret_s = [ \#{primModelRef table}.toRecord ox | ox <- rows]"#,
                      Line 4      "pure ret_s"]
    read_rec : SDoc
    read_rec = Def [Line 2  "export",
-                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{getPrimRecName table} )"#,
+                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{primRecRef table} )"#,
                    Line 2  "read_records op = do",
                    Line 4     "c <- connect DB_URI",
-                   Line 4     #"ret <- \#{getPrimModelNs table}.read_records_c c op"#,
+                   Line 4     #"ret <- \#{primModelRef table}.read_records_c c op"#,
                    Line 4     "pure ret"]
    main_read : SDoc
    main_read = Def [Sep,Line 2 "export",
-                    Line 2 #"main_runET : (op:Op) -> IO (List \#{getPrimRecName table} )"#,
+                    Line 2 #"main_runET : (op:Op) -> IO (List \#{primRecRef table} )"#,
                     Line 2 #"main_runET op = do "#,
-                    Line 4 #"Left err <- runEitherT (\#{getPrimModelNs table}.read_records op {io = EitherT SQLError IO} )"#,
+                    Line 4 #"Left err <- runEitherT (\#{primModelRef table}.read_records op {io = EitherT SQLError IO} )"#,
                     Line 5     "| Right l1 => pure l1",
                     Line 4 "printLn err",
                     Line 4 "pure []",
                     Sep,
                     Line 2 "export",
-                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{getPrimRecName table} )"#,
+                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{primRecRef table} )"#,
                     Line 2  "read op = do",
-                    Line 4 #"l1 <- (liftIO $ (\#{getPrimModelNs table}.main_runET op))"#,
+                    Line 4 #"l1 <- (liftIO $ (\#{primModelRef table}.main_runET op))"#,
                     Line 4 "pure l1"]
 
 
