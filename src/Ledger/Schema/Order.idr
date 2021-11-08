@@ -95,7 +95,7 @@ so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,Partne
 
 export
 SaleOrder : Schema
-SaleOrder = Model OLT so_cols
+SaleOrder = Model OT so_cols
 
 
 ----- Odoo/OpenERP Tax Code 
