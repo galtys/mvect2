@@ -15,11 +15,6 @@ primModelRef : TableName -> String
 primModelRef (MkTN ref dbtable m) = ("Prim"++m)
 
 export
-tn_show : TableName -> SDoc
-tn_show (MkTN ref dbtable m) = Def [(Line 0 #"\#{ref}:String"#),
-                                  (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
-
-export
 primRecRef : TableName -> String
 primRecRef tn = (primModelRef tn)++".RecordPrim"
 
@@ -179,7 +174,11 @@ schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where
            Line 0 "%language ElabReflection"]
 
     t_names:SDoc
-    t_names = Def (map tn_show (schema_tables s))
+    t_names = Def (map tn_show (schema_tables s)) where 
+       tn_show : TableName -> SDoc
+       tn_show (MkTN ref dbtable m) = Def [(Line 0 #"\#{ref}:String"#),
+                                  (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
+    
     modules:SDoc
     modules = Def (map schema_show xs)
     prim : SDoc
