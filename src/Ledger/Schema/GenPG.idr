@@ -15,11 +15,23 @@ primModelRef : TableName -> String
 primModelRef (MkTN ref dbtable m) = ("Prim"++m)
 
 export
+o2mModelRef : TableName -> String
+o2mModelRef (MkTN ref dbtable m) = ("O2M"++m)
+
+export
 primRecRef : TableName -> String
 primRecRef tn = (primModelRef tn)++".RecordPrim"
 
+export
+o2mRecRef : TableName -> String
+o2mRecRef tn = (o2mModelRef tn)++".RecordO2M"
+
 primDomainRef : TableName -> String
 primDomainRef tn = (primModelRef tn)++".domain"
+
+
+o2mDomainRef : TableName -> String
+o2mDomainRef tn = (o2mModelRef tn)++".domain"
 
 primColsRef : TableName -> String
 primColsRef tn = (primModelRef tn)++".PrimCols"
@@ -75,7 +87,6 @@ getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{
    f : Field
    f = (getPK_Field db_field table)      
 getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
-
 getPrimSDoc (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
    f : Field
    f = (getPK_Field db_field table)    
@@ -138,6 +149,7 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                     Line 4 "pure l1"]
 getPrimSDoc (Sch name models) = Sep
 
+
 public export
 schema_tables : Schema -> List TableName
 schema_tables (Pk name db_field table) = [table]
@@ -151,16 +163,16 @@ schema_tables (Sch n []) = []
 schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
 
 export
-schema_show : Schema -> SDoc
-schema_show (Pk name db_field table) = field_show $ getPK_Field db_field table
-schema_show (Prim prim) = field_show $ prim
-schema_show (M2O rel db_field table) = field_show $ getPK_Field db_field table
-schema_show (O2M db_field tn) = Line 0 "--O2M"
-schema_show (M2M f1 f2 tn) = Line 0 "--M2M"
-schema_show (Model tn []) = Def [] 
-schema_show (Model tn xs) = Def ([Sep]++(map schema_show xs))
-schema_show (Sch n []) = Def []
-schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where       
+showPrim : Schema -> SDoc
+showPrim (Pk name db_field table) = field_show $ getPK_Field db_field table
+showPrim (Prim prim) = field_show $ prim
+showPrim (M2O rel db_field table) = field_show $ getPK_Field db_field table
+showPrim (O2M db_field tn) = Line 0 "--O2M"
+showPrim (M2M f1 f2 tn) = Line 0 "--M2M"
+showPrim (Model tn []) = Def [] 
+showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
+showPrim (Sch n []) = Def []
+showPrim s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where       
     s_imp:SDoc
     s_imp=Def [Line 0 #"module \#{n}"#, Sep,
            Line 0 "import PQ.CRUD",
@@ -182,8 +194,63 @@ schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where
                                   (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
     
     modules:SDoc
-    modules = Def (map schema_show xs)
+    modules = Def (map showPrim xs)
     prim : SDoc
     prim = Def (map getPrimSDoc xs)
 
 
+export
+getRelO2m : Schema -> SDoc
+getRelO2m (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+   f : Field
+   f = (getPK_Field db_field table)    
+getRelO2m (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
+getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+   f : Field
+   f = (getPK_Field db_field table)    
+getRelO2m (O2M db_field tn) = Line 4 #"\#{id2pk db_field}:List \#{primRecRef tn}"#
+getRelO2m (M2M f1 f2 tn) = Line 4 "M2M"
+getRelO2m (Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_rec,main_read] where
+   ns : SDoc
+   ns = Def [Line 0 #"namespace \#{o2mModelRef table}"#,
+              Line 2 "domain : Op",
+              Line 2 "domain = (True)"]
+   rec : SDoc
+   rec = Def ([Line 2 "record RecordO2M where",Line 4 "constructor MkRecordO2M"]++(map getRelO2m fields))
+   elabRec : SDoc
+   elabRec = Line 2 #"%runElab derive \#{add_quotes (o2mRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+   
+   read_rec_c : SDoc
+   read_rec_c = Def [Line 2  "export",
+                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
+                     Line 2  "read_records_c c op = ?retddd"]
+                     
+   read_rec : SDoc
+   read_rec = Def [Line 2  "export",
+                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{o2mRecRef table} )"#,
+                   Line 2  "read_records op = do",
+                   Line 4     "c <- connect DB_URI",
+                   Line 4     #"ret <- \#{o2mModelRef table}.read_records_c c op"#,
+                   Line 4     "pure ret"]
+   main_read : SDoc
+   main_read = Def [Sep,Line 2 "export",
+                    Line 2 #"main_runET : (op:Op) -> IO (List \#{o2mRecRef table} )"#,
+                    Line 2 #"main_runET op = do "#,
+                    Line 4 #"Left err <- runEitherT (\#{o2mModelRef table}.read_records op {io = EitherT SQLError IO} )"#,
+                    Line 5     "| Right l1 => pure l1",
+                    Line 4 "printLn err",
+                    Line 4 "pure []",
+                    Sep,
+                    Line 2 "export",
+                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{o2mRecRef table} )"#,
+                    Line 2  "read op = do",
+                    Line 4 #"l1 <- (liftIO $ (\#{o2mModelRef table}.main_runET op))"#,
+                    Line 4 "pure l1"]
+
+
+             
+getRelO2m (Sch name models) = Def (map getRelO2m models)
+
+export
+schema_show : Schema -> SDoc
+schema_show s = Def [showPrim s, getRelO2m s]

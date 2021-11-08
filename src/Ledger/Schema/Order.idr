@@ -14,6 +14,66 @@ export
 OdooTaxTable : TableName
 OdooTaxTable = MkTN "OTax" "account_tax" "OrderTax"
 
+----- Odoo/OpenERP Tax Code 
+export
+Id_Tax : Schema
+Id_Tax = Pk "Id_Tax" "id" OdooTaxTable
+export
+NameTax : Schema
+NameTax = Prim (MkF NotNull I_String "name" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
+export
+DescriptionTax : Schema
+DescriptionTax = Prim (MkF Nullable I_String "description" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
+export
+AmountT : Schema
+AmountT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTaxTable)
+export
+TypeTax : Schema
+TypeTax = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
+export
+PriceInclude : Schema
+PriceInclude = Prim (MkF Nullable I_Bool "price_include" Boolean "(Just . cast)" "cast" OdooTaxTable)
+
+export
+tax_cols : List Schema
+tax_cols = [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
+
+export
+OdooTax : Schema
+OdooTax = Model OdooTaxTable tax_cols
+
+-- Order Line
+
+export
+Id_OLT : Schema
+Id_OLT = Pk "Id_OLT" "id" OLT
+export
+PrimOrderID : Schema
+PrimOrderID = M2O OT "order_id" OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
+export
+PriceUnit : Schema
+PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
+export
+ProductUomQty : Schema
+ProductUomQty = Prim (MkF NotNull I_TQty "product_uom_qty" DoublePrecision "(Just . cast)" "cast" OLT)
+export
+Discount : Schema
+Discount = Prim (MkF Nullable I_TQty "discount" DoublePrecision "(Just . cast)" "cast" OLT)
+export
+ProductID : Schema
+ProductID = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" OLT)
+export
+DeliveryLine : Schema
+DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
+
+order_line_cols : List Schema
+order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
+
+export
+OrderLineCols : Schema
+OrderLineCols = Model OLT order_line_cols
+
+-- Order 
 export
 Id_OT : Schema
 Id_OT = Pk "Id_OT" "id" OT
@@ -101,69 +161,11 @@ export
 SaleOrder : Schema
 SaleOrder = Model OT so_cols
 
-
------ Odoo/OpenERP Tax Code 
-export
-Id_Tax : Schema
-Id_Tax = Pk "Id_Tax" "id" OdooTaxTable
-export
-NameTax : Schema
-NameTax = Prim (MkF NotNull I_String "name" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
-export
-DescriptionTax : Schema
-DescriptionTax = Prim (MkF Nullable I_String "description" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
-export
-AmountT : Schema
-AmountT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTaxTable)
-export
-TypeTax : Schema
-TypeTax = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
-export
-PriceInclude : Schema
-PriceInclude = Prim (MkF Nullable I_Bool "price_include" Boolean "(Just . cast)" "cast" OdooTaxTable)
-
-export
-tax_cols : List Schema
-tax_cols = [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
-
-export
-OdooTax : Schema
-OdooTax = Model OdooTaxTable tax_cols
-
--- Order Line
-
-export
-Id_OLT : Schema
-Id_OLT = Pk "Id_OLT" "id" OLT
-export
-PrimOrderID : Schema
-PrimOrderID = M2O OT "order_id" OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
-export
-PriceUnit : Schema
-PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
-export
-ProductUomQty : Schema
-ProductUomQty = Prim (MkF NotNull I_TQty "product_uom_qty" DoublePrecision "(Just . cast)" "cast" OLT)
-export
-Discount : Schema
-Discount = Prim (MkF Nullable I_TQty "discount" DoublePrecision "(Just . cast)" "cast" OLT)
-export
-ProductID : Schema
-ProductID = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" OLT)
-export
-DeliveryLine : Schema
-DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
-
-order_line_cols : List Schema
-order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
-
-export
-OrderLineCols : Schema
-OrderLineCols = Model OLT order_line_cols
+-- Schema
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [SaleOrder,OdooTax, OrderLineCols] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
