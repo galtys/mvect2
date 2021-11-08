@@ -60,6 +60,9 @@ namespace OE
    table_ref : TableName -> String
    table_ref (MkTN ref dbtable m) = ref
    -}
+   export
+   getPrimModelNs : TableName -> String
+   getPrimModelNs (MkTN ref dbtable m) = ("Prim"++m)
    
    export
    tn_show : TableName -> SDoc
@@ -129,35 +132,89 @@ namespace OE
    export
    getPK_Field : String -> TableName -> Field
    getPK_Field db_field table = (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "cast" table)
+   
+   export
+   getPrimFields : Schema -> List (Maybe Field)
+   getPrimFields (Pk name db_field table) = [Just (getPK_Field db_field table)]
+   getPrimFields (Prim prim) = [Just prim]
+   getPrimFields (M2O rel db_field table) = [Nothing]
+   getPrimFields (O2M db_field tn) = [Nothing]
+   getPrimFields (M2M f1 f2 tn) = [Nothing]
+   getPrimFields (Model table fields) = concat (map getPrimFields fields)
+   getPrimFields (Sch name models) = []
+   
+   export
+   getFieldRefs : List (Maybe Field) -> List String
+   getFieldRefs [] = []
+   getFieldRefs (Nothing :: xs) = (getFieldRefs xs)
+   getFieldRefs ((Just x) :: xs) = [(field2Ref x)]++(getFieldRefs xs)
+   
 
    public export
-   getPrim : Schema -> SDoc
-   getPrim (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{field2Ref f})"# where
+   getPrimSDoc : Schema -> SDoc
+   getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{field2Ref f})"# where
       f : Field
       f = (getPK_Field db_field table)      
-   getPrim (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{field2Ref prim})"# 
+   getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{field2Ref prim})"# 
    
-   getPrim (M2O rel db_field table) = Line 4 "--M2O"
-   getPrim (O2M db_field tn) = Line 4 "--O2M"
-   getPrim (M2M f1 f2 tn) = Line 4 "M2M"
-   getPrim (Model table fields) = Def [Sep,ns,Sep,rec] where
+   getPrimSDoc (M2O rel db_field table) = Line 4 "--M2O"
+   getPrimSDoc (O2M db_field tn) = Line 4 "--O2M"
+   getPrimSDoc (M2M f1 f2 tn) = Line 4 "M2M"
+   getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,np2Rec,Sep,read_rec_c] where
+      getPrimRecName : TableName -> String
+      getPrimRecName tn = (getPrimModelNs tn)++".RecordPrim"
+      getDomN : TableName -> String
+      getDomN tn = (getPrimModelNs tn)++".domain"
+      
+      primColsR : TableName -> String
+      primColsR tn = (getPrimModelNs tn)++".PrimCols"
+      
+      getTableR : TableName -> String
+      getTableR tn = (ref tn)++"_NP"
+      
+      --table_Ref : String
+      --table_Ref = (getTable4 table)
+      
+      fs : List String
+      fs = getFieldRefs (getPrimFields mod)
+      cols : String
+      cols = fastConcat $ intersperse ", " fs
       ns : SDoc 
-      ns = Def [Line 0 #"namespace \#{m table}"#,
-                Line 2 "domain : OP",
+      ns = Def [Line 0 #"namespace \#{getPrimModelNs table}"#,
+                Line 2 "domain : Op",
                 Line 2 "domain = (True)",
                 Line 2 "PrimCols : List Column",
-                Line 2 "PrimCols = []" ]
---      fs : List Schema -> List String
---      fs = []
+                Line 2 #"PrimCols = [\#{cols}]"# ]
+      primTab : SDoc
+      primTab = Def [Line 2 #"\#{getTableR table} : Table"#,
+                     Line 2 #"\#{getTableR table} = MkTable \#{add_quote (dbtable table)} \#{primColsR table}"#]
+
       rec : SDoc
-      rec = Def ([Line 2 "RecordPrim where",Line 2 "constructor MkRecordPrim"]++(map getPrim fields))
-      
-   getPrim (Sch name models) = Sep
+      rec = Def ([Line 2 "record RecordPrim where",Line 4 "constructor MkRecordPrim"]++(map getPrimSDoc fields))
+      elabRec : SDoc
+      elabRec = Line 2 #"%runElab derive \#{add_quote (getPrimRecName table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+      np2Rec :SDoc
+      np2Rec = Def [Sep,
+                    Line 2 #"toRecord : GetRow \#{getPrimModelNs table}.PrimCols -> \#{getPrimRecName table}"#,
+                    Line 2 "toRecord = to . (\\x => MkSOP $ Z x)"]
+      read_rec_c : SDoc
+      read_rec_c = Def [Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{getPrimRecName table} )"#,
+                        Line 2  "read_records_c c op = do",
+                        Line 4     #"rows <- get c \#{getTableR table} (columns \#{getTableR table}) (\#{getDomN table}&&op)"#,
+                        Line 4     #"let ret_s = [ \#{getPrimModelNs table}.toRecord ox | ox <- rows]"#,
+                        Line 4      "pure ret_s"]
+
+   getPrimSDoc (Sch name models) = Sep
    
    --t@(MkTN ref dbtable m)
+  {- 
+  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RecordCols )
+  read_records_c c op = do
+    rows <- get c SO_NP (columns SO_NP) (domain&&op)
+    let so_s= [ toRecord ox | ox <- rows ]
+    pure so_s
+   -}
    
-
-
    public export
    schema_tables : Schema -> List TableName
    schema_tables (Pk name db_field table) = [table]
@@ -180,7 +237,7 @@ namespace OE
    schema_show (Model tn []) = Def [] 
    schema_show (Model tn xs) = Def ([Sep]++(map schema_show xs))
    schema_show (Sch n []) = Def []
-   schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,rec] where
+   schema_show s@(Sch n xs) = Def [s_imp,t_names,modules,rec] where       
        s_imp:SDoc
        s_imp=Def [Line 0 #"module \#{n}"#, Sep,
               Line 0 "import PQ.CRUD",
@@ -188,14 +245,21 @@ namespace OE
               Line 0 "import PQ.Schema",
               Line 0 "import PQ.Types", Sep,
               Line 0 "import Category.Transaction.Types",
-              Line 0 "import Data.Ratio",Sep]
+              Line 0 "import Data.Ratio",Sep,
+              Line 0 "import Generics.Derive",Sep,
+              Line 0 "import JSON",Sep,
+              Line 0 "import Ledger.PG.Config",
+              Line 0 "import Control.Monad.Either",Sep,
+              Line 0 "%language ElabReflection"]
               
        t_names:SDoc
        t_names = Def (map tn_show (schema_tables s))
        modules:SDoc
        modules = Def (map schema_show xs)
        rec : SDoc
-       rec = Def (map getPrim xs)
+       rec = Def (map getPrimSDoc xs)
+
+       
      
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
    public export

@@ -8,6 +8,14 @@ import PQ.Types
 import Category.Transaction.Types
 import Data.Ratio
 
+import Generics.Derive
+
+import JSON
+
+import Ledger.PG.Config
+import Control.Monad.Either
+
+%language ElabReflection
 OT:String
 OT = "sale_order"
 OTax:String
@@ -73,3 +81,98 @@ DELIVERY_LINE_OLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
 --M2O
 PRODUCT_ID_OLT:Column
 PRODUCT_ID_OLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
+
+namespace PrimOrder
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PK_OT, ORIGIN_OT, ORDER_POLICY_OT, DATE_ORDER_OT, PARTNER_ID_OT, AMOUNT_TAX_OT, STATE_OT, PARTNER_INVOICE_ID_OT, AMOUNT_UNTAXED_OT, AMOUNT_TOTAL_OT, NAME_OT, PARTNER_SHIPPING_ID_OT, PICKING_POLICY_OT, CARRIER_ID_OT, REQUESTED_DATE_OT]
+
+      OT_NP : Table
+      OT_NP = MkTable "sale_order" PrimOrder.PrimCols
+
+      record RecordPrim where
+          constructor MkRecordPrim
+          pk:(idrisTpe PK_OT)
+          origin:(idrisTpe ORIGIN_OT)
+          order_policy:(idrisTpe ORDER_POLICY_OT)
+          date_order:(idrisTpe DATE_ORDER_OT)
+          partner_id:(idrisTpe PARTNER_ID_OT)
+          amount_tax:(idrisTpe AMOUNT_TAX_OT)
+          state:(idrisTpe STATE_OT)
+          partner_invoice_id:(idrisTpe PARTNER_INVOICE_ID_OT)
+          amount_untaxed:(idrisTpe AMOUNT_UNTAXED_OT)
+          amount_total:(idrisTpe AMOUNT_TOTAL_OT)
+          name:(idrisTpe NAME_OT)
+          partner_shipping_id:(idrisTpe PARTNER_SHIPPING_ID_OT)
+          picking_policy:(idrisTpe PICKING_POLICY_OT)
+          carrier_id:(idrisTpe CARRIER_ID_OT)
+          requested_date:(idrisTpe REQUESTED_DATE_OT)
+          --O2M
+      %runElab derive "PrimOrder.RecordPrim" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordPrim
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrder.RecordPrim )
+      read_records_c c op = do
+          rows <- get c OT_NP (columns OT_NP) (PrimOrder.domain&&op)
+          let ret_s = [ PrimOrder.toRecord ox | ox <- rows]
+          pure ret_s
+
+namespace PrimOrderTax
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PK_OTax, NAME_OTax, DESCRIPTION_OTax, AMOUNT_OTax, TYPE_OTax, PRICE_INCLUDE_OTax]
+
+      OTax_NP : Table
+      OTax_NP = MkTable "account_tax" PrimOrderTax.PrimCols
+
+      record RecordPrim where
+          constructor MkRecordPrim
+          pk:(idrisTpe PK_OTax)
+          name:(idrisTpe NAME_OTax)
+          description:(idrisTpe DESCRIPTION_OTax)
+          amount:(idrisTpe AMOUNT_OTax)
+          type:(idrisTpe TYPE_OTax)
+          price_include:(idrisTpe PRICE_INCLUDE_OTax)
+      %runElab derive "PrimOrderTax.RecordPrim" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimOrderTax.PrimCols -> PrimOrderTax.RecordPrim
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderTax.RecordPrim )
+      read_records_c c op = do
+          rows <- get c OTax_NP (columns OTax_NP) (PrimOrderTax.domain&&op)
+          let ret_s = [ PrimOrderTax.toRecord ox | ox <- rows]
+          pure ret_s
+
+namespace PrimOrderLine
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PK_OLT, PRICE_UNIT_OLT, PRODUCT_UOM_QTY_OLT, DISCOUNT_OLT, DELIVERY_LINE_OLT, PRODUCT_ID_OLT]
+
+      OLT_NP : Table
+      OLT_NP = MkTable "sale_order_line" PrimOrderLine.PrimCols
+
+      record RecordPrim where
+          constructor MkRecordPrim
+          pk:(idrisTpe PK_OLT)
+          price_unit:(idrisTpe PRICE_UNIT_OLT)
+          product_uom_qty:(idrisTpe PRODUCT_UOM_QTY_OLT)
+          discount:(idrisTpe DISCOUNT_OLT)
+          delivery_line:(idrisTpe DELIVERY_LINE_OLT)
+          --M2O
+          product_id:(idrisTpe PRODUCT_ID_OLT)
+      %runElab derive "PrimOrderLine.RecordPrim" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimOrderLine.PrimCols -> PrimOrderLine.RecordPrim
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderLine.RecordPrim )
+      read_records_c c op = do
+          rows <- get c OLT_NP (columns OLT_NP) (PrimOrderLine.domain&&op)
+          let ret_s = [ PrimOrderLine.toRecord ox | ox <- rows]
+          pure ret_s
