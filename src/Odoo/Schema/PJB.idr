@@ -78,7 +78,8 @@ DISCOUNT_OLT:Column
 DISCOUNT_OLT=nullable TQty "discount" (DoublePrecision) (Just . cast) cast OLT
 DELIVERY_LINE_OLT:Column
 DELIVERY_LINE_OLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
---M2O
+ORDER_ID_OLT:Column
+ORDER_ID_OLT=notNull Bits32 "order_id" (BigInt) (Just . cast) cast OLT
 PRODUCT_ID_OLT:Column
 PRODUCT_ID_OLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
 
@@ -196,7 +197,7 @@ namespace PrimOrderLine
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PK_OLT, PRICE_UNIT_OLT, PRODUCT_UOM_QTY_OLT, DISCOUNT_OLT, DELIVERY_LINE_OLT, PRODUCT_ID_OLT]
+      PrimCols = [PK_OLT, PRICE_UNIT_OLT, PRODUCT_UOM_QTY_OLT, DISCOUNT_OLT, DELIVERY_LINE_OLT, ORDER_ID_OLT, PRODUCT_ID_OLT]
 
       OLT_NP : Table
       OLT_NP = MkTable "sale_order_line" PrimOrderLine.PrimCols
@@ -208,7 +209,7 @@ namespace PrimOrderLine
           product_uom_qty:(idrisTpe PRODUCT_UOM_QTY_OLT)
           discount:(idrisTpe DISCOUNT_OLT)
           delivery_line:(idrisTpe DELIVERY_LINE_OLT)
-          --M2O
+          order_id:(idrisTpe ORDER_ID_OLT)
           product_id:(idrisTpe PRODUCT_ID_OLT)
       %runElab derive "PrimOrderLine.RecordPrim" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 

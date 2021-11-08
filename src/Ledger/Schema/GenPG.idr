@@ -56,7 +56,7 @@ export
 getPrimFields : Schema -> List (Maybe Field)
 getPrimFields (Pk name db_field table) = [Just (getPK_Field db_field table)]
 getPrimFields (Prim prim) = [Just prim]
-getPrimFields (M2O rel db_field table) = [Nothing]
+getPrimFields (M2O rel db_field table) = [Just (getPK_Field db_field table)]
 getPrimFields (O2M db_field tn) = [Nothing]
 getPrimFields (M2M f1 f2 tn) = [Nothing]
 getPrimFields (Model table fields) = concat (map getPrimFields fields)
@@ -76,7 +76,9 @@ getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{
    f = (getPK_Field db_field table)      
 getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
 
-getPrimSDoc (M2O rel db_field table) = Line 4 "--M2O"
+getPrimSDoc (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+   f : Field
+   f = (getPK_Field db_field table)    
 getPrimSDoc (O2M db_field tn) = Line 4 "--O2M"
 getPrimSDoc (M2M f1 f2 tn) = Line 4 "M2M"
 getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
@@ -152,7 +154,7 @@ export
 schema_show : Schema -> SDoc
 schema_show (Pk name db_field table) = field_show $ getPK_Field db_field table
 schema_show (Prim prim) = field_show $ prim
-schema_show (M2O rel db_field table) = Line 0 "--M2O"
+schema_show (M2O rel db_field table) = field_show $ getPK_Field db_field table
 schema_show (O2M db_field tn) = Line 0 "--O2M"
 schema_show (M2M f1 f2 tn) = Line 0 "--M2M"
 schema_show (Model tn []) = Def [] 
