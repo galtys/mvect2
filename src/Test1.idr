@@ -173,7 +173,7 @@ main = do
   test_main_x
   
   {-
-  l1 <- SO_O2M.read (True)
+  l1 <- PrimOrder.read (True)
       
   traverse_ printLn l1
   printLn (length l1)

@@ -1,6 +1,7 @@
 module Ledger.Schema.Order
 
 import Ledger.Schema.Types
+import Ledger.Schema.GenPG
 
 -- Order
 export
