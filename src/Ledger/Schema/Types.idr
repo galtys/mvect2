@@ -49,21 +49,22 @@ namespace OE
      constructor MkTN
      ref : String     
      dbtable : String
+     m : String
    %runElab derive "TableName" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
    
    add_quote : String -> String
    add_quote x = "\"" ++ x ++ "\""
    
-   
+   {-
    export
    table_ref : TableName -> String
-   table_ref (MkTN ref dbtable) = ref++"T"
-   
+   table_ref (MkTN ref dbtable m) = ref
+   -}
    
    export
    tn_show : TableName -> SDoc
-   tn_show t@(MkTN ref dbtable) = Def [(Line 0 #"\#{table_ref t}:String"#),
-                                     (Line 0 #"\#{table_ref t} = \#{add_quote dbtable}"#)]   
+   tn_show (MkTN ref dbtable m) = Def [(Line 0 #"\#{ref}:String"#),
+                                     (Line 0 #"\#{ref} = \#{add_quote dbtable}"#)]   
    
    public export
    data IsNull = Nullable | NotNull --| PrimarySerial64
@@ -99,16 +100,16 @@ namespace OE
       
    export
    field2Ref : Field -> String
-   field2Ref (MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable)) = (db_field2Ref (id2pk name))++"_"++(table_ref t)
+   field2Ref (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref)
    
    
    
    export   
    field_show : Field -> SDoc         
-   field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable)) = Def [(Line 0 #"\#{field2Ref f}:Column"#),
+   field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m)) = Def [(Line 0 #"\#{field2Ref f}:Column"#),
                                                                                              (Line 0 #"\#{field2Ref f}=\#{df}"#)] where
          df:String
-         df=(show isNull)++" "++(show primType)++" "++(add_quote name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(table_ref t)
+         df=(show isNull)++" "++(show primType)++" "++(add_quote name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
    
    public export
    data Schema : Type where
