@@ -20,11 +20,11 @@ o2mModelRef (MkTN ref dbtable m) = ("O2M"++m)
 
 export
 primRecRef : TableName -> String
-primRecRef tn = (primModelRef tn)++".RecordPrim"
+primRecRef tn = (primModelRef tn)++".RecordModel"
 
 export
 o2mRecRef : TableName -> String
-o2mRecRef tn = (o2mModelRef tn)++".RecordO2M"
+o2mRecRef tn = (o2mModelRef tn)++".RecordModel"
 
 primDomainRef : TableName -> String
 primDomainRef tn = (primModelRef tn)++".domain"
@@ -69,17 +69,55 @@ getPrimFields : Schema -> List (Maybe Field)
 getPrimFields (Pk name db_field table) = [Just (getPK_Field db_field table)]
 getPrimFields (Prim prim) = [Just prim]
 getPrimFields (M2O rel db_field table) = [Just (getPK_Field db_field table)]
-getPrimFields (O2M db_field tn) = [Nothing]
+
+getPrimFields (O2M rec_field rel_f tn) = [Nothing]
 getPrimFields (M2M f1 f2 tn) = [Nothing]
 getPrimFields (Model table fields) = concat (map getPrimFields fields)
 getPrimFields (Sch name models) = []
 
+{-
+export
+getO2MFields : Schema -> List Schema
+getO2MFields (Pk name db_field table) = []
+getO2MFields (Prim prim) = [] 
+getO2MFields (M2O rel db_field table) = [] 
+getO2MFields o2m@(O2M db_field tn) = [o2m] 
+getO2MFields (M2M f1 f2 tn) = []
+getO2MFields (Model table fields) = concat (map getO2MFields fields)
+getO2MFields (Sch name models) = []
+-}
+
+isO2M : Schema -> Bool
+isO2M (Pk name db_field table) = False
+isO2M (Prim prim) = False
+isO2M (M2O rel db_field table) = False
+isO2M (O2M rec_field rel_f tn) = True
+isO2M (M2M f1 f2 tn) = False
+isO2M (Model table fields) = False
+isO2M (Sch name models) = False
+
+
+model2Fields : List Schema -> List Field
+model2Fields [] = []
+model2Fields ((Pk name db_field table)::xs) = [(getPK_Field db_field table)]++(model2Fields xs)
+model2Fields ((Prim prim)::xs) = [prim]++(model2Fields xs)
+model2Fields ((M2O rel db_field table)::xs) = [(getPK_Field db_field table)]++(model2Fields xs)
+model2Fields ((O2M rec_field rel_f tn)::xs) = []
+model2Fields ((M2M f1 f2 tn)::xs) = []
+model2Fields ((Model table fields)::xs) = []
+model2Fields ((Sch name models)::xs) = []
+
 export
 getFieldRefs : List (Maybe Field) -> List String
 getFieldRefs [] = []
-getFieldRefs (Nothing :: xs) = (getFieldRefs xs)
-getFieldRefs ((Just x) :: xs) = [(fieldRef x)]++(getFieldRefs xs)
+getFieldRefs (Nothing :: xs) = []
+getFieldRefs ((Just x) :: xs) = [fieldRef x]++(getFieldRefs xs)
 
+export
+getFields : List (Maybe Field) -> List Field
+getFields [] = []
+getFields (Nothing :: xs) = (getFields xs)
+getFields ((Just x) :: xs) = [x]++(getFields xs)
 
 public export
 getPrimSDoc : Schema -> SDoc
@@ -90,13 +128,10 @@ getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef p
 getPrimSDoc (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
    f : Field
    f = (getPK_Field db_field table)    
-getPrimSDoc (O2M db_field tn) = Line 4 "--O2M"
+getPrimSDoc (O2M rec_field rel_f tn) = Line 4 "--O2M"
 getPrimSDoc (M2M f1 f2 tn) = Line 4 "M2M"
 getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                                             np2Rec,Sep,read_rec_c,Sep,read_rec,main_read] where
-   --table_Ref : String
-   --table_Ref = (getTable4 table)
-
    fs : List String
    fs = getFieldRefs (getPrimFields mod)
    cols : String
@@ -112,7 +147,7 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                   Line 2 #"\#{tableRef table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
 
    rec : SDoc
-   rec = Def ([Line 2 "record RecordPrim where",Line 4 "constructor MkRecordPrim"]++(map getPrimSDoc fields))
+   rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map getPrimSDoc fields))
    elabRec : SDoc
    elabRec = Line 2 #"%runElab derive \#{add_quotes (primRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
    np2Rec :SDoc
@@ -155,7 +190,7 @@ schema_tables : Schema -> List TableName
 schema_tables (Pk name db_field table) = [table]
 schema_tables (Prim prim) = []
 schema_tables (M2O rel db_field table) = []
-schema_tables (O2M db_field tn) = []
+schema_tables (O2M rec_field rel_f tn) = []
 schema_tables (M2M f1 f2 tn) = []
 schema_tables (Model tn []) = []
 schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
@@ -167,7 +202,7 @@ showPrim : Schema -> SDoc
 showPrim (Pk name db_field table) = field_show $ getPK_Field db_field table
 showPrim (Prim prim) = field_show $ prim
 showPrim (M2O rel db_field table) = field_show $ getPK_Field db_field table
-showPrim (O2M db_field tn) = Line 0 "--O2M"
+showPrim (O2M rec_field rel_f tn) = Line 0 "--O2M"
 showPrim (M2M f1 f2 tn) = Line 0 "--M2M"
 showPrim (Model tn []) = Def [] 
 showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
@@ -208,23 +243,56 @@ getRelO2m (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef pri
 getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
    f : Field
    f = (getPK_Field db_field table)    
-getRelO2m (O2M db_field tn) = Line 4 #"\#{id2pk db_field}:List \#{primRecRef tn}"#
+getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 getRelO2m (M2M f1 f2 tn) = Line 4 "M2M"
-getRelO2m (Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_rec,main_read] where
+getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_o2m_SDoc,ret_x] where --,read_rec,main_read
    ns : SDoc
    ns = Def [Line 0 #"namespace \#{o2mModelRef table}"#,
               Line 2 "domain : Op",
               Line 2 "domain = (True)"]
    rec : SDoc
-   rec = Def ([Line 2 "record RecordO2M where",Line 4 "constructor MkRecordO2M"]++(map getRelO2m fields))
+   rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map getRelO2m fields))
    elabRec : SDoc
    elabRec = Line 2 #"%runElab derive \#{add_quotes (o2mRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
    
    read_rec_c : SDoc
    read_rec_c = Def [Line 2  "export",
                      Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
-                     Line 2  "read_records_c c op = ?retddd"]
-                     
+                     Line 2  "read_records_c c op = ret_x"]
+   
+   read_o2m : (db_field:String) -> (col:String) -> TableName -> SDoc
+   read_o2m db_field col rel = Def [Sep,
+                                   Line 4 #"read_\#{db_field} : Connection -> List Bits32 -> (op:Op) -> io (list (List \#{primRecRef rel}))"#,
+                                   Line 4 #"read_\#{db_field} c [] op = pure []"#,
+                                   Line 4 #"read_\#{db_field} c (x::xs) op = do"#,
+                                     Line 6 #"rl<- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast x))&&op)"#,
+                                     Line 6 #"r <- read_\#{db_field} c xs op"#,
+                                     Line 6 #"([rl]++r)"#]
+   ret_x : SDoc
+   ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{o2mRecRef table})"# ]
+                                     
+                                     
+   o2m_fields : List Schema
+   o2m_fields = (filter isO2M fields)
+   
+   rel_relRef : List Schema -> List (String,TableName,String)
+   rel_relRef [] = []
+   rel_relRef ((Pk name db_field x) :: xs) = []
+   rel_relRef ((Prim prim) :: xs) = []
+   rel_relRef ((M2O rel db_field x) :: xs) = [] 
+   rel_relRef ((O2M db_field rel_f tn) :: xs) = [ (db_field,tn, (fieldRef (getPK_Field rel_f tn) ) )]++(rel_relRef xs)
+   rel_relRef ((M2M f1 f2 tn) :: xs) = []
+   rel_relRef ((Model x ys) :: xs) = []
+   rel_relRef ((Sch name models) :: xs) = []
+
+
+
+
+   read_o2m_SDoc : SDoc
+   read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] ) --++[Line 0 ("Test"++(show $ length o2m_fields))]
+   
+   
+   
    read_rec : SDoc
    read_rec = Def [Line 2  "export",
                    Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{o2mRecRef table} )"#,

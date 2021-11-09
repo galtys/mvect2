@@ -47,6 +47,8 @@ OdooTax = Model OdooTaxTable tax_cols
 export
 Id_OLT : Schema
 Id_OLT = Pk "Id_OLT" "id" OLT
+
+
 export
 PrimOrderID : Schema
 PrimOrderID = M2O OT "order_id" OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
@@ -152,7 +154,7 @@ export
 DeliveryNotes: Schema
 DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)" "cast" OT)
 OrderLines : Schema
-OrderLines = O2M "order_line" OLT
+OrderLines = O2M "order_line" "order_id" OLT
 
 so_cols : List Schema
 so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,RequestedDate,OrderLines]

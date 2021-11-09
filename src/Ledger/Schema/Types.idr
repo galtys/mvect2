@@ -76,7 +76,7 @@ namespace OE
      Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema
      M2O : (rel: TableName) -> (db_field:String) ->(table:TableName) -> Schema
-     O2M : (db_field:String) -> (tn: TableName) -> Schema
+     O2M : (rec_field:String) -> (rel_f:String) -> (tn: TableName) -> Schema
      M2M : (f1:String) -> (f2:String) -> (tn: TableName) -> Schema
      Model : (table:TableName) -> (fields:List Schema) -> Schema
      Sch : (name:String) -> (models: List Schema) -> Schema
