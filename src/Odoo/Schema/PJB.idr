@@ -50,6 +50,7 @@ ORDER_ID_OLT:Column
 ORDER_ID_OLT=notNull Bits32 "order_id" (BigInt) (Just . cast) cast OLT
 PRODUCT_ID_OLT:Column
 PRODUCT_ID_OLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
+--M2M
 
 PK_OT:Column
 PK_OT=notNull Bits32 "id" (BigInt) (Just . cast) cast OT
@@ -151,6 +152,7 @@ namespace PrimOrderLine
           delivery_line:(idrisTpe DELIVERY_LINE_OLT)
           order_id:(idrisTpe ORDER_ID_OLT)
           product_id:(idrisTpe PRODUCT_ID_OLT)
+          --M2M
       %runElab derive "PrimOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimOrderLine.PrimCols -> PrimOrderLine.RecordModel
@@ -300,18 +302,27 @@ namespace O2MOrderLine
           delivery_line:(idrisTpe DELIVERY_LINE_OLT)
           order_id:(idrisTpe ORDER_ID_OLT)
           product_id:(idrisTpe PRODUCT_ID_OLT)
+          tax_ids:List PrimOrderTax.RecordModel
       %runElab derive "O2MOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrderLine.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : PrimOrderLine.RecordModel  -> O2MOrderLine.RecordModel
-          add_lines (PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id) =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)
+          add_lines : PrimOrderLine.RecordModel -> (List PrimOrderTax.RecordModel) -> O2MOrderLine.RecordModel
+          add_lines (PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id) tax_ids=(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
+
+          read_tax_ids : Connection -> List Bits32 -> (op:Op) -> io (List (List PrimOrderTax.RecordModel))
+          read_tax_ids c xs op = pure (map (\la=>[]) xs)
 
           ret_x : io (List O2MOrderLine.RecordModel)
           ret_x = do
             rows <- PrimOrderLine.read_records_c c op
-            pure (map add_lines rows)
+
+            ret_tax_ids <- read_tax_ids c (map pk rows) (True)
+
+            let x_last = [add_lines r l | (r,l) <- zip rows ret_tax_ids]
+
+            pure x_last
       export
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrderLine.RecordModel )
       read_records op = do
@@ -375,8 +386,9 @@ namespace O2MOrder
 
             ret_order_line <- read_order_line c (map pk rows) (True)
 
-            let x_order_line = [add_lines r l | (r,l) <- zip rows ret_order_line]
-            pure x_order_line
+            let x_last = [add_lines r l | (r,l) <- zip rows ret_order_line]
+
+            pure x_last
       export
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrder.RecordModel )
       read_records op = do

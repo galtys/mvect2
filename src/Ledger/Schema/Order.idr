@@ -67,9 +67,12 @@ ProductID = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cas
 export
 DeliveryLine : Schema
 DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
+export
+Taxes : Schema
+Taxes = M2M "tax_ids" "order_line_id" "tax_id" "sale_order_tax" OdooTaxTable
 
 order_line_cols : List Schema
-order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine]++[PrimOrderID,ProductID]
+order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine,PrimOrderID,ProductID, Taxes]
 
 export
 OrderLineCols : Schema
