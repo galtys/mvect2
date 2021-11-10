@@ -14,6 +14,11 @@ export
 OdooTaxTable : TableName
 OdooTaxTable = MkTN "OTax" "account_tax" "OrderTax"
 
+export
+M2M_SaleTax : TableName
+M2M_SaleTax = MkTN "M2M_ST" "sale_order_tax" "M2M_OrderTax"
+
+
 ----- Odoo/OpenERP Tax Code 
 export
 Id_Tax : Schema
@@ -67,9 +72,15 @@ ProductID = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cas
 export
 DeliveryLine : Schema
 DeliveryLine = Prim (MkF Nullable I_Bool "delivery_line" Boolean "(Just . cast)" "cast" OLT)
+
+-- "sale_order_tax"
+F1:Field
+F1 = (MkF NotNull I_Bits32 "order_line_id" BigInt "(Just . cast)" "cast" M2M_SaleTax)
+F2:Field
+F2 = (MkF NotNull I_Bits32 "tax_id" BigInt "(Just . cast)" "cast" M2M_SaleTax)
 export
 Taxes : Schema
-Taxes = M2M "tax_ids" "order_line_id" "tax_id" "sale_order_tax" OdooTaxTable
+Taxes = M2M "tax_ids" F1 F2 M2M_SaleTax OdooTaxTable
 
 order_line_cols : List Schema
 order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine,PrimOrderID,ProductID, Taxes]
@@ -77,6 +88,9 @@ order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine,PrimOrde
 export
 OrderLineCols : Schema
 OrderLineCols = Model OLT order_line_cols
+export
+OdooTaxM2M : Schema
+OdooTaxM2M = Model M2M_SaleTax [ Prim F1, Prim F2]
 
 -- Order 
 export
@@ -174,7 +188,7 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]

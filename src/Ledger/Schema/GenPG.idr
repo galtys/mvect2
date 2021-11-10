@@ -46,11 +46,12 @@ export
 id2pk : String -> String
 id2pk x = if (x=="id") then "pk" else x
 
+db_field2Ref : String -> String
+db_field2Ref x = pack (map toUpper (unpack x))
+
 export
 fieldRef : Field -> String
-fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref) where 
-  db_field2Ref : String -> String
-  db_field2Ref x = pack (map toUpper (unpack x))
+fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref)
 
 
 export   
@@ -224,7 +225,7 @@ schema_tables (Pk name db_field table) = [table]
 schema_tables (Prim prim) = []
 schema_tables (M2O rel db_field table) = []
 schema_tables (O2M rec_field rel_f tn) = []
-schema_tables (M2M rec_field f1 f2 m2m_table tn)= []
+schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
 schema_tables (Model tn []) = []
 schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
 schema_tables (Sch n []) = []
@@ -323,7 +324,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    rel_relRef ((M2O rel db_field x) :: xs) = [ (db_field,rel, (fieldRef (getPK_Field "pk" rel) ) )]++(rel_relRef xs)
    
    rel_relRef ((O2M rec_field rel_f tn) :: xs) = [ (rec_field,tn, (fieldRef (getPK_Field rel_f tn) ) )]++(rel_relRef xs)
-   rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = [ (rec_field,tn,m2m_table )]++(rel_relRef xs)
+   rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = [ (rec_field,tn,dbtable m2m_table )]++(rel_relRef xs)
    rel_relRef ((Model x ys) :: xs) = []
    rel_relRef ((Sch name models) :: xs) = []
    
@@ -362,6 +363,9 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast pk))&&op)"#   
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
+
+
+   --  rows2 <- getJoin c ProductTemplate_NP Product_NP ListProdCols (JC ProductTmplID Id_PT)
 
    read_m2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
    read_m2m rec_field col rel = Line 5 #"let \#{rec_field}=[]"#   

@@ -243,6 +243,9 @@ read_product_templates c = do
   rows <- get c ProductTemplate_NP (columns ProductTemplate_NP) (Name == "test product") --(True)  
   printLn ( rows)
   printLn (length rows)
+  --ListProdCols : List Column
+  --ListProdCols = [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice]
+  
   rows2 <- getJoin c ProductTemplate_NP Product_NP ListProdCols (JC ProductTmplID Id_PT)
   
   let rprod = [toRProduct ox | ox <- rows2 ]

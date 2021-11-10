@@ -20,8 +20,15 @@ OTax:String
 OTax = "account_tax"
 OLT:String
 OLT = "sale_order_line"
+M2M_ST:String
+M2M_ST = "sale_order_tax"
 OT:String
 OT = "sale_order"
+
+ORDER_LINE_ID_M2M_ST:Column
+ORDER_LINE_ID_M2M_ST=notNull Bits32 "order_line_id" (BigInt) (Just . cast) cast M2M_ST
+TAX_ID_M2M_ST:Column
+TAX_ID_M2M_ST=notNull Bits32 "tax_id" (BigInt) (Just . cast) cast M2M_ST
 
 PK_OTax:Column
 PK_OTax=notNull Bits32 "id" (BigInt) (Just . cast) cast OTax
@@ -84,6 +91,52 @@ CARRIER_ID_OT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
 REQUESTED_DATE_OT:Column
 REQUESTED_DATE_OT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
 --O2M
+
+namespace PrimM2M_OrderTax
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [ORDER_LINE_ID_M2M_ST, TAX_ID_M2M_ST]
+
+      M2M_ST_NP : Table
+      M2M_ST_NP = MkTable "sale_order_tax" PrimM2M_OrderTax.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          order_line_id:(idrisTpe ORDER_LINE_ID_M2M_ST)
+          tax_id:(idrisTpe TAX_ID_M2M_ST)
+      %runElab derive "PrimM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimM2M_OrderTax.PrimCols -> PrimM2M_OrderTax.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimM2M_OrderTax.RecordModel )
+      read_records_c c op = do
+          rows <- get c M2M_ST_NP (columns M2M_ST_NP) (PrimM2M_OrderTax.domain&&op)
+          let ret_s = [ PrimM2M_OrderTax.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimM2M_OrderTax.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimM2M_OrderTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimM2M_OrderTax.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimM2M_OrderTax.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimM2M_OrderTax.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimM2M_OrderTax.main_runET op))
+          pure l1
 
 namespace PrimOrderTax
       domain : Op
@@ -248,6 +301,51 @@ namespace PrimOrder
           l1 <- (liftIO $ (PrimOrder.main_runET op))
           pure l1
 
+namespace O2MM2M_OrderTax
+      domain : Op
+      domain = (True)
+      record RecordModel where
+          constructor MkRecordModel
+          order_line_id:(idrisTpe ORDER_LINE_ID_M2M_ST)
+          tax_id:(idrisTpe TAX_ID_M2M_ST)
+      %runElab derive "O2MM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MM2M_OrderTax.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimM2M_OrderTax.RecordModel) ->io (List  O2MM2M_OrderTax.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimM2M_OrderTax.MkRecordModel order_line_id tax_id)::xs) = do
+            let ret =(O2MM2M_OrderTax.MkRecordModel order_line_id tax_id)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MM2M_OrderTax.RecordModel)
+          ret_x = do
+            rows <- PrimM2M_OrderTax.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MM2M_OrderTax.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MM2M_OrderTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MM2M_OrderTax.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MM2M_OrderTax.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MM2M_OrderTax.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MM2M_OrderTax.main_runET op))
+          pure l1
+
 namespace O2MOrderTax
       domain : Op
       domain = (True)
@@ -318,7 +416,12 @@ namespace O2MOrderLine
           add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
-            let tax_ids=[]
+          
+            --rows <- get c OTax_NP (columns OTax_NP) (PrimOrderTax.domain&&op)
+                    
+            rows2 <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PK_OLT ORDER_LINE_ID_M2M_ST)&&(PK_OLT==(cast pk))&&op)
+            let tax_ids  = [ PrimOrderTax.toRecord ox | ox <- rows2]
+
             order_id <- PrimOrder.read_records_c c ((PK_OT==(cast order_id))&&op)
             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
