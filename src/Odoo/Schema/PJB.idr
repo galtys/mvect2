@@ -79,9 +79,9 @@ PICKING_POLICY_OT:Column
 PICKING_POLICY_OT=notNull String "picking_policy" (Text) (Just . cast) cast OT
 CARRIER_ID_OT:Column
 CARRIER_ID_OT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
+--O2M
 REQUESTED_DATE_OT:Column
 REQUESTED_DATE_OT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
---O2M
 
 namespace PrimOrderTax
       domain : Op
@@ -209,8 +209,8 @@ namespace PrimOrder
           partner_shipping_id:(idrisTpe PARTNER_SHIPPING_ID_OT)
           picking_policy:(idrisTpe PICKING_POLICY_OT)
           carrier_id:(idrisTpe CARRIER_ID_OT)
-          requested_date:(idrisTpe REQUESTED_DATE_OT)
           --O2M
+          requested_date:(idrisTpe REQUESTED_DATE_OT)
       %runElab derive "PrimOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordModel
@@ -261,7 +261,7 @@ namespace O2MOrderTax
       read_records_c c op = ret_x where
 
           add_lines : PrimOrderTax.RecordModel  -> O2MOrderTax.RecordModel
-          add_lines (PrimOrderTax.MkRecordModel pk name description amount type price_include) =(O2MOrderTax.MkRecordModel pk name description amount type price_include )
+          add_lines (PrimOrderTax.MkRecordModel pk name description amount type price_include) =(O2MOrderTax.MkRecordModel pk name description amount type price_include)
 
           ret_x : io (List O2MOrderTax.RecordModel)
           ret_x = do
@@ -306,7 +306,7 @@ namespace O2MOrderLine
       read_records_c c op = ret_x where
 
           add_lines : PrimOrderLine.RecordModel  -> O2MOrderLine.RecordModel
-          add_lines (PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id) =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id )
+          add_lines (PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id) =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)
 
           ret_x : io (List O2MOrderLine.RecordModel)
           ret_x = do
@@ -352,15 +352,15 @@ namespace O2MOrder
           partner_shipping_id:(idrisTpe PARTNER_SHIPPING_ID_OT)
           picking_policy:(idrisTpe PICKING_POLICY_OT)
           carrier_id:(idrisTpe CARRIER_ID_OT)
-          requested_date:(idrisTpe REQUESTED_DATE_OT)
           order_line:List PrimOrderLine.RecordModel
+          requested_date:(idrisTpe REQUESTED_DATE_OT)
       %runElab derive "O2MOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrder.RecordModel )
       read_records_c c op = ret_x where
 
           add_lines : PrimOrder.RecordModel -> (List PrimOrderLine.RecordModel) -> O2MOrder.RecordModel
-          add_lines (PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date) order_line=(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date order_line)
+          add_lines (PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date) order_line=(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
 
           read_order_line : Connection -> List Bits32 -> (op:Op) -> io (List (List PrimOrderLine.RecordModel))
           read_order_line c [] op = pure []

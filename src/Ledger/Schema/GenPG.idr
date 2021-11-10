@@ -67,13 +67,25 @@ getPK_Field db_field table = (MkF NotNull I_Bits32 db_field BigInt "(Just . cast
 export
 getPrimFields : Schema -> List (Maybe Field)
 getPrimFields (Pk name db_field table) = [Just (getPK_Field db_field table)]
-getPrimFields (Prim prim) = [Just prim]
+getPrimFields (Prim prim) =              [Just prim]
 getPrimFields (M2O rel db_field table) = [Just (getPK_Field db_field table)]
 
-getPrimFields (O2M rec_field rel_f tn) = [Nothing]
-getPrimFields (M2M f1 f2 tn) = [Nothing]
+getPrimFields (O2M rec_field rel_f tn) = []
+getPrimFields (M2M f1 f2 tn) =           []
 getPrimFields (Model table fields) = concat (map getPrimFields fields)
 getPrimFields (Sch name models) = []
+
+export
+getRelRecFields : Schema -> List (String)
+getRelRecFields (Pk name db_field table) = [(id2pk db_field)]
+getRelRecFields (Prim prim) = [(name prim)]
+getRelRecFields (M2O rel db_field table) = [(id2pk db_field)]
+
+getRelRecFields (O2M rec_field rel_f tn) = [(id2pk rec_field)]
+getRelRecFields (M2M f1 f2 tn) = []
+getRelRecFields (Model table fields) = concat (map getRelRecFields fields)
+getRelRecFields (Sch name models) = []
+
 
 {-
 export
@@ -248,7 +260,7 @@ getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fi
    f : Field
    f = (getPK_Field db_field table)    
 getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
-getRelO2m (M2M f1 f2 tn) = Line 4 "M2M"
+getRelO2m (M2M f1 f2 tn) = Line 4 "--m2m"  --#"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,read_o2m_SDoc,ret_x,read_rec,main_read] where --,
    o2m_fields : List Schema
    o2m_fields = (filter isO2M fields)
@@ -292,10 +304,13 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    dbFields : String
    dbFields = fastConcat $ intersperse " " (map id2pk (map name (getFields (getPrimFields mod))))
    
+   relFields : String
+   relFields = fastConcat $ intersperse " " (getRelRecFields mod)
+   
    --Sales Analysis Custom PJB, under reporting ,missing FSCR, it has catogories, dining and modular... , split the prod category
    add_muf : SDoc
    add_muf = Def [Sep,Line 4 #"add_lines : \#{primRecRef table} \#{o2m_types} -> \#{o2mRecRef table}"#,
-                      Line 4 #"add_lines (\#{primModelRef table}.MkRecordModel \#{dbFields}) \#{o2m_rec_names}=(\#{o2mModelRef table}.MkRecordModel \#{dbFields} \#{o2m_rec_names})"#]
+                      Line 4 #"add_lines (\#{primModelRef table}.MkRecordModel \#{dbFields}) \#{o2m_rec_names}=(\#{o2mModelRef table}.MkRecordModel \#{relFields})"#]
    
    read_o2m : (db_field:String) -> (col:String) -> TableName -> SDoc
    read_o2m db_field col rel = Def [Sep,
