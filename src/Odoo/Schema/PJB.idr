@@ -343,6 +343,26 @@ namespace O2MM2M_OrderTax
       read op = do
           l1 <- (liftIO $ (O2MM2M_OrderTax.main_runET op))
           pure l1
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MM2M_OrderTax.RecordModel )
+      read_records_ids op = do
+          c <- connect DB_URI
+          ret <- O2MM2M_OrderTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET_ids : (op:Op) -> IO (List O2MM2M_OrderTax.RecordModel )
+      main_runET_ids op = do 
+          Left err <- runEitherT (O2MM2M_OrderTax.read_records_ids op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => (op:Op) -> io (List O2MM2M_OrderTax.RecordModel )
+      read_ids op = do
+          l1 <- (liftIO $ (O2MM2M_OrderTax.main_runET_ids op))
+          pure l1
 
 namespace O2MOrderTax
       domain : Op
@@ -391,6 +411,26 @@ namespace O2MOrderTax
       read : HasIO io => (op:Op) -> io (List O2MOrderTax.RecordModel )
       read op = do
           l1 <- (liftIO $ (O2MOrderTax.main_runET op))
+          pure l1
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrderTax.RecordModel )
+      read_records_ids op = do
+          c <- connect DB_URI
+          ret <- O2MOrderTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET_ids : (op:Op) -> IO (List O2MOrderTax.RecordModel )
+      main_runET_ids op = do 
+          Left err <- runEitherT (O2MOrderTax.read_records_ids op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => (op:Op) -> io (List O2MOrderTax.RecordModel )
+      read_ids op = do
+          l1 <- (liftIO $ (O2MOrderTax.main_runET_ids op))
           pure l1
 
 namespace O2MOrderLine
@@ -445,6 +485,26 @@ namespace O2MOrderLine
       read : HasIO io => (op:Op) -> io (List O2MOrderLine.RecordModel )
       read op = do
           l1 <- (liftIO $ (O2MOrderLine.main_runET op))
+          pure l1
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrderLine.RecordModel )
+      read_records_ids op = do
+          c <- connect DB_URI
+          ret <- O2MOrderLine.read_records_c c op
+          pure ret
+
+      export
+      main_runET_ids : (op:Op) -> IO (List O2MOrderLine.RecordModel )
+      main_runET_ids op = do 
+          Left err <- runEitherT (O2MOrderLine.read_records_ids op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => (op:Op) -> io (List O2MOrderLine.RecordModel )
+      read_ids op = do
+          l1 <- (liftIO $ (O2MOrderLine.main_runET_ids op))
           pure l1
 
 namespace O2MOrder
@@ -505,4 +565,24 @@ namespace O2MOrder
       read : HasIO io => (op:Op) -> io (List O2MOrder.RecordModel )
       read op = do
           l1 <- (liftIO $ (O2MOrder.main_runET op))
+          pure l1
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrder.RecordModel )
+      read_records_ids op = do
+          c <- connect DB_URI
+          ret <- O2MOrder.read_records_c c op
+          pure ret
+
+      export
+      main_runET_ids : (op:Op) -> IO (List O2MOrder.RecordModel )
+      main_runET_ids op = do 
+          Left err <- runEitherT (O2MOrder.read_records_ids op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => (op:Op) -> io (List O2MOrder.RecordModel )
+      read_ids op = do
+          l1 <- (liftIO $ (O2MOrder.main_runET_ids op))
           pure l1

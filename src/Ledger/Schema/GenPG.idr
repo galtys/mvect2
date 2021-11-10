@@ -309,7 +309,7 @@ getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:List \#{primRec
    f = (getPK_Field db_field table)    
 getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{o2mRecRef tn}"#
 getRelO2m (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
-getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,ret_x,read_rec,main_read] where
+getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,ret_x,read_rec,main_read,read_rec_ids,main_read_ids] where
    o2m_fields : List Schema
    o2m_fields = (filter isO2M fields)
    m2m_fields : List Schema
@@ -328,22 +328,6 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    elabRec = Line 2 #"%runElab derive \#{add_quotes (o2mRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
 
       
-   read_rec_c : SDoc
-   read_rec_c = Def [Line 2  "export",
-                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
-                     Line 2  "read_records_c c op = ret_x where"]
-   {-
-   ||| o2m types
-   rel_types : String
-   rel_types = ret where
-        mr : String
-        mr = fastConcat $ intersperse "-> " [ #"(List \#{primRecRef rel})"# | (db_f,rel,col) <- rel_relRef (o2m_fields++m2m_fields)]
-        ret : String
-        ret = if (mr=="") then mr else ("-> "++mr)
-   
-   o2m_rec_names : String
-   o2m_rec_names = fastConcat $ intersperse " " [ #"\#{rec_f}"# | (rec_f,rel,col) <- rel_relRef o2m_fields]
-   -}
    rel_relRef : List Schema -> List (String,TableName,String)
    rel_relRef [] = []
    rel_relRef ((Pk name db_field x) :: xs) = []
@@ -367,17 +351,12 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    relFields : String
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
-   --Sales Analysis Custom PJB, under reporting ,missing FSCR, it has catogories, dining and modular... , split the prod category
-   
    read_o2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
    read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{col}==(cast pk))&&op)"#   
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
 
-   --  rows2 <- getJoin c ProductTemplate_NP Product_NP ListProdCols (JC ProductTmplID Id_PT)
-  --          rows2 <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PK_OLT ORDER_LINE_ID_M2M_ST)&&(PK_OLT==(cast pk))&&op)
-   --         let tax_ids  = [ PrimOrderTax.toRecord ox | ox <- rows2]
    rel_relRefM2M : List Schema -> List (String,TableName,TableName,String)
    rel_relRefM2M [] = []
    rel_relRefM2M ((Pk name db_field x) :: xs) = []
@@ -387,9 +366,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    rel_relRefM2M ((M2M rec_field f1 f2 m2m_table tn) :: xs) = [ (rec_field,tn,m2m_table,fieldRef f1)]++(rel_relRefM2M xs)
    rel_relRefM2M ((Model x ys) :: xs) = []
    rel_relRefM2M ((Sch name models) :: xs) = []
-   
-   
-
+      
    read_m2m : (rec_field:String) -> (col:String) -> TableName -> TableName -> SDoc
    read_m2m rec_field col rel m2mt= Def [Line 5 #"\#{rec_field}_np <- getJoin c \#{tableRef rel} \#{tableRef m2mt} (columns \#{tableRef rel}) ((JC \#{pkRef} \#{col})&&(\#{pkRef}==(cast pk))&&op)"#,
                                      Line 5 #"let \#{rec_field}=[\#{primModelRef rel}.toRecord ox |ox <-\#{rec_field}_np]"#]
@@ -401,7 +378,11 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_m2o rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast \#{rec_field}))&&op)"#
    read_m2o_SDoc : SDoc
    read_m2o_SDoc  = Def ([ (read_m2o db_f col rel) | (db_f,rel,col) <- rel_relRef m2o_fields ] )
-      
+   
+   read_rec_c : SDoc
+   read_rec_c = Def [Line 2  "export",
+                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
+                     Line 2  "read_records_c c op = ret_x where"]      
    add_muf : SDoc
    add_muf = Def [Sep,Line 4 #"add_lines : (List \#{primRecRef table}) ->io (List  \#{o2mRecRef table})"#,
                       Line 4  "add_lines [] = pure []",
@@ -413,44 +394,6 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
                       Line 5      "ret_xs <- add_lines xs",
                       Line 5      "pure ([ret]++ret_xs)"]
 
-{-                                                           
-   read_o2m_SDoc : SDoc
-   read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )                                     
-   read_m2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
-   
-   read_m2m rec_field col rel = Def [Sep,
-                                     Line 4 #"read_\#{rec_field} : Connection -> List Bits32 -> (op:Op) -> io (List (List \#{primRecRef rel}))"#,
-                                     Line 4 #"read_\#{rec_field} c xs op = pure (map (\la=>[]) xs)"#]
-   read_m2m_SDoc : SDoc
-   read_m2m_SDoc  = Def ([ (read_m2m db_f m2m_table rel) | (db_f,rel,m2m_table) <- rel_relRef m2m_fields ] )                                     
-                                     
-   read_o2m_do : (db_field:String) -> (col:String) -> TableName -> SDoc
-   read_o2m_do db_field col rel = Def [Sep,
-                                       Line 5 #"ret_\#{db_field} <- read_\#{db_field} c (map pk rows) (True)"#]
-
-   read_o2m_do_SDoc : SDoc
-   read_o2m_do_SDoc  = Def ([ (read_o2m_do db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
-   read_m2m_do_SDoc : SDoc
-   read_m2m_do_SDoc  = Def ([ (read_o2m_do db_f col rel) | (db_f,rel,col) <- rel_relRef m2m_fields ] )
-   
-   |||
-   read_rel_zip : (db_field:String) ->  SDoc
-   read_rel_zip db_field  = Def [Sep,
-                                 Line 5 #"let x_last = [add_lines r l | (r,l) <- zip rows ret_\#{db_field}]"#]
-                                       
-   read_rel_pure : SDoc
-   read_rel_pure  = Def [Sep,   
-                                  Line 5 #"pure x_last"#]
-                                       
-                                       
-   read_o2m_zip_SDoc : SDoc
-   read_o2m_zip_SDoc  = ret where
-      xx : List SDoc
-      xx = [(read_rel_zip db_f) | (db_f,rel,col) <- rel_relRef o2m_fields ] ++ [(read_rel_zip db_f) | (db_f,rel,col) <- rel_relRef m2m_fields ]
-      ret : SDoc
-      ret = if (length xx)==1 then Def (xx++[read_rel_pure]) else Line 5 "pure (map add_lines rows)"
-                                        
-  -}
    ret_x : SDoc
    ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{o2mRecRef table})"#,
                      Line 4 "ret_x = do",
@@ -479,6 +422,27 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
                     Line 2 #"read : HasIO io => (op:Op) -> io (List \#{o2mRecRef table} )"#,
                     Line 2  "read op = do",
                     Line 4 #"l1 <- (liftIO $ (\#{o2mModelRef table}.main_runET op))"#,
+                    Line 4 "pure l1"]
+   read_rec_ids : SDoc
+   read_rec_ids = Def [Line 2  "export",
+                   Line 2 #"read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{o2mRecRef table} )"#,
+                   Line 2  "read_records_ids op = do",
+                   Line 4     "c <- connect DB_URI",
+                   Line 4     #"ret <- \#{o2mModelRef table}.read_records_c c op"#,
+                   Line 4     "pure ret"]
+   main_read_ids : SDoc
+   main_read_ids = Def [Sep,Line 2 "export",
+                    Line 2 #"main_runET_ids : (op:Op) -> IO (List \#{o2mRecRef table} )"#,
+                    Line 2 #"main_runET_ids op = do "#,
+                    Line 4 #"Left err <- runEitherT (\#{o2mModelRef table}.read_records_ids op {io = EitherT SQLError IO} )"#,
+                    Line 5     "| Right l1 => pure l1",
+                    Line 4 "printLn err",
+                    Line 4 "pure []",
+                    Sep,
+                    Line 2 "export",
+                    Line 2 #"read_ids : HasIO io => (op:Op) -> io (List \#{o2mRecRef table} )"#,
+                    Line 2  "read_ids op = do",
+                    Line 4 #"l1 <- (liftIO $ (\#{o2mModelRef table}.main_runET_ids op))"#,
                     Line 4 "pure l1"]
 
 
