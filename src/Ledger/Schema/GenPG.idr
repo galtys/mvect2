@@ -245,7 +245,9 @@ getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fi
    f = (getPK_Field db_field table)    
 getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 getRelO2m (M2M f1 f2 tn) = Line 4 "M2M"
-getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_o2m_SDoc,ret_x] where --,read_rec,main_read
+getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,read_o2m_SDoc,ret_x] where --,read_rec,main_read
+   o2m_fields : List Schema
+   o2m_fields = (filter isO2M fields)
    ns : SDoc
    ns = Def [Line 0 #"namespace \#{o2mModelRef table}"#,
               Line 2 "domain : Op",
@@ -254,11 +256,35 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_o2m
    rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map getRelO2m fields))
    elabRec : SDoc
    elabRec = Line 2 #"%runElab derive \#{add_quotes (o2mRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+
+   rel_relRef : List Schema -> List (String,TableName,String)
+   rel_relRef [] = []
+   rel_relRef ((Pk name db_field x) :: xs) = []
+   rel_relRef ((Prim prim) :: xs) = []
+   rel_relRef ((M2O rel db_field x) :: xs) = [] 
+   rel_relRef ((O2M db_field rel_f tn) :: xs) = [ (db_field,tn, (fieldRef (getPK_Field rel_f tn) ) )]++(rel_relRef xs)
+   rel_relRef ((M2M f1 f2 tn) :: xs) = []
+   rel_relRef ((Model x ys) :: xs) = []
+   rel_relRef ((Sch name models) :: xs) = []
    
    read_rec_c : SDoc
    read_rec_c = Def [Line 2  "export",
                      Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
                      Line 2  "read_records_c c op = ret_x"]
+   o2m_types : String
+   o2m_types = fastConcat $ intersperse "-> " [ #"(List \#{primRecRef rel})"# | (db_f,rel,col) <- rel_relRef o2m_fields]
+   
+   o2m_rec_names : String
+   o2m_rec_names = fastConcat $ intersperse "-> " [ #"\#{rec_f}"# | (rec_f,rel,col) <- rel_relRef o2m_fields]
+   
+   {-add_lines : SO_Simple.RecordCols -> List SOL_Simple.RecordCols -> SO_O2M.RecordCols-}
+   primFieldNames : String
+   primFieldNames = fastConcat $ intersperse " " (getFieldRefs (getPrimFields mod))
+   
+   --Sales Analysis Custom PJB, under reporting ,missing FSCR, it has catogories, dining and modular... , split the prod category
+   add_muf : SDoc
+   add_muf = Def [Sep,Line 4 #"--add_lines : \#{primRecRef table} -> \#{o2m_types} -> \#{o2mRecRef table}"#,
+                      Line 4 #"--add_lines () "#]
    
    read_o2m : (db_field:String) -> (col:String) -> TableName -> SDoc
    read_o2m db_field col rel = Def [Sep,
@@ -269,29 +295,10 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,read_o2m
                                      Line 6 #"r <- read_\#{db_field} c xs op"#,
                                      Line 6 #"([rl]++r)"#]
    ret_x : SDoc
-   ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{o2mRecRef table})"# ]
-                                     
-                                     
-   o2m_fields : List Schema
-   o2m_fields = (filter isO2M fields)
+   ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{o2mRecRef table})"# ]                                                                          
    
-   rel_relRef : List Schema -> List (String,TableName,String)
-   rel_relRef [] = []
-   rel_relRef ((Pk name db_field x) :: xs) = []
-   rel_relRef ((Prim prim) :: xs) = []
-   rel_relRef ((M2O rel db_field x) :: xs) = [] 
-   rel_relRef ((O2M db_field rel_f tn) :: xs) = [ (db_field,tn, (fieldRef (getPK_Field rel_f tn) ) )]++(rel_relRef xs)
-   rel_relRef ((M2M f1 f2 tn) :: xs) = []
-   rel_relRef ((Model x ys) :: xs) = []
-   rel_relRef ((Sch name models) :: xs) = []
-
-
-
-
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] ) --++[Line 0 ("Test"++(show $ length o2m_fields))]
-   
-   
    
    read_rec : SDoc
    read_rec = Def [Line 2  "export",
