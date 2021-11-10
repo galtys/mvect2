@@ -307,7 +307,7 @@ namespace O2MOrderLine
           product_uom_qty:(idrisTpe PRODUCT_UOM_QTY_OLT)
           discount:(idrisTpe DISCOUNT_OLT)
           delivery_line:(idrisTpe DELIVERY_LINE_OLT)
-          order_id:(idrisTpe ORDER_ID_OLT)
+          order_id:List PrimOrder.RecordModel
           product_id:(idrisTpe PRODUCT_ID_OLT)
           tax_ids:List PrimOrderTax.RecordModel
       %runElab derive "O2MOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
@@ -319,6 +319,7 @@ namespace O2MOrderLine
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
             let tax_ids=[]
+            order_id <- PrimOrder.read_records_c c ((PK_OT==(cast order_id))&&op)
             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)

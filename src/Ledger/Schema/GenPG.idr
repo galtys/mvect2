@@ -117,6 +117,15 @@ isM2M (M2M rec_field f1 f2 m2m_table tn)= True
 isM2M (Model table fields) = False
 isM2M (Sch name models) = False
 
+isM2O : Schema -> Bool
+isM2O (Pk name db_field table) = False
+isM2O (Prim prim) = False
+isM2O (M2O rel db_field table) = True
+isM2O (O2M rec_field rel_f tn) = False
+isM2O (M2M rec_field f1 f2 m2m_table tn)= False
+isM2O (Model table fields) = False
+isM2O (Sch name models) = False
+
 model2Fields : List Schema -> List Field
 model2Fields [] = []
 model2Fields ((Pk name db_field table)::xs) = [(getPK_Field db_field table)]++(model2Fields xs)
@@ -285,7 +294,7 @@ getRelO2m (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fi
    f : Field
    f = (getPK_Field db_field table)    
 getRelO2m (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
-getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:List \#{primRecRef rel}"# where
    f : Field
    f = (getPK_Field db_field table)    
 getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
@@ -295,6 +304,8 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    o2m_fields = (filter isO2M fields)
    m2m_fields : List Schema
    m2m_fields = (filter isM2M fields)
+   m2o_fields : List Schema
+   m2o_fields = (filter isM2O fields)
    
    ns : SDoc
    ns = Def [Line 0 #"namespace \#{o2mModelRef table}"#,
@@ -309,7 +320,8 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    rel_relRef [] = []
    rel_relRef ((Pk name db_field x) :: xs) = []
    rel_relRef ((Prim prim) :: xs) = []
-   rel_relRef ((M2O rel db_field x) :: xs) = [] 
+   rel_relRef ((M2O rel db_field x) :: xs) = [ (db_field,rel, (fieldRef (getPK_Field "pk" rel) ) )]++(rel_relRef xs)
+   
    rel_relRef ((O2M rec_field rel_f tn) :: xs) = [ (rec_field,tn, (fieldRef (getPK_Field rel_f tn) ) )]++(rel_relRef xs)
    rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = [ (rec_field,tn,m2m_table )]++(rel_relRef xs)
    rel_relRef ((Model x ys) :: xs) = []
@@ -355,6 +367,11 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_m2m rec_field col rel = Line 5 #"let \#{rec_field}=[]"#   
    read_m2m_SDoc : SDoc
    read_m2m_SDoc  = Def ([ (read_m2m db_f col rel) | (db_f,rel,col) <- rel_relRef m2m_fields ] )
+   
+   read_m2o : (rec_field:String) -> (col:String) -> TableName -> SDoc
+   read_m2o rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast \#{rec_field}))&&op)"#
+   read_m2o_SDoc : SDoc
+   read_m2o_SDoc  = Def ([ (read_m2o db_f col rel) | (db_f,rel,col) <- rel_relRef m2o_fields ] )
       
    add_muf : SDoc
    add_muf = Def [Sep,Line 4 #"add_lines : (List \#{primRecRef table}) ->io (List  \#{o2mRecRef table})"#,
@@ -362,6 +379,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
                       Line 4 #"add_lines ((\#{primModelRef table}.MkRecordModel \#{dbFields})::xs) = do"#,
                       read_o2m_SDoc,           
                       read_m2m_SDoc,
+                      read_m2o_SDoc,
                       Line 5      #"let ret =(\#{o2mModelRef table}.MkRecordModel \#{relFields})"#,
                       Line 5      "ret_xs <- add_lines xs",
                       Line 5      "pure ([ret]++ret_xs)"]
