@@ -25,85 +25,85 @@ M2M_ST = "sale_order_tax"
 OT:String
 OT = "sale_order"
 
-ORDER_LINE_ID_M2M_ST:Column
-ORDER_LINE_ID_M2M_ST=notNull Bits32 "order_line_id" (BigInt) (Just . cast) cast M2M_ST
-TAX_ID_M2M_ST:Column
-TAX_ID_M2M_ST=notNull Bits32 "tax_id" (BigInt) (Just . cast) cast M2M_ST
+OrderLineIdM2M_ST:Column
+OrderLineIdM2M_ST=notNull Bits32 "order_line_id" (BigInt) (Just . cast) cast M2M_ST
+TaxIdM2M_ST:Column
+TaxIdM2M_ST=notNull Bits32 "tax_id" (BigInt) (Just . cast) cast M2M_ST
 
-PK_OTax:Column
-PK_OTax=notNull Bits32 "id" (BigInt) (Just . cast) cast OTax
-NAME_OTax:Column
-NAME_OTax=notNull String "name" (VarChar 64) (Just . cast) cast OTax
-DESCRIPTION_OTax:Column
-DESCRIPTION_OTax=nullable String "description" (VarChar 64) (Just . cast) cast OTax
-AMOUNT_OTax:Column
-AMOUNT_OTax=notNull TQty "amount" (DoublePrecision) (Just . cast) cast OTax
-TYPE_OTax:Column
-TYPE_OTax=nullable String "type" (VarChar 64) (Just . cast) cast OTax
-PRICE_INCLUDE_OTax:Column
-PRICE_INCLUDE_OTax=nullable Bool "price_include" (Boolean) (Just . cast) cast OTax
+PkOTax:Column
+PkOTax=notNull Bits32 "id" (BigInt) (Just . cast) cast OTax
+NameOTax:Column
+NameOTax=notNull String "name" (VarChar 64) (Just . cast) cast OTax
+DescriptionOTax:Column
+DescriptionOTax=nullable String "description" (VarChar 64) (Just . cast) cast OTax
+AmountOTax:Column
+AmountOTax=notNull TQty "amount" (DoublePrecision) (Just . cast) cast OTax
+TypeOTax:Column
+TypeOTax=nullable String "type" (VarChar 64) (Just . cast) cast OTax
+PriceIncludeOTax:Column
+PriceIncludeOTax=nullable Bool "price_include" (Boolean) (Just . cast) cast OTax
 
-PK_OLT:Column
-PK_OLT=notNull Bits32 "id" (BigInt) (Just . cast) cast OLT
-PRICE_UNIT_OLT:Column
-PRICE_UNIT_OLT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast OLT
-PRODUCT_UOM_QTY_OLT:Column
-PRODUCT_UOM_QTY_OLT=notNull TQty "product_uom_qty" (DoublePrecision) (Just . cast) cast OLT
-DISCOUNT_OLT:Column
-DISCOUNT_OLT=nullable TQty "discount" (DoublePrecision) (Just . cast) cast OLT
-DELIVERY_LINE_OLT:Column
-DELIVERY_LINE_OLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
-ORDER_ID_OLT:Column
-ORDER_ID_OLT=notNull Bits32 "order_id" (BigInt) (Just . cast) cast OLT
-PRODUCT_ID_OLT:Column
-PRODUCT_ID_OLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
+PkOLT:Column
+PkOLT=notNull Bits32 "id" (BigInt) (Just . cast) cast OLT
+PriceUnitOLT:Column
+PriceUnitOLT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast OLT
+ProductUomQtyOLT:Column
+ProductUomQtyOLT=notNull TQty "product_uom_qty" (DoublePrecision) (Just . cast) cast OLT
+DiscountOLT:Column
+DiscountOLT=nullable TQty "discount" (DoublePrecision) (Just . cast) cast OLT
+DeliveryLineOLT:Column
+DeliveryLineOLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
+OrderIdOLT:Column
+OrderIdOLT=notNull Bits32 "order_id" (BigInt) (Just . cast) cast OLT
+ProductIdOLT:Column
+ProductIdOLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
 --M2M
 
-PK_OT:Column
-PK_OT=notNull Bits32 "id" (BigInt) (Just . cast) cast OT
-ORIGIN_OT:Column
-ORIGIN_OT=nullable String "origin" (VarChar 64) (Just . cast) cast OT
-ORDER_POLICY_OT:Column
-ORDER_POLICY_OT=notNull String "order_policy" (VarChar 64) (Just . cast) cast OT
-DATE_ORDER_OT:Column
-DATE_ORDER_OT=notNull Date "date_order" (VarChar 10) (Just . cast) cast OT
-PARTNER_ID_OT:Column
-PARTNER_ID_OT=notNull Bits32 "partner_id" (BigInt) (Just . cast) cast OT
-AMOUNT_TAX_OT:Column
-AMOUNT_TAX_OT=notNull Price "amount_tax" (DoublePrecision) (Just . toTaxA) cast OT
-STATE_OT:Column
-STATE_OT=notNull String "state" (Text) (Just . cast) cast OT
-PARTNER_INVOICE_ID_OT:Column
-PARTNER_INVOICE_ID_OT=notNull Bits32 "partner_invoice_id" (BigInt) (Just . cast) cast OT
-AMOUNT_UNTAXED_OT:Column
-AMOUNT_UNTAXED_OT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20) cast OT
-AMOUNT_TOTAL_OT:Column
-AMOUNT_TOTAL_OT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast OT
-NAME_OT:Column
-NAME_OT=notNull String "name" (Text) (Just . cast) cast OT
-PARTNER_SHIPPING_ID_OT:Column
-PARTNER_SHIPPING_ID_OT=notNull Bits32 "partner_shipping_id" (BigInt) (Just . cast) cast OT
-PICKING_POLICY_OT:Column
-PICKING_POLICY_OT=notNull String "picking_policy" (Text) (Just . cast) cast OT
-CARRIER_ID_OT:Column
-CARRIER_ID_OT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
+PkOT:Column
+PkOT=notNull Bits32 "id" (BigInt) (Just . cast) cast OT
+OriginOT:Column
+OriginOT=nullable String "origin" (VarChar 64) (Just . cast) cast OT
+OrderPolicyOT:Column
+OrderPolicyOT=notNull String "order_policy" (VarChar 64) (Just . cast) cast OT
+DateOrderOT:Column
+DateOrderOT=notNull Date "date_order" (VarChar 10) (Just . cast) cast OT
+PartnerIdOT:Column
+PartnerIdOT=notNull Bits32 "partner_id" (BigInt) (Just . cast) cast OT
+AmountTaxOT:Column
+AmountTaxOT=notNull Price "amount_tax" (DoublePrecision) (Just . toTaxA) cast OT
+StateOT:Column
+StateOT=notNull String "state" (Text) (Just . cast) cast OT
+PartnerInvoiceIdOT:Column
+PartnerInvoiceIdOT=notNull Bits32 "partner_invoice_id" (BigInt) (Just . cast) cast OT
+AmountUntaxedOT:Column
+AmountUntaxedOT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20) cast OT
+AmountTotalOT:Column
+AmountTotalOT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast OT
+NameOT:Column
+NameOT=notNull String "name" (Text) (Just . cast) cast OT
+PartnerShippingIdOT:Column
+PartnerShippingIdOT=notNull Bits32 "partner_shipping_id" (BigInt) (Just . cast) cast OT
+PickingPolicyOT:Column
+PickingPolicyOT=notNull String "picking_policy" (Text) (Just . cast) cast OT
+CarrierIdOT:Column
+CarrierIdOT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
 --O2M
-REQUESTED_DATE_OT:Column
-REQUESTED_DATE_OT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
+RequestedDateOT:Column
+RequestedDateOT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
 
 namespace PrimM2M_OrderTax
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [ORDER_LINE_ID_M2M_ST, TAX_ID_M2M_ST]
+      PrimCols = [OrderLineIdM2M_ST, TaxIdM2M_ST]
 
       M2M_ST_NP : Table
       M2M_ST_NP = MkTable "sale_order_tax" PrimM2M_OrderTax.PrimCols
 
       record RecordModel where
           constructor MkRecordModel
-          order_line_id:(idrisTpe ORDER_LINE_ID_M2M_ST)
-          tax_id:(idrisTpe TAX_ID_M2M_ST)
+          order_line_id:(idrisTpe OrderLineIdM2M_ST)
+          tax_id:(idrisTpe TaxIdM2M_ST)
       %runElab derive "PrimM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimM2M_OrderTax.PrimCols -> PrimM2M_OrderTax.RecordModel
@@ -141,19 +141,19 @@ namespace PrimOrderTax
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PK_OTax, NAME_OTax, DESCRIPTION_OTax, AMOUNT_OTax, TYPE_OTax, PRICE_INCLUDE_OTax]
+      PrimCols = [PkOTax, NameOTax, DescriptionOTax, AmountOTax, TypeOTax, PriceIncludeOTax]
 
       OTax_NP : Table
       OTax_NP = MkTable "account_tax" PrimOrderTax.PrimCols
 
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OTax)
-          name:(idrisTpe NAME_OTax)
-          description:(idrisTpe DESCRIPTION_OTax)
-          amount:(idrisTpe AMOUNT_OTax)
-          type:(idrisTpe TYPE_OTax)
-          price_include:(idrisTpe PRICE_INCLUDE_OTax)
+          pk:(idrisTpe PkOTax)
+          name:(idrisTpe NameOTax)
+          description:(idrisTpe DescriptionOTax)
+          amount:(idrisTpe AmountOTax)
+          type:(idrisTpe TypeOTax)
+          price_include:(idrisTpe PriceIncludeOTax)
       %runElab derive "PrimOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimOrderTax.PrimCols -> PrimOrderTax.RecordModel
@@ -191,20 +191,20 @@ namespace PrimOrderLine
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PK_OLT, PRICE_UNIT_OLT, PRODUCT_UOM_QTY_OLT, DISCOUNT_OLT, DELIVERY_LINE_OLT, ORDER_ID_OLT, PRODUCT_ID_OLT]
+      PrimCols = [PkOLT, PriceUnitOLT, ProductUomQtyOLT, DiscountOLT, DeliveryLineOLT, OrderIdOLT, ProductIdOLT]
 
       OLT_NP : Table
       OLT_NP = MkTable "sale_order_line" PrimOrderLine.PrimCols
 
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OLT)
-          price_unit:(idrisTpe PRICE_UNIT_OLT)
-          product_uom_qty:(idrisTpe PRODUCT_UOM_QTY_OLT)
-          discount:(idrisTpe DISCOUNT_OLT)
-          delivery_line:(idrisTpe DELIVERY_LINE_OLT)
-          order_id:(idrisTpe ORDER_ID_OLT)
-          product_id:(idrisTpe PRODUCT_ID_OLT)
+          pk:(idrisTpe PkOLT)
+          price_unit:(idrisTpe PriceUnitOLT)
+          product_uom_qty:(idrisTpe ProductUomQtyOLT)
+          discount:(idrisTpe DiscountOLT)
+          delivery_line:(idrisTpe DeliveryLineOLT)
+          order_id:(idrisTpe OrderIdOLT)
+          product_id:(idrisTpe ProductIdOLT)
           --M2M
       %runElab derive "PrimOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -243,29 +243,29 @@ namespace PrimOrder
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PK_OT, ORIGIN_OT, ORDER_POLICY_OT, DATE_ORDER_OT, PARTNER_ID_OT, AMOUNT_TAX_OT, STATE_OT, PARTNER_INVOICE_ID_OT, AMOUNT_UNTAXED_OT, AMOUNT_TOTAL_OT, NAME_OT, PARTNER_SHIPPING_ID_OT, PICKING_POLICY_OT, CARRIER_ID_OT, REQUESTED_DATE_OT]
+      PrimCols = [PkOT, OriginOT, OrderPolicyOT, DateOrderOT, PartnerIdOT, AmountTaxOT, StateOT, PartnerInvoiceIdOT, AmountUntaxedOT, AmountTotalOT, NameOT, PartnerShippingIdOT, PickingPolicyOT, CarrierIdOT, RequestedDateOT]
 
       OT_NP : Table
       OT_NP = MkTable "sale_order" PrimOrder.PrimCols
 
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OT)
-          origin:(idrisTpe ORIGIN_OT)
-          order_policy:(idrisTpe ORDER_POLICY_OT)
-          date_order:(idrisTpe DATE_ORDER_OT)
-          partner_id:(idrisTpe PARTNER_ID_OT)
-          amount_tax:(idrisTpe AMOUNT_TAX_OT)
-          state:(idrisTpe STATE_OT)
-          partner_invoice_id:(idrisTpe PARTNER_INVOICE_ID_OT)
-          amount_untaxed:(idrisTpe AMOUNT_UNTAXED_OT)
-          amount_total:(idrisTpe AMOUNT_TOTAL_OT)
-          name:(idrisTpe NAME_OT)
-          partner_shipping_id:(idrisTpe PARTNER_SHIPPING_ID_OT)
-          picking_policy:(idrisTpe PICKING_POLICY_OT)
-          carrier_id:(idrisTpe CARRIER_ID_OT)
+          pk:(idrisTpe PkOT)
+          origin:(idrisTpe OriginOT)
+          order_policy:(idrisTpe OrderPolicyOT)
+          date_order:(idrisTpe DateOrderOT)
+          partner_id:(idrisTpe PartnerIdOT)
+          amount_tax:(idrisTpe AmountTaxOT)
+          state:(idrisTpe StateOT)
+          partner_invoice_id:(idrisTpe PartnerInvoiceIdOT)
+          amount_untaxed:(idrisTpe AmountUntaxedOT)
+          amount_total:(idrisTpe AmountTotalOT)
+          name:(idrisTpe NameOT)
+          partner_shipping_id:(idrisTpe PartnerShippingIdOT)
+          picking_policy:(idrisTpe PickingPolicyOT)
+          carrier_id:(idrisTpe CarrierIdOT)
           --O2M
-          requested_date:(idrisTpe REQUESTED_DATE_OT)
+          requested_date:(idrisTpe RequestedDateOT)
       %runElab derive "PrimOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordModel
@@ -304,8 +304,8 @@ namespace O2MM2M_OrderTax
       domain = (True)
       record RecordModel where
           constructor MkRecordModel
-          order_line_id:(idrisTpe ORDER_LINE_ID_M2M_ST)
-          tax_id:(idrisTpe TAX_ID_M2M_ST)
+          order_line_id:(idrisTpe OrderLineIdM2M_ST)
+          tax_id:(idrisTpe TaxIdM2M_ST)
       %runElab derive "O2MM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MM2M_OrderTax.RecordModel )
@@ -349,12 +349,12 @@ namespace O2MOrderTax
       domain = (True)
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OTax)
-          name:(idrisTpe NAME_OTax)
-          description:(idrisTpe DESCRIPTION_OTax)
-          amount:(idrisTpe AMOUNT_OTax)
-          type:(idrisTpe TYPE_OTax)
-          price_include:(idrisTpe PRICE_INCLUDE_OTax)
+          pk:(idrisTpe PkOTax)
+          name:(idrisTpe NameOTax)
+          description:(idrisTpe DescriptionOTax)
+          amount:(idrisTpe AmountOTax)
+          type:(idrisTpe TypeOTax)
+          price_include:(idrisTpe PriceIncludeOTax)
       %runElab derive "O2MOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrderTax.RecordModel )
@@ -398,13 +398,13 @@ namespace O2MOrderLine
       domain = (True)
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OLT)
-          price_unit:(idrisTpe PRICE_UNIT_OLT)
-          product_uom_qty:(idrisTpe PRODUCT_UOM_QTY_OLT)
-          discount:(idrisTpe DISCOUNT_OLT)
-          delivery_line:(idrisTpe DELIVERY_LINE_OLT)
+          pk:(idrisTpe PkOLT)
+          price_unit:(idrisTpe PriceUnitOLT)
+          product_uom_qty:(idrisTpe ProductUomQtyOLT)
+          discount:(idrisTpe DiscountOLT)
+          delivery_line:(idrisTpe DeliveryLineOLT)
           order_id:List PrimOrder.RecordModel
-          product_id:(idrisTpe PRODUCT_ID_OLT)
+          product_id:(idrisTpe ProductIdOLT)
           tax_ids:List PrimOrderTax.RecordModel
       %runElab derive "O2MOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
@@ -414,9 +414,9 @@ namespace O2MOrderLine
           add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
-            tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PK_OLT ORDER_LINE_ID_M2M_ST)&&(PK_OLT==(cast pk))&&op)
+            tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PkOLT OrderLineIdM2M_ST)&&(PkOLT==(cast pk))&&op)
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
-            order_id <- PrimOrder.read_records_c c ((PK_OT==(cast order_id))&&op)
+            order_id <- PrimOrder.read_records_c c ((PkOT==(cast order_id))&&op)
             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
@@ -452,22 +452,22 @@ namespace O2MOrder
       domain = (True)
       record RecordModel where
           constructor MkRecordModel
-          pk:(idrisTpe PK_OT)
-          origin:(idrisTpe ORIGIN_OT)
-          order_policy:(idrisTpe ORDER_POLICY_OT)
-          date_order:(idrisTpe DATE_ORDER_OT)
-          partner_id:(idrisTpe PARTNER_ID_OT)
-          amount_tax:(idrisTpe AMOUNT_TAX_OT)
-          state:(idrisTpe STATE_OT)
-          partner_invoice_id:(idrisTpe PARTNER_INVOICE_ID_OT)
-          amount_untaxed:(idrisTpe AMOUNT_UNTAXED_OT)
-          amount_total:(idrisTpe AMOUNT_TOTAL_OT)
-          name:(idrisTpe NAME_OT)
-          partner_shipping_id:(idrisTpe PARTNER_SHIPPING_ID_OT)
-          picking_policy:(idrisTpe PICKING_POLICY_OT)
-          carrier_id:(idrisTpe CARRIER_ID_OT)
-          order_line:List PrimOrderLine.RecordModel
-          requested_date:(idrisTpe REQUESTED_DATE_OT)
+          pk:(idrisTpe PkOT)
+          origin:(idrisTpe OriginOT)
+          order_policy:(idrisTpe OrderPolicyOT)
+          date_order:(idrisTpe DateOrderOT)
+          partner_id:(idrisTpe PartnerIdOT)
+          amount_tax:(idrisTpe AmountTaxOT)
+          state:(idrisTpe StateOT)
+          partner_invoice_id:(idrisTpe PartnerInvoiceIdOT)
+          amount_untaxed:(idrisTpe AmountUntaxedOT)
+          amount_total:(idrisTpe AmountTotalOT)
+          name:(idrisTpe NameOT)
+          partner_shipping_id:(idrisTpe PartnerShippingIdOT)
+          picking_policy:(idrisTpe PickingPolicyOT)
+          carrier_id:(idrisTpe CarrierIdOT)
+          order_line:List O2MOrderLine.RecordModel
+          requested_date:(idrisTpe RequestedDateOT)
       %runElab derive "O2MOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrder.RecordModel )
@@ -476,7 +476,7 @@ namespace O2MOrder
           add_lines : (List PrimOrder.RecordModel) ->io (List  O2MOrder.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
-            order_line <- PrimOrderLine.read_records_c c ((ORDER_ID_OLT==(cast pk))&&op)
+            order_line <- O2MOrderLine.read_records_c c ((OrderIdOLT==(cast pk))&&op)
             let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)

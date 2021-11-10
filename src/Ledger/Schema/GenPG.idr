@@ -2,6 +2,7 @@ module Ledger.Schema.GenPG
 
 import Generics.Derive
 import Data.SortedMap
+import Data.String
 
 import Ledger.Schema.Types
 
@@ -46,12 +47,20 @@ export
 id2pk : String -> String
 id2pk x = if (x=="id") then "pk" else x
 
+split_by : Char -> Bool
+split_by '_' = True
+split_by _ = False
+
+capitalize : List Char -> String
+capitalize [] = ""
+capitalize (x::xs) = pack ([(toUpper x)]++xs)
+
 db_field2Ref : String -> String
-db_field2Ref x = pack (map toUpper (unpack x))
+db_field2Ref x =  concat (map capitalize (map unpack (split split_by x))) --pack (map toUpper (unpack x))
 
 export
 fieldRef : Field -> String
-fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++"_"++(ref)
+fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++(ref)
 
 
 export   
@@ -298,7 +307,7 @@ getRelO2m (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef pri
 getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:List \#{primRecRef rel}"# where
    f : Field
    f = (getPK_Field db_field table)    
-getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
+getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{o2mRecRef tn}"#
 getRelO2m (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,ret_x,read_rec,main_read] where
    o2m_fields : List Schema
@@ -361,7 +370,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    --Sales Analysis Custom PJB, under reporting ,missing FSCR, it has catogories, dining and modular... , split the prod category
    
    read_o2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
-   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast pk))&&op)"#   
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{col}==(cast pk))&&op)"#   
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
