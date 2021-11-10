@@ -159,9 +159,12 @@ DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)
 export
 OrderLines : Schema
 OrderLines = O2M "order_line" "order_id" OLT
+export
+OrderLines2 : Schema
+OrderLines2 = O2M "order_line2" "order_id" OLT
 
 so_cols : List Schema
-so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,OrderLines,RequestedDate]
+so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,OrderLines,RequestedDate,OrderLines2]
 
 export
 SaleOrder : Schema

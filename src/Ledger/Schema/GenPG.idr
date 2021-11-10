@@ -258,6 +258,27 @@ showPrim s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where
     prim = Def (map getPrimSDoc xs)
 
 
+zipN : List String -> List Bool -> List Int -> List (String,Bool,Int)
+zipN xs ys zs = ?zipN_rhs
+
+{-
+          add_lines : (List PrimOrder.RecordModel)  -> io (List O2MOrder.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) =do 
+                    order_line  <- PrimOrderLine.read_records_c c ((ORDER_ID_OLT==(cast pk))&&op)
+                    order_line2 <- PrimOrderLine.read_records_c c ((ORDER_ID_OLT==(cast pk))&&op)
+                    
+                    let ret = (O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date order_line2)
+                    ret_xs <- add_lines xs
+                    pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MOrder.RecordModel)
+          ret_x = do
+            rows <- PrimOrder.read_records_c c op
+
+            ret1 <- add_lines rows
+            pure ret1 
+-}
 export
 getRelO2m : Schema -> SDoc
 getRelO2m (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
@@ -269,8 +290,7 @@ getRelO2m (M2O rel db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fi
    f = (getPK_Field db_field table)    
 getRelO2m (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 getRelO2m (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
-getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,read_o2m_SDoc,read_m2m_SDoc,
-                                                                                ret_x,read_rec,main_read] where
+getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,ret_x,read_rec,main_read] where
    o2m_fields : List Schema
    o2m_fields = (filter isO2M fields)
    m2m_fields : List Schema
@@ -299,6 +319,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_rec_c = Def [Line 2  "export",
                      Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{o2mRecRef table} )"#,
                      Line 2  "read_records_c c op = ret_x where"]
+   {-
    ||| o2m types
    rel_types : String
    rel_types = ret where
@@ -309,9 +330,9 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    
    o2m_rec_names : String
    o2m_rec_names = fastConcat $ intersperse " " [ #"\#{rec_f}"# | (rec_f,rel,col) <- rel_relRef o2m_fields]
-   
+   -}
    rel_rec_names : String
-   rel_rec_names = o2m_rec_names ++ (fastConcat $ intersperse " " [ #"\#{rec_f}"# | (rec_f,rel,col) <- rel_relRef m2m_fields])
+   rel_rec_names = (fastConcat $ intersperse " " [ #"\#{rec_f}"# | (rec_f,rel,col) <- rel_relRef m2m_fields])
    
    ||| 
    primFieldNames : String
@@ -324,18 +345,28 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
    --Sales Analysis Custom PJB, under reporting ,missing FSCR, it has catogories, dining and modular... , split the prod category
-   add_muf : SDoc
-   add_muf = Def [Sep,Line 4 #"add_lines : \#{primRecRef table} \#{rel_types} -> \#{o2mRecRef table}"#,
-                      Line 4 #"add_lines (\#{primModelRef table}.MkRecordModel \#{dbFields}) \#{rel_rec_names}=(\#{o2mModelRef table}.MkRecordModel \#{relFields})"#]
    
    read_o2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
-   read_o2m rec_field col rel = Def [Sep,
-                                   Line 4 #"read_\#{rec_field} : Connection -> List Bits32 -> (op:Op) -> io (List (List \#{primRecRef rel}))"#,
-                                   Line 4 #"read_\#{rec_field} c [] op = pure []"#,
-                                   Line 4 #"read_\#{rec_field} c (x::xs) op = do"#,
-                                     Line 6 #"rl<- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast x))&&op)"#,
-                                     Line 6 #"r <- read_\#{rec_field} c xs op"#,
-                                     Line 6 #"pure ([rl]++r)"#]
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{col}==(cast pk))&&op)"#   
+   read_o2m_SDoc : SDoc
+   read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
+
+   read_m2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
+   read_m2m rec_field col rel = Line 5 #"let \#{rec_field}=[]"#   
+   read_m2m_SDoc : SDoc
+   read_m2m_SDoc  = Def ([ (read_m2m db_f col rel) | (db_f,rel,col) <- rel_relRef m2m_fields ] )
+      
+   add_muf : SDoc
+   add_muf = Def [Sep,Line 4 #"add_lines : (List \#{primRecRef table}) ->io (List  \#{o2mRecRef table})"#,
+                      Line 4  "add_lines [] = pure []",
+                      Line 4 #"add_lines ((\#{primModelRef table}.MkRecordModel \#{dbFields})::xs) = do"#,
+                      read_o2m_SDoc,           
+                      read_m2m_SDoc,
+                      Line 5      #"let ret =(\#{o2mModelRef table}.MkRecordModel \#{relFields})"#,
+                      Line 5      "ret_xs <- add_lines xs",
+                      Line 5      "pure ([ret]++ret_xs)"]
+
+{-                                                           
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )                                     
    read_m2m : (rec_field:String) -> (col:String) -> TableName -> SDoc
@@ -355,9 +386,6 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_m2m_do_SDoc : SDoc
    read_m2m_do_SDoc  = Def ([ (read_o2m_do db_f col rel) | (db_f,rel,col) <- rel_relRef m2m_fields ] )
    
-   
-   
-   
    |||
    read_rel_zip : (db_field:String) ->  SDoc
    read_rel_zip db_field  = Def [Sep,
@@ -374,14 +402,14 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
       xx = [(read_rel_zip db_f) | (db_f,rel,col) <- rel_relRef o2m_fields ] ++ [(read_rel_zip db_f) | (db_f,rel,col) <- rel_relRef m2m_fields ]
       ret : SDoc
       ret = if (length xx)==1 then Def (xx++[read_rel_pure]) else Line 5 "pure (map add_lines rows)"
-                                     
+                                        
+  -}
    ret_x : SDoc
    ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{o2mRecRef table})"#,
                      Line 4 "ret_x = do",
                        Line 5 #"rows <- \#{primModelRef table}.read_records_c c op"#,
-                       read_o2m_do_SDoc,
-                       read_m2m_do_SDoc,
-                       read_o2m_zip_SDoc]
+                       Line 5 "ret1 <- add_lines rows",
+                       Line 5 "pure ret1"]
    
    
    read_rec : SDoc
