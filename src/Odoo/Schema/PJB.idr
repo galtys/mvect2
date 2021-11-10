@@ -90,7 +90,6 @@ CARRIER_ID_OT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
 --O2M
 REQUESTED_DATE_OT:Column
 REQUESTED_DATE_OT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
---O2M
 
 namespace PrimM2M_OrderTax
       domain : Op
@@ -267,7 +266,6 @@ namespace PrimOrder
           carrier_id:(idrisTpe CARRIER_ID_OT)
           --O2M
           requested_date:(idrisTpe REQUESTED_DATE_OT)
-          --O2M
       %runElab derive "PrimOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordModel
@@ -416,12 +414,8 @@ namespace O2MOrderLine
           add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
-          
-            --rows <- get c OTax_NP (columns OTax_NP) (PrimOrderTax.domain&&op)
-                    
-            rows2 <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PK_OLT ORDER_LINE_ID_M2M_ST)&&(PK_OLT==(cast pk))&&op)
-            let tax_ids  = [ PrimOrderTax.toRecord ox | ox <- rows2]
-
+            tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PK_OLT ORDER_LINE_ID_M2M_ST)&&(PK_OLT==(cast pk))&&op)
+            let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
             order_id <- PrimOrder.read_records_c c ((PK_OT==(cast order_id))&&op)
             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
@@ -474,7 +468,6 @@ namespace O2MOrder
           carrier_id:(idrisTpe CARRIER_ID_OT)
           order_line:List PrimOrderLine.RecordModel
           requested_date:(idrisTpe REQUESTED_DATE_OT)
-          order_line2:List PrimOrderLine.RecordModel
       %runElab derive "O2MOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrder.RecordModel )
@@ -484,8 +477,7 @@ namespace O2MOrder
           add_lines [] = pure []
           add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
             order_line <- PrimOrderLine.read_records_c c ((ORDER_ID_OLT==(cast pk))&&op)
-            order_line2 <- PrimOrderLine.read_records_c c ((ORDER_ID_OLT==(cast pk))&&op)
-            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date order_line2)
+            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
