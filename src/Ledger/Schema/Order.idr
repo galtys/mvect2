@@ -112,7 +112,7 @@ Id_OLT = Pk "Id_OLT" "id" OLT
 
 export
 PrimOrderIDF : Field
-PrimOrderIDF = (MkF NotNull I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" OLT)
+PrimOrderIDF = (MkF NotNull I_Bits32 "order_id" (BigInt) "(Just . cast)" "cast" OLT)
 
 export
 PrimOrderID : Schema

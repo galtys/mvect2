@@ -359,7 +359,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
    read_o2m : (rec_field:String) -> (col:Field) -> TableName -> SDoc
-   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast pk))&&op)"#   
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast pk)))"# --&&op)
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 

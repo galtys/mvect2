@@ -81,8 +81,8 @@ DiscountOLT:Column
 DiscountOLT=nullable TQty "discount" (DoublePrecision) (Just . cast) cast OLT
 DeliveryLineOLT:Column
 DeliveryLineOLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
-ParentIdOLT:Column
-ParentIdOLT=notNull Bits32 "parent_id" (BigInt) (Just . cast) cast OLT
+OrderIdOLT:Column
+OrderIdOLT=notNull Bits32 "order_id" (BigInt) (Just . cast) cast OLT
 ProductIdOLT:Column
 ProductIdOLT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast OLT
 --M2M
@@ -276,7 +276,7 @@ namespace PrimOrderLine
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PkOLT, PriceUnitOLT, ProductUomQtyOLT, DiscountOLT, DeliveryLineOLT, ParentIdOLT, ProductIdOLT]
+      PrimCols = [PkOLT, PriceUnitOLT, ProductUomQtyOLT, DiscountOLT, DeliveryLineOLT, OrderIdOLT, ProductIdOLT]
 
       OLT_NP : Table
       OLT_NP = MkTable "sale_order_line" PrimOrderLine.PrimCols
@@ -288,7 +288,7 @@ namespace PrimOrderLine
           product_uom_qty:(idrisTpe ProductUomQtyOLT)
           discount:(idrisTpe DiscountOLT)
           delivery_line:(idrisTpe DeliveryLineOLT)
-          parent_id:(idrisTpe ParentIdOLT)
+          order_id:(idrisTpe OrderIdOLT)
           product_id:(idrisTpe ProductIdOLT)
           --M2M
       %runElab derive "PrimOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
@@ -326,7 +326,7 @@ namespace PrimOrderLine
 
 namespace PrimOrder
       domain : Op
-      domain = (True)
+      domain = ( PkOT==(cast 19446)) --(True)
       PrimCols : List Column
       PrimCols = [PkOT, OriginOT, OrderPolicyOT, DateOrderOT, PartnerIdOT, AmountTaxOT, StateOT, PartnerInvoiceIdOT, AmountUntaxedOT, AmountTotalOT, NameOT, PartnerShippingIdOT, PickingPolicyOT, CarrierIdOT, RequestedDateOT]
 
@@ -359,7 +359,7 @@ namespace PrimOrder
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrder.RecordModel )
       read_records_c c op = do
-          rows <- get c OT_NP (columns OT_NP) (PrimOrder.domain&&op)
+          rows <- get c PrimOrder.OT_NP (columns PrimOrder.OT_NP) (PrimOrder.domain&&op)
           let ret_s = [ PrimOrder.toRecord ox | ox <- rows]
           pure ret_s
 
@@ -412,7 +412,7 @@ namespace O2MResPartner
           add_lines : (List PrimResPartner.RecordModel) ->io (List  O2MResPartner.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id email street2)::xs) = do
-            child_ids <- O2MResPartner.read_records_c c ((ParentIdRPT==Just(cast pk))&&op)
+            child_ids <- O2MResPartner.read_records_c c ((ParentIdRPT==Just(cast pk)))
             let ret =(O2MResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
@@ -607,7 +607,7 @@ namespace O2MOrderLine
           product_uom_qty:(idrisTpe ProductUomQtyOLT)
           discount:(idrisTpe DiscountOLT)
           delivery_line:(idrisTpe DeliveryLineOLT)
-          parent_id:List PrimOrder.RecordModel
+          order_id:List PrimOrder.RecordModel
           product_id:(idrisTpe ProductIdOLT)
           tax_ids:List PrimOrderTax.RecordModel
       %runElab derive "O2MOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
@@ -617,11 +617,14 @@ namespace O2MOrderLine
 
           add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
           add_lines [] = pure []
-          add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line parent_id product_id)::xs) = do
-            tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) ((JC PkOLT OrderLineIdM2M_ST)&&(PkOLT==(cast pk))&&op)
+          add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
+            --let muf_old = ((JC PkOLT OrderLineIdM2M_ST)&&(op)) --PkOLT==(cast pk)))            
+            let muf1 = ((JC PkOTax TaxIdM2M_ST)&&(OrderLineIdM2M_ST==(cast pk) ))
+            tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) muf1
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
-            parent_id <- PrimOrder.read_records_c c ((ParentIdOLT==(cast parent_id))&&op)
-            let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line parent_id product_id tax_ids)
+            let muf = ((PkOT==(cast order_id)))
+            order_id <- PrimOrder.read_records_c c muf            
+            let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
@@ -678,6 +681,7 @@ namespace O2MOrderLine
           l1 <- (liftIO $ (O2MOrderLine.main_runET_ids xs op))
           pure l1
 
+
 namespace O2MOrder
       domain : Op
       domain = (True)
@@ -709,14 +713,20 @@ namespace O2MOrder
           add_lines : (List PrimOrder.RecordModel) ->io (List  O2MOrder.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
-            order_line <- O2MOrderLine.read_records_c c ((ParentIdOLT==(cast pk))&&op)
+
+            let muf = ((OrderIdOLT==(cast pk)))
+
+            order_line <- O2MOrderLine.read_records_c c muf
+            
             let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
           ret_x : io (List O2MOrder.RecordModel)
           ret_x = do
+
             rows <- PrimOrder.read_records_c c op
+
             ret1 <- add_lines rows
             pure ret1
       export
