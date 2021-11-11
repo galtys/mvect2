@@ -18,6 +18,59 @@ export
 M2M_SaleTax : TableName
 M2M_SaleTax = MkTN "M2M_ST" "sale_order_tax" "M2M_OrderTax" True
 
+export
+RPT : TableName
+RPT = MkTN "RPT" "res_partner" "ResPartner" False
+
+export
+COT : TableName
+COT = MkTN "COT" "res_country" "ResCountry" False
+
+export
+Id_Rpt : Schema
+Id_Rpt = Pk "Id_Rpt" "id" RPT
+export
+NameRpt : Schema
+NameRpt = Prim (MkF NotNull I_String "name" (VarChar 128) "(Just . cast)" "cast" RPT)
+export
+UseParentAddress : Schema
+UseParentAddress = Prim (MkF Nullable I_Bool "use_parent_address" Boolean "(Just . cast)" "cast" RPT)
+export
+ActiveRpt : Schema
+ActiveRpt = Prim (MkF Nullable I_Bool "active" Boolean "(Just . cast)" "cast" RPT)
+export
+Street : Schema
+Street = Prim (MkF Nullable I_String "street" (VarChar 128) "(Just . cast)" "cast" RPT)
+export
+ContractRpt : Schema
+ContractRpt = Prim (MkF Nullable I_Bool "contract" Boolean "(Just . cast)" "cast" RPT)
+export
+City : Schema
+City = Prim (MkF Nullable I_String "city" (VarChar 128) "(Just . cast)" "cast" RPT)
+export
+Zip : Schema
+Zip = Prim (MkF Nullable I_String "zip" (VarChar 128) "(Just . cast)" "cast" RPT)
+export
+CountryID : Schema
+CountryID = Prim (MkF Nullable I_Bits32 "country_id" (BigInt) "(Just . cast)" "cast" RPT)  -- M2O COT "country_id" RPT
+export
+ParentID : Schema
+ParentID = Prim (MkF Nullable I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" RPT)  -- M2O RPT "parent_id" RPT
+export
+ChildContacts : Schema
+ChildContacts = O2M "child_ids" "parent_id" RPT
+export
+Email : Schema
+Email = Prim (MkF NotNull I_String "email" (VarChar 128) "(Just . cast)" "cast" RPT)
+export
+Street2 : Schema
+Street2 = Prim (MkF Nullable I_String "street2" (VarChar 128) "(Just . cast)" "cast" RPT)
+
+rpt_cols : List Schema
+rpt_cols = [Id_Rpt,NameRpt,UseParentAddress,ActiveRpt,Street,ContractRpt,City,Zip,CountryID,ParentID,ChildContacts,Email,Street2]
+export
+ResPartner : Schema
+ResPartner = Model RPT rpt_cols
 
 ----- Odoo/OpenERP Tax Code 
 export
@@ -185,7 +238,7 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]

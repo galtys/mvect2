@@ -16,6 +16,8 @@ import Ledger.PG.Config
 import Control.Monad.Either
 
 %language ElabReflection
+RPT:String
+RPT = "res_partner"
 OTax:String
 OTax = "account_tax"
 OLT:String
@@ -24,6 +26,32 @@ M2M_ST:String
 M2M_ST = "sale_order_tax"
 OT:String
 OT = "sale_order"
+
+PkRPT:Column
+PkRPT=notNull Bits32 "id" (BigInt) (Just . cast) cast RPT
+NameRPT:Column
+NameRPT=notNull String "name" (VarChar 128) (Just . cast) cast RPT
+UseParentAddressRPT:Column
+UseParentAddressRPT=nullable Bool "use_parent_address" (Boolean) (Just . cast) cast RPT
+ActiveRPT:Column
+ActiveRPT=nullable Bool "active" (Boolean) (Just . cast) cast RPT
+StreetRPT:Column
+StreetRPT=nullable String "street" (VarChar 128) (Just . cast) cast RPT
+ContractRPT:Column
+ContractRPT=nullable Bool "contract" (Boolean) (Just . cast) cast RPT
+CityRPT:Column
+CityRPT=nullable String "city" (VarChar 128) (Just . cast) cast RPT
+ZipRPT:Column
+ZipRPT=nullable String "zip" (VarChar 128) (Just . cast) cast RPT
+CountryIdRPT:Column
+CountryIdRPT=nullable Bits32 "country_id" (BigInt) (Just . cast) cast RPT
+ParentIdRPT:Column
+ParentIdRPT=nullable Bits32 "parent_id" (BigInt) (Just . cast) cast RPT
+--O2M
+EmailRPT:Column
+EmailRPT=notNull String "email" (VarChar 128) (Just . cast) cast RPT
+Street2RPT:Column
+Street2RPT=nullable String "street2" (VarChar 128) (Just . cast) cast RPT
 
 OrderLineIdM2M_ST:Column
 OrderLineIdM2M_ST=notNull Bits32 "order_line_id" (BigInt) (Just . cast) cast M2M_ST
@@ -90,6 +118,63 @@ CarrierIdOT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
 --O2M
 RequestedDateOT:Column
 RequestedDateOT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
+
+namespace PrimResPartner
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkRPT, NameRPT, UseParentAddressRPT, ActiveRPT, StreetRPT, ContractRPT, CityRPT, ZipRPT, CountryIdRPT, ParentIdRPT, EmailRPT, Street2RPT]
+
+      RPT_NP : Table
+      RPT_NP = MkTable "res_partner" PrimResPartner.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkRPT)
+          name:(idrisTpe NameRPT)
+          use_parent_address:(idrisTpe UseParentAddressRPT)
+          active:(idrisTpe ActiveRPT)
+          street:(idrisTpe StreetRPT)
+          contract:(idrisTpe ContractRPT)
+          city:(idrisTpe CityRPT)
+          zip:(idrisTpe ZipRPT)
+          country_id:(idrisTpe CountryIdRPT)
+          parent_id:(idrisTpe ParentIdRPT)
+          --O2M
+          email:(idrisTpe EmailRPT)
+          street2:(idrisTpe Street2RPT)
+      %runElab derive "PrimResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimResPartner.PrimCols -> PrimResPartner.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimResPartner.RecordModel )
+      read_records_c c op = do
+          rows <- get c RPT_NP (columns RPT_NP) (PrimResPartner.domain&&op)
+          let ret_s = [ PrimResPartner.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimResPartner.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimResPartner.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimResPartner.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimResPartner.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimResPartner.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimResPartner.main_runET op))
+          pure l1
 
 namespace PrimM2M_OrderTax
       domain : Op
@@ -297,6 +382,92 @@ namespace PrimOrder
       read : HasIO io => (op:Op) -> io (List PrimOrder.RecordModel )
       read op = do
           l1 <- (liftIO $ (PrimOrder.main_runET op))
+          pure l1
+
+namespace O2MResPartner
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkRPT)
+          name:(idrisTpe NameRPT)
+          use_parent_address:(idrisTpe UseParentAddressRPT)
+          active:(idrisTpe ActiveRPT)
+          street:(idrisTpe StreetRPT)
+          contract:(idrisTpe ContractRPT)
+          city:(idrisTpe CityRPT)
+          zip:(idrisTpe ZipRPT)
+          country_id:(idrisTpe CountryIdRPT)
+          parent_id:(idrisTpe ParentIdRPT)
+          child_ids:List O2MResPartner.RecordModel
+          email:(idrisTpe EmailRPT)
+          street2:(idrisTpe Street2RPT)
+      %runElab derive "O2MResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MResPartner.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimResPartner.RecordModel) ->io (List  O2MResPartner.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id email street2)::xs) = do
+            child_ids <- O2MResPartner.read_records_c c ((ParentIdRPT==Just (cast pk))&&op)
+            let ret =(O2MResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MResPartner.RecordModel)
+          ret_x = do
+            rows <- PrimResPartner.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MResPartner.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MResPartner.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MResPartner.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MResPartner.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MResPartner.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MResPartner.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MResPartner.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkRPT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MResPartner.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MResPartner.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MResPartner.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MResPartner.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MResPartner.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MResPartner.main_runET_ids xs op))
           pure l1
 
 namespace O2MM2M_OrderTax
