@@ -206,12 +206,17 @@ main = do
   --l1 <- muf_3
   --l1 <- SO_Simple.read (Id_OT == (cast so_id_44575)) --no implementation
   --l1 <- SO_Simple.read (NameOT == (cast "SO44512"))
-  test_main_x
+  --test_main_x
   
   --ret <- O2MResPartner.read_ids [11992] (True)
   --traverse_ printLn ret
   
-  --ret2 <- O2MOrder.read_ids [19446] (True)
+  ret <- O2MResPartner.read  (True)
+  let x = (map child_ids ret)
+  traverse_ printLn x
+  
+  --[19446]
+  --ret2 <- O2MOrder.read  (True)
   --traverse_ printLn ret2
   
   pure ()

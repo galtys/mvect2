@@ -339,8 +339,8 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    rel_relRef [] = []
    rel_relRef ((Pk name db_field x) :: xs) = []
    rel_relRef ((Prim prim) :: xs) = []
-   rel_relRef ((M2O rel db_field x) :: xs) = [ (name db_field,rel, (db_field) )]++(rel_relRef xs)   --getPK_Field "pk" rel
-   rel_relRef ((O2M rec_field rel_f tn) :: xs) = [ (rec_field,tn, (rel_f) )]++(rel_relRef xs) --getPK_Field rel_f tn
+   rel_relRef ((M2O rel db_field x) :: xs) = [(name db_field,rel, db_field)]++(rel_relRef xs)   --getPK_Field "pk" rel
+   rel_relRef ((O2M rec_field rel_f tn) :: xs) = [(rec_field,tn, rel_f)]++(rel_relRef xs) --getPK_Field rel_f tn
    rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = []-- (rec_field,tn,dbtable m2m_table )]++(rel_relRef xs)
    rel_relRef ((Model x ys) :: xs) = []
    rel_relRef ((Sch name models) :: xs) = []
@@ -364,25 +364,35 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
 
-   rel_relRefM2M : List Schema -> List (String,TableName,TableName,String)
+   rel_relRefM2M : List Schema -> List (String,TableName,TableName,Field,Field)
    rel_relRefM2M [] = []
    rel_relRefM2M ((Pk name db_field x) :: xs) = []
    rel_relRefM2M ((Prim prim) :: xs) = []
    rel_relRefM2M ((M2O rel db_field x) :: xs) = []++(rel_relRefM2M xs)   
    rel_relRefM2M ((O2M rec_field rel_f tn) :: xs) = []++(rel_relRefM2M xs)
-   rel_relRefM2M ((M2M rec_field f1 f2 m2m_table tn) :: xs) = [ (rec_field,tn,m2m_table,fieldRef f1)]++(rel_relRefM2M xs)
+   rel_relRefM2M ((M2M rec_field f1 f2 m2m_table rel) :: xs) = [ (rec_field,rel,m2m_table,f1,f2)]++(rel_relRefM2M xs)
    rel_relRefM2M ((Model x ys) :: xs) = []
    rel_relRefM2M ((Sch name models) :: xs) = []
       
-   read_m2m : (rec_field:String) -> (col:String) -> TableName -> TableName -> SDoc
-   read_m2m rec_field col rel m2mt= Def [Line 5 #"\#{rec_field}_np <- getJoin c \#{tableRef rel} \#{tableRef m2mt} (columns \#{tableRef rel}) ((JC \#{pkRef} \#{col})&&(\#{pkRef}==(cast pk))&&op)"#,
-                                     Line 5 #"let \#{rec_field}=[\#{primModelRef rel}.toRecord ox |ox <-\#{rec_field}_np]"#]
-                                     
+   read_m2m : (rec_field:String) -> TableName -> TableName -> Field -> Field -> SDoc
+   read_m2m rec_field rel m2mt f1 f2= ret where
+     pkRel : String
+     pkRel = fieldRef (getPK_Field "pk" rel)
+     ret : SDoc
+     ret =Def [Line 5 #"let muf_m2m = ((JC \#{pkRel} \#{fieldRef f2})&&(\#{fieldRef f1}==(cast pk)))"#,
+               Line 5 #"\#{rec_field}_np<-getJoin c \#{tableRef rel} \#{tableRef m2mt} (columns \#{tableRef rel}) muf_m2m"#,
+               Line 5 #"let \#{rec_field}=[\#{primModelRef rel}.toRecord ox |ox <-\#{rec_field}_np]"#]
+
    read_m2m_SDoc : SDoc
-   read_m2m_SDoc  = Def ([ (read_m2m db_f col rel m2mt) | (db_f,rel,m2mt,col) <- rel_relRefM2M m2m_fields ] )
+   read_m2m_SDoc  = Def ([ (read_m2m db_f rel m2mt f1 f2) | (db_f,rel,m2mt,f1,f2) <- rel_relRefM2M m2m_fields ] )
    
    read_m2o : (rec_field:String) -> (col:Field) -> TableName -> SDoc
-   read_m2o rec_field col rel = Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast \#{rec_field}))&&op)"#
+   read_m2o rec_field col rel = ret where
+      pkM2o : Field
+      pkM2o = (getPK_Field "pk" rel)
+      ret : SDoc
+      ret = Def [Line 5 #"let muf_m2o = ((\#{fieldRef pkM2o}==\#{showJust $ isNull col}(cast \#{rec_field}))) --&&op"#,
+                 Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c muf_m2o"#]
    read_m2o_SDoc : SDoc
    read_m2o_SDoc  = Def ([ (read_m2o db_f col rel) | (db_f,rel,col) <- rel_relRef m2o_fields ] )
    
