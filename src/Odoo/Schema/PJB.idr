@@ -28,6 +28,10 @@ OT:String
 OT = "sale_order"
 ACVT:String
 ACVT = "account_voucher"
+SMT:String
+SMT = "stock_move"
+SPT:String
+SPT = "stock_picking"
 
 PkRPT:Column
 PkRPT=notNull Bits32 "id" (BigInt) (Just . cast) cast RPT
@@ -131,6 +135,43 @@ JournalIdACVT:Column
 JournalIdACVT=nullable Bits32 "journal_id" (BigInt) (Just . cast) cast ACVT
 AmountACVT:Column
 AmountACVT=notNull TQty "amount" (DoublePrecision) (Just . cast) cast ACVT
+
+PkSMT:Column
+PkSMT=notNull Bits32 "id" (BigInt) (Just . cast) cast SMT
+OriginSMT:Column
+OriginSMT=nullable String "origin" (VarChar 64) (Just . cast) cast SMT
+PriceUnitSMT:Column
+PriceUnitSMT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast SMT
+ProductQtySMT:Column
+ProductQtySMT=notNull TQty "product_qty" (DoublePrecision) (Just . cast) cast SMT
+ProductIdSMT:Column
+ProductIdSMT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast SMT
+LocationIdSMT:Column
+LocationIdSMT=nullable Bits32 "location_id" (BigInt) (Just . cast) cast SMT
+LocationDestIdSMT:Column
+LocationDestIdSMT=nullable Bits32 "location_dest_id" (BigInt) (Just . cast) cast SMT
+PickingIdSMT:Column
+PickingIdSMT=nullable Bits32 "picking_id" (BigInt) (Just . cast) cast SMT
+StateSMT:Column
+StateSMT=notNull String "state" (Text) (Just . cast) cast SMT
+
+PkSPT:Column
+PkSPT=notNull Bits32 "id" (BigInt) (Just . cast) cast SPT
+OriginSPT:Column
+OriginSPT=nullable String "origin" (VarChar 64) (Just . cast) cast SPT
+BackorderIdSPT:Column
+BackorderIdSPT=nullable Bits32 "backorder_id" (BigInt) (Just . cast) cast SPT
+DateDoneSPT:Column
+DateDoneSPT=notNull Date "date_done" (VarChar 10) (Just . cast) cast SPT
+PartnerIdSPT:Column
+PartnerIdSPT=nullable Bits32 "partner_id" (BigInt) (Just . cast) cast SPT
+MinDateSPT:Column
+MinDateSPT=notNull Date "min_date" (VarChar 10) (Just . cast) cast SPT
+NameSPT:Column
+NameSPT=notNull String "name" (VarChar 64) (Just . cast) cast SPT
+StateSPT:Column
+StateSPT=notNull String "state" (Text) (Just . cast) cast SPT
+--O2M
 
 namespace PrimResPartner
       domain : Op
@@ -444,6 +485,112 @@ namespace PrimAccountVoucher
       read : HasIO io => (op:Op) -> io (List PrimAccountVoucher.RecordModel )
       read op = do
           l1 <- (liftIO $ (PrimAccountVoucher.main_runET op))
+          pure l1
+
+namespace PrimStockMove
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkSMT, OriginSMT, PriceUnitSMT, ProductQtySMT, ProductIdSMT, LocationIdSMT, LocationDestIdSMT, PickingIdSMT, StateSMT]
+
+      SMT_NP : Table
+      SMT_NP = MkTable "stock_move" PrimStockMove.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkSMT)
+          origin:(idrisTpe OriginSMT)
+          price_unit:(idrisTpe PriceUnitSMT)
+          product_qty:(idrisTpe ProductQtySMT)
+          product_id:(idrisTpe ProductIdSMT)
+          location_id:(idrisTpe LocationIdSMT)
+          location_dest_id:(idrisTpe LocationDestIdSMT)
+          picking_id:(idrisTpe PickingIdSMT)
+          state:(idrisTpe StateSMT)
+      %runElab derive "PrimStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimStockMove.PrimCols -> PrimStockMove.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimStockMove.RecordModel )
+      read_records_c c op = do
+          rows <- get c SMT_NP (columns SMT_NP) (PrimStockMove.domain&&op)
+          let ret_s = [ PrimStockMove.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimStockMove.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimStockMove.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimStockMove.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimStockMove.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimStockMove.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimStockMove.main_runET op))
+          pure l1
+
+namespace PrimStockPicking
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkSPT, OriginSPT, BackorderIdSPT, DateDoneSPT, PartnerIdSPT, MinDateSPT, NameSPT, StateSPT]
+
+      SPT_NP : Table
+      SPT_NP = MkTable "stock_picking" PrimStockPicking.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkSPT)
+          origin:(idrisTpe OriginSPT)
+          backorder_id:(idrisTpe BackorderIdSPT)
+          date_done:(idrisTpe DateDoneSPT)
+          partner_id:(idrisTpe PartnerIdSPT)
+          min_date:(idrisTpe MinDateSPT)
+          name:(idrisTpe NameSPT)
+          state:(idrisTpe StateSPT)
+          --O2M
+      %runElab derive "PrimStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimStockPicking.PrimCols -> PrimStockPicking.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimStockPicking.RecordModel )
+      read_records_c c op = do
+          rows <- get c SPT_NP (columns SPT_NP) (PrimStockPicking.domain&&op)
+          let ret_s = [ PrimStockPicking.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimStockPicking.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimStockPicking.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimStockPicking.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimStockPicking.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimStockPicking.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimStockPicking.main_runET op))
           pure l1
 
 namespace O2MResPartner
@@ -906,4 +1053,167 @@ namespace O2MAccountVoucher
       read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MAccountVoucher.RecordModel )
       read_ids xs op = do
           l1 <- (liftIO $ (O2MAccountVoucher.main_runET_ids xs op))
+          pure l1
+
+namespace O2MStockMove
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkSMT)
+          origin:(idrisTpe OriginSMT)
+          price_unit:(idrisTpe PriceUnitSMT)
+          product_qty:(idrisTpe ProductQtySMT)
+          product_id:(idrisTpe ProductIdSMT)
+          location_id:(idrisTpe LocationIdSMT)
+          location_dest_id:(idrisTpe LocationDestIdSMT)
+          picking_id:(idrisTpe PickingIdSMT)
+          state:(idrisTpe StateSMT)
+      %runElab derive "O2MStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MStockMove.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimStockMove.RecordModel) ->io (List  O2MStockMove.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)::xs) = do
+            let ret =(O2MStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MStockMove.RecordModel)
+          ret_x = do
+            rows <- PrimStockMove.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MStockMove.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MStockMove.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MStockMove.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MStockMove.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MStockMove.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MStockMove.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MStockMove.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkSMT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MStockMove.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MStockMove.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MStockMove.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MStockMove.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MStockMove.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MStockMove.main_runET_ids xs op))
+          pure l1
+
+namespace O2MStockPicking
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkSPT)
+          origin:(idrisTpe OriginSPT)
+          backorder_id:(idrisTpe BackorderIdSPT)
+          date_done:(idrisTpe DateDoneSPT)
+          partner_id:(idrisTpe PartnerIdSPT)
+          min_date:(idrisTpe MinDateSPT)
+          name:(idrisTpe NameSPT)
+          state:(idrisTpe StateSPT)
+          move_ids:List O2MStockMove.RecordModel
+      %runElab derive "O2MStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MStockPicking.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimStockPicking.RecordModel) ->io (List  O2MStockPicking.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimStockPicking.MkRecordModel pk origin backorder_id date_done partner_id min_date name state)::xs) = do
+            move_ids <- O2MStockMove.read_records_c c ((PickingIdSMT==Just(cast pk)))
+            let ret =(O2MStockPicking.MkRecordModel pk origin backorder_id date_done partner_id min_date name state move_ids)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MStockPicking.RecordModel)
+          ret_x = do
+            rows <- PrimStockPicking.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MStockPicking.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MStockPicking.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MStockPicking.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MStockPicking.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MStockPicking.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MStockPicking.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MStockPicking.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkSPT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MStockPicking.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MStockPicking.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MStockPicking.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MStockPicking.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MStockPicking.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MStockPicking.main_runET_ids xs op))
           pure l1

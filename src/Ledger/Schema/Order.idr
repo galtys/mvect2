@@ -31,6 +31,81 @@ ACVT : TableName
 ACVT = MkTN "ACVT" "account_voucher" "AccountVoucher" False
 
 export
+SPT : TableName
+SPT = MkTN "SPT" "stock_picking" "StockPicking" False
+
+export
+SMT : TableName
+SMT = MkTN "SMT" "stock_move" "StockMove" False
+
+export
+Id_Smt : Schema
+Id_Smt = Pk "Id_Smt" "id" SMT
+export
+OriginSmt: Schema
+OriginSmt = Prim (MkF Nullable I_String "origin" (VarChar 64) "(Just . cast)" "cast" SMT)
+export
+PriceUnitSmt : Schema
+PriceUnitSmt = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" SMT)
+export
+ProductQty : Schema
+ProductQty = Prim (MkF NotNull I_TQty "product_qty" DoublePrecision "(Just . cast)" "cast" SMT)
+export
+ProductIDSmt : Schema
+ProductIDSmt = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" SMT)
+export
+LocationIDSmt : Schema
+LocationIDSmt = Prim (MkF Nullable I_Bits32 "location_id" BigInt "(Just . cast)" "cast" SMT)
+export
+LocationDestIDSmt : Schema
+LocationDestIDSmt = Prim (MkF Nullable I_Bits32 "location_dest_id" BigInt "(Just . cast)" "cast" SMT)
+export
+PickingIDSmtF : Field
+PickingIDSmtF = (MkF Nullable I_Bits32 "picking_id" BigInt "(Just . cast)" "cast" SMT)
+export
+PickingIDSmt : Schema
+PickingIDSmt = Prim PickingIDSmtF
+export
+StateSmt : Schema
+StateSmt = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" SMT)
+export
+StockMove : Schema
+StockMove = Model SMT [Id_Smt,OriginSmt,PriceUnitSmt,ProductQty,ProductIDSmt,LocationIDSmt,LocationDestIDSmt,PickingIDSmt,StateSmt]
+
+export
+Id_Spt : Schema
+Id_Spt = Pk "Id_Spt" "id" SPT
+export
+OriginSpt: Schema
+OriginSpt = Prim (MkF Nullable I_String "origin" (VarChar 64) "(Just . cast)" "cast" SPT)
+export
+BackorderID : Schema
+BackorderID = Prim (MkF Nullable I_Bits32 "backorder_id" (BigInt) "(Just . cast)" "cast" SPT)
+export
+DateDone : Schema
+DateDone = Prim (MkF NotNull I_Date "date_done" (VarChar 10) "(Just . cast)" "cast" SPT)
+export
+PartnerIDSpt : Schema
+PartnerIDSpt = Prim (MkF Nullable I_Bits32 "partner_id" (BigInt) "(Just . cast)" "cast" SPT)
+export
+MinDate : Schema
+MinDate = Prim (MkF NotNull I_Date "min_date" (VarChar 10) "(Just . cast)" "cast" SPT)
+export
+NameSpt : Schema
+NameSpt = Prim (MkF NotNull I_String "name" (VarChar 64) "(Just . cast)" "cast" SPT)
+export
+StateSpt : Schema
+StateSpt = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" SPT)
+export
+PickingMoves : Schema
+PickingMoves = O2M "move_ids" PickingIDSmtF SMT
+export
+StockPicking : Schema
+StockPicking = Model SPT [Id_Spt,OriginSpt,BackorderID,DateDone,PartnerIDSpt,MinDate,NameSpt,StateSpt,PickingMoves]
+
+
+
+export
 Id_Acvt : Schema
 Id_Acvt = Pk "Id_Acvt" "id" ACVT
 export
@@ -45,10 +120,8 @@ JournalID = Prim (MkF Nullable I_Bits32 "journal_id" (BigInt) "(Just . cast)" "c
 export
 AmountACVT : Schema
 AmountACVT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" ACVT)
-
 acv_cols : List Schema
 acv_cols = [Id_Acvt, NumberAcvt, PartnerIDAC,JournalID,AmountACVT]
-
 export
 AccountVoucher : Schema
 AccountVoucher = Model ACVT acv_cols
@@ -273,7 +346,7 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher,StockMove,StockPicking] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
