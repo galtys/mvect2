@@ -26,6 +26,8 @@ M2M_ST:String
 M2M_ST = "sale_order_tax"
 OT:String
 OT = "sale_order"
+ACVT:String
+ACVT = "account_voucher"
 
 PkRPT:Column
 PkRPT=notNull Bits32 "id" (BigInt) (Just . cast) cast RPT
@@ -118,6 +120,17 @@ CarrierIdOT=nullable Bits32 "carrier_id" (BigInt) (Just . cast) cast OT
 --O2M
 RequestedDateOT:Column
 RequestedDateOT=nullable Date "requested_date" (VarChar 10) (Just . cast) cast OT
+
+PkACVT:Column
+PkACVT=notNull Bits32 "id" (BigInt) (Just . cast) cast ACVT
+NumberACVT:Column
+NumberACVT=notNull String "number" (VarChar 32) (Just . cast) cast ACVT
+PartnerIdACVT:Column
+PartnerIdACVT=nullable Bits32 "partner_id" (BigInt) (Just . cast) cast ACVT
+JournalIdACVT:Column
+JournalIdACVT=nullable Bits32 "journal_id" (BigInt) (Just . cast) cast ACVT
+AmountACVT:Column
+AmountACVT=notNull TQty "amount" (DoublePrecision) (Just . cast) cast ACVT
 
 namespace PrimResPartner
       domain : Op
@@ -384,12 +397,60 @@ namespace PrimOrder
           l1 <- (liftIO $ (PrimOrder.main_runET op))
           pure l1
 
+namespace PrimAccountVoucher
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkACVT, NumberACVT, PartnerIdACVT, JournalIdACVT, AmountACVT]
+
+      ACVT_NP : Table
+      ACVT_NP = MkTable "account_voucher" PrimAccountVoucher.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkACVT)
+          number:(idrisTpe NumberACVT)
+          partner_id:(idrisTpe PartnerIdACVT)
+          journal_id:(idrisTpe JournalIdACVT)
+          amount:(idrisTpe AmountACVT)
+      %runElab derive "PrimAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimAccountVoucher.PrimCols -> PrimAccountVoucher.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountVoucher.RecordModel )
+      read_records_c c op = do
+          rows <- get c ACVT_NP (columns ACVT_NP) (PrimAccountVoucher.domain&&op)
+          let ret_s = [ PrimAccountVoucher.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimAccountVoucher.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimAccountVoucher.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimAccountVoucher.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimAccountVoucher.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimAccountVoucher.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimAccountVoucher.main_runET op))
+          pure l1
+
 namespace O2MResPartner
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
-      public export      
       record RecordModel where
           constructor MkRecordModel
           pk:(idrisTpe PkRPT)
@@ -768,4 +829,81 @@ namespace O2MOrder
       read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MOrder.RecordModel )
       read_ids xs op = do
           l1 <- (liftIO $ (O2MOrder.main_runET_ids xs op))
+          pure l1
+
+namespace O2MAccountVoucher
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkACVT)
+          number:(idrisTpe NumberACVT)
+          partner_id:(idrisTpe PartnerIdACVT)
+          journal_id:(idrisTpe JournalIdACVT)
+          amount:(idrisTpe AmountACVT)
+      %runElab derive "O2MAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MAccountVoucher.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimAccountVoucher.RecordModel) ->io (List  O2MAccountVoucher.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimAccountVoucher.MkRecordModel pk number partner_id journal_id amount)::xs) = do
+            let ret =(O2MAccountVoucher.MkRecordModel pk number partner_id journal_id amount)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MAccountVoucher.RecordModel)
+          ret_x = do
+            rows <- PrimAccountVoucher.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MAccountVoucher.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MAccountVoucher.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MAccountVoucher.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MAccountVoucher.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MAccountVoucher.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MAccountVoucher.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MAccountVoucher.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkACVT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MAccountVoucher.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MAccountVoucher.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MAccountVoucher.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MAccountVoucher.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MAccountVoucher.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MAccountVoucher.main_runET_ids xs op))
           pure l1

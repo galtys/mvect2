@@ -211,9 +211,12 @@ main = do
   --ret <- O2MResPartner.read_ids [11992] (True)
   --traverse_ printLn ret
   
-  ret <- O2MResPartner.read  (True)
-  let x = (map child_ids ret)
-  traverse_ printLn x
+  --ret <- O2MResPartner.read  (True)
+  --let x = (map child_ids ret)
+  --traverse_ printLn x
+  
+  ret <- O2MAccountVoucher.read (True)
+  traverse_ printLn ret
   
   --[19446]
   --ret2 <- O2MOrder.read  (True)

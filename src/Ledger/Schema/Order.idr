@@ -27,6 +27,34 @@ COT : TableName
 COT = MkTN "COT" "res_country" "ResCountry" False
 
 export
+ACVT : TableName
+ACVT = MkTN "ACVT" "account_voucher" "AccountVoucher" False
+
+export
+Id_Acvt : Schema
+Id_Acvt = Pk "Id_Acvt" "id" ACVT
+export
+NumberAcvt : Schema
+NumberAcvt = Prim (MkF NotNull I_String "number" (VarChar 32) "(Just . cast)" "cast" ACVT)
+export
+PartnerIDAC : Schema
+PartnerIDAC = Prim (MkF Nullable I_Bits32 "partner_id" (BigInt) "(Just . cast)" "cast" ACVT)
+export
+JournalID : Schema
+JournalID = Prim (MkF Nullable I_Bits32 "journal_id" (BigInt) "(Just . cast)" "cast" ACVT)
+export
+AmountACVT : Schema
+AmountACVT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" ACVT)
+
+acv_cols : List Schema
+acv_cols = [Id_Acvt, NumberAcvt, PartnerIDAC,JournalID,AmountACVT]
+
+export
+AccountVoucher : Schema
+AccountVoucher = Model ACVT acv_cols
+
+
+export
 Id_Rpt : Schema
 Id_Rpt = Pk "Id_Rpt" "id" RPT
 export
@@ -245,7 +273,7 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
