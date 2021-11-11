@@ -302,6 +302,8 @@ namespace PrimOrder
 namespace O2MM2M_OrderTax
       domain : Op
       domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = True
       record RecordModel where
           constructor MkRecordModel
           order_line_id:(idrisTpe OrderLineIdM2M_ST)
@@ -343,30 +345,12 @@ namespace O2MM2M_OrderTax
       read op = do
           l1 <- (liftIO $ (O2MM2M_OrderTax.main_runET op))
           pure l1
-      export
-      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MM2M_OrderTax.RecordModel )
-      read_records_ids op = do
-          c <- connect DB_URI
-          ret <- O2MM2M_OrderTax.read_records_c c op
-          pure ret
-
-      export
-      main_runET_ids : (op:Op) -> IO (List O2MM2M_OrderTax.RecordModel )
-      main_runET_ids op = do 
-          Left err <- runEitherT (O2MM2M_OrderTax.read_records_ids op {io = EitherT SQLError IO} )
-            | Right l1 => pure l1
-          printLn err
-          pure []
-
-      export
-      read_ids : HasIO io => (op:Op) -> io (List O2MM2M_OrderTax.RecordModel )
-      read_ids op = do
-          l1 <- (liftIO $ (O2MM2M_OrderTax.main_runET_ids op))
-          pure l1
 
 namespace O2MOrderTax
       domain : Op
       domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
       record RecordModel where
           constructor MkRecordModel
           pk:(idrisTpe PkOTax)
@@ -413,29 +397,38 @@ namespace O2MOrderTax
           l1 <- (liftIO $ (O2MOrderTax.main_runET op))
           pure l1
       export
-      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrderTax.RecordModel )
-      read_records_ids op = do
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MOrderTax.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkOTax==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MOrderTax.RecordModel )
+      read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- O2MOrderTax.read_records_c c op
+          ret <- O2MOrderTax.read_records_c_ids c xs op
           pure ret
 
       export
-      main_runET_ids : (op:Op) -> IO (List O2MOrderTax.RecordModel )
-      main_runET_ids op = do 
-          Left err <- runEitherT (O2MOrderTax.read_records_ids op {io = EitherT SQLError IO} )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MOrderTax.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MOrderTax.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => (op:Op) -> io (List O2MOrderTax.RecordModel )
-      read_ids op = do
-          l1 <- (liftIO $ (O2MOrderTax.main_runET_ids op))
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MOrderTax.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MOrderTax.main_runET_ids xs op))
           pure l1
 
 namespace O2MOrderLine
       domain : Op
       domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
       record RecordModel where
           constructor MkRecordModel
           pk:(idrisTpe PkOLT)
@@ -487,29 +480,38 @@ namespace O2MOrderLine
           l1 <- (liftIO $ (O2MOrderLine.main_runET op))
           pure l1
       export
-      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrderLine.RecordModel )
-      read_records_ids op = do
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MOrderLine.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkOLT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MOrderLine.RecordModel )
+      read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- O2MOrderLine.read_records_c c op
+          ret <- O2MOrderLine.read_records_c_ids c xs op
           pure ret
 
       export
-      main_runET_ids : (op:Op) -> IO (List O2MOrderLine.RecordModel )
-      main_runET_ids op = do 
-          Left err <- runEitherT (O2MOrderLine.read_records_ids op {io = EitherT SQLError IO} )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MOrderLine.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MOrderLine.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => (op:Op) -> io (List O2MOrderLine.RecordModel )
-      read_ids op = do
-          l1 <- (liftIO $ (O2MOrderLine.main_runET_ids op))
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MOrderLine.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MOrderLine.main_runET_ids xs op))
           pure l1
 
 namespace O2MOrder
       domain : Op
       domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
       record RecordModel where
           constructor MkRecordModel
           pk:(idrisTpe PkOT)
@@ -567,22 +569,29 @@ namespace O2MOrder
           l1 <- (liftIO $ (O2MOrder.main_runET op))
           pure l1
       export
-      read_records_ids : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MOrder.RecordModel )
-      read_records_ids op = do
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MOrder.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkOT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MOrder.RecordModel )
+      read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- O2MOrder.read_records_c c op
+          ret <- O2MOrder.read_records_c_ids c xs op
           pure ret
 
       export
-      main_runET_ids : (op:Op) -> IO (List O2MOrder.RecordModel )
-      main_runET_ids op = do 
-          Left err <- runEitherT (O2MOrder.read_records_ids op {io = EitherT SQLError IO} )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MOrder.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MOrder.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => (op:Op) -> io (List O2MOrder.RecordModel )
-      read_ids op = do
-          l1 <- (liftIO $ (O2MOrder.main_runET_ids op))
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MOrder.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MOrder.main_runET_ids xs op))
           pure l1
