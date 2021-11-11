@@ -159,10 +159,46 @@ gen_adder x = (\a => a+x)
 so_id_44575 : Bits32
 so_id_44575 = 44575
 
---Cast Bits32 (DBType (pqType Id_OT)) where
---  cast = ?mufs
+
+{-
+          add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
+
+             let muf1 = ((JC PkOTax TaxIdM2M_ST)&&(OrderLineIdM2M_ST==(cast pk) ))
+             tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) muf1
+             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
+             let muf = ((PkOT==(cast order_id)))
+             order_id <- PrimOrder.read_records_c c muf            
+             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
+             ret_xs <- add_lines xs
+             pure ([ret]++ret_xs)
+-}
+
+{-
+          add_lines : (List PrimOrder.RecordModel) ->io (List  O2MOrder.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
+            let muf = ((OrderIdOLT==(cast pk)))
+
+            order_line <- O2MOrderLine.read_records_c c muf
+            
+            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)          
+-}
 
 
+{-
+
+            let muf = ((OrderIdOLT==(cast pk)))
+
+            order_line <- O2MOrderLine.read_records_c c muf
+            
+            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+-}
 
 main : IO ()
 main = do
@@ -175,7 +211,7 @@ main = do
   --ret <- O2MResPartner.read_ids [11992] (True)
   --traverse_ printLn ret
   
-  ret2 <- O2MOrder.read (True)
+  ret2 <- O2MOrder.read_ids [19446] (True)
   traverse_ printLn ret2
   
   pure ()
