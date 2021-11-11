@@ -277,12 +277,13 @@ showPrim s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where
     prim : SDoc
     prim = Def (map getPrimSDoc xs)
 
+{-
 getM2M : Schema -> List TableName
 getM2M (Pk name db_field table) = []
 getM2M (Prim prim) = []
 getM2M (M2O rel db_field table) = []
 getM2M (O2M rec_field rel_f tn) = []
-getM2M (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
+getM2M (M2M rec_field f1 f2 m2m_table tn)= [tn]
 getM2M (Model tn []) = []
 getM2M (Model tn (x :: xs)) = (getM2M x) ++ (getM2M (Model tn xs))
 getM2M (Sch n []) = []
@@ -296,6 +297,7 @@ isM2M_Table x y = ret where
     lstM2M = getM2M y
     ret : Bool
     ret = elemBy tst x lstM2M --if (length (filter tst lstM2M)) >=0 then True else False
+-}
 
 export
 getRelO2m : Schema -> SDoc
@@ -317,7 +319,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    m2o_fields : List Schema
    m2o_fields = (filter isM2O fields)
    isM2M_tab : Bool
-   isM2M_tab = ("M2M_ST"==(ref table))    --isM2M_Table table mod
+   isM2M_tab = (ref table)=="M2M_ST"  --isM2M_Table table mod
    
    pkRef : String
    pkRef = (fieldRef (getPK_Field "pk" table) )
