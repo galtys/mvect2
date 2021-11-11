@@ -53,6 +53,12 @@ namespace OE
    isNull_show NotNull = "notNull"   
    
    public export
+   showJust : IsNull -> String
+   showJust Nullable = "Just"
+   showJust NotNull = ""
+   
+   
+   public export
    Show IsNull where
      show = isNull_show
 
@@ -76,8 +82,8 @@ namespace OE
    data Schema : Type where
      Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema
-     M2O : (rel: TableName) -> (db_field:String) ->(table:TableName) -> Schema
-     O2M : (rec_field:String) -> (rel_f:String) -> (tn: TableName) -> Schema
+     M2O : (rel: TableName) -> (db_field:Field) ->(table:TableName) -> Schema
+     O2M : (rec_field:String) -> (rel_f:Field) -> (tn: TableName) -> Schema
      M2M : (rec_field:String) -> (f1:OE.Field) -> (f2:OE.Field) -> (m2m_table:TableName) -> (tn: TableName) -> Schema
      Model : (table:TableName) -> (fields:List Schema) -> Schema
      Sch : (name:String) -> (models: List Schema) -> Schema

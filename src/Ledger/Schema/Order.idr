@@ -54,11 +54,15 @@ export
 CountryID : Schema
 CountryID = Prim (MkF Nullable I_Bits32 "country_id" (BigInt) "(Just . cast)" "cast" RPT)  -- M2O COT "country_id" RPT
 export
+ParentIDF : Field
+ParentIDF = (MkF Nullable I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" RPT)
+export
 ParentID : Schema
-ParentID = Prim (MkF Nullable I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" RPT)  -- M2O RPT "parent_id" RPT
+ParentID = Prim ParentIDF  -- M2O RPT "parent_id" RPT
+
 export
 ChildContacts : Schema
-ChildContacts = O2M "child_ids" "parent_id" RPT
+ChildContacts = O2M "child_ids" ParentIDF RPT
 export
 Email : Schema
 Email = Prim (MkF NotNull I_String "email" (VarChar 128) "(Just . cast)" "cast" RPT)
@@ -106,10 +110,13 @@ export
 Id_OLT : Schema
 Id_OLT = Pk "Id_OLT" "id" OLT
 
+export
+PrimOrderIDF : Field
+PrimOrderIDF = (MkF NotNull I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" OLT)
 
 export
 PrimOrderID : Schema
-PrimOrderID = M2O OT "order_id" OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
+PrimOrderID = M2O OT PrimOrderIDF OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
 export
 PriceUnit : Schema
 PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
@@ -225,7 +232,7 @@ DeliveryNotes: Schema
 DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)" "cast" OT)
 export
 OrderLines : Schema
-OrderLines = O2M "order_line" "order_id" OLT
+OrderLines = O2M "order_line" PrimOrderIDF OLT
 
 so_cols : List Schema
 so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,OrderLines,RequestedDate]
