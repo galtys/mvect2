@@ -614,7 +614,6 @@ namespace O2MOrderLine
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MOrderLine.RecordModel )
       read_records_c c op = ret_x where
-
           add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
@@ -627,7 +626,8 @@ namespace O2MOrderLine
              let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
              ret_xs <- add_lines xs
              pure ([ret]++ret_xs)
-          
+
+
           ret_x : io (List O2MOrderLine.RecordModel)
           ret_x = do
             rows <- PrimOrderLine.read_records_c c op
@@ -719,13 +719,7 @@ namespace O2MOrder
             let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)          
-            
-{-          
-            order_line <- O2MOrderLine.read_records_c c ((OrderIdOLT==(cast pk)))
-            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
-            ret_xs <- add_lines xs
-            pure ([ret]++ret_xs)
--}
+
           ret_x : io (List O2MOrder.RecordModel)
           ret_x = do
             rows <- PrimOrder.read_records_c c op
