@@ -13,11 +13,11 @@ add_quotes x = "\"" ++ x ++ "\""
 
 export
 primModelRef : TableName -> String
-primModelRef (MkTN ref dbtable m) = ("Prim"++m)
+primModelRef (MkTN ref dbtable m ism2m) = ("Prim"++m)
 
 export
 o2mModelRef : TableName -> String
-o2mModelRef (MkTN ref dbtable m) = ("O2M"++m)
+o2mModelRef (MkTN ref dbtable m ism2m) = ("O2M"++m)
 
 export
 primRecRef : TableName -> String
@@ -60,12 +60,12 @@ db_field2Ref x =  concat (map capitalize (map unpack (split split_by x))) --pack
 
 export
 fieldRef : Field -> String
-fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m)) = (db_field2Ref (id2pk name))++(ref)
+fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
 
 
 export   
 field_show : Field -> SDoc         
-field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
+field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
                                                                                               (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
       df:String
       df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
@@ -269,8 +269,8 @@ showPrim s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where
     t_names:SDoc
     t_names = Def (map tn_show (schema_tables s)) where 
        tn_show : TableName -> SDoc
-       tn_show (MkTN ref dbtable m) = Def [(Line 0 #"\#{ref}:String"#),
-                                  (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
+       tn_show (MkTN ref dbtable m ism2m) = Def [(Line 0 #"\#{ref}:String"#),
+                                                 (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
     
     modules:SDoc
     modules = Def (map showPrim xs)
@@ -319,7 +319,7 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    m2o_fields : List Schema
    m2o_fields = (filter isM2O fields)
    isM2M_tab : Bool
-   isM2M_tab = (ref table)=="M2M_ST"  --isM2M_Table table mod
+   isM2M_tab = (isM2M table)  --=="M2M_ST"  --isM2M_Table table mod
    
    pkRef : String
    pkRef = (fieldRef (getPK_Field "pk" table) )

@@ -42,6 +42,7 @@ namespace OE
      ref : String     
      dbtable : String
      m : String
+     isM2M : Bool
    %runElab derive "TableName" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
    
    public export

@@ -6,17 +6,17 @@ import Ledger.Schema.GenPG
 -- Order
 export
 OT : TableName
-OT = MkTN "OT" "sale_order" "Order"
+OT = MkTN "OT" "sale_order" "Order" False
 export
 OLT : TableName
-OLT = MkTN "OLT" "sale_order_line" "OrderLine"
+OLT = MkTN "OLT" "sale_order_line" "OrderLine" False
 export
 OdooTaxTable : TableName
-OdooTaxTable = MkTN "OTax" "account_tax" "OrderTax"
+OdooTaxTable = MkTN "OTax" "account_tax" "OrderTax" False
 
 export
 M2M_SaleTax : TableName
-M2M_SaleTax = MkTN "M2M_ST" "sale_order_tax" "M2M_OrderTax"
+M2M_SaleTax = MkTN "M2M_ST" "sale_order_tax" "M2M_OrderTax" True
 
 
 ----- Odoo/OpenERP Tax Code 
