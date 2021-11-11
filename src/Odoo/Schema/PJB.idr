@@ -32,6 +32,12 @@ SMT:String
 SMT = "stock_move"
 SPT:String
 SPT = "stock_picking"
+ILT:String
+ILT = "account_invoice_line"
+M2M_IT:String
+M2M_IT = "account_invoice_line_tax"
+IT:String
+IT = "account_invoice"
 
 PkRPT:Column
 PkRPT=notNull Bits32 "id" (BigInt) (Just . cast) cast RPT
@@ -171,6 +177,53 @@ NameSPT:Column
 NameSPT=notNull String "name" (VarChar 64) (Just . cast) cast SPT
 StateSPT:Column
 StateSPT=notNull String "state" (Text) (Just . cast) cast SPT
+--O2M
+
+InvoiceLineIdM2M_IT:Column
+InvoiceLineIdM2M_IT=notNull Bits32 "invoice_line_id" (BigInt) (Just . cast) cast M2M_IT
+TaxIdM2M_IT:Column
+TaxIdM2M_IT=notNull Bits32 "tax_id" (BigInt) (Just . cast) cast M2M_IT
+
+PkILT:Column
+PkILT=notNull Bits32 "id" (BigInt) (Just . cast) cast ILT
+InvoiceIdILT:Column
+InvoiceIdILT=notNull Bits32 "invoice_id" (BigInt) (Just . cast) cast ILT
+PriceUnitILT:Column
+PriceUnitILT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast ILT
+QuantityILT:Column
+QuantityILT=notNull TQty "quantity" (DoublePrecision) (Just . cast) cast ILT
+NameILT:Column
+NameILT=notNull String "name" (Text) (Just . cast) cast ILT
+ProductIdILT:Column
+ProductIdILT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast ILT
+--M2M
+
+PkIT:Column
+PkIT=notNull Bits32 "id" (BigInt) (Just . cast) cast IT
+OriginIT:Column
+OriginIT=nullable String "origin" (VarChar 64) (Just . cast) cast IT
+DateDueIT:Column
+DateDueIT=notNull Date "date_due" (VarChar 10) (Just . cast) cast IT
+NumberIT:Column
+NumberIT=notNull String "number" (VarChar 32) (Just . cast) cast IT
+AccountIdIT:Column
+AccountIdIT=nullable Bits32 "account_id" (BigInt) (Just . cast) cast IT
+PartnerIdIT:Column
+PartnerIdIT=nullable Bits32 "partner_id" (BigInt) (Just . cast) cast IT
+JournalIdIT:Column
+JournalIdIT=nullable Bits32 "journal_id" (BigInt) (Just . cast) cast IT
+AmountTaxIT:Column
+AmountTaxIT=notNull Price "amount_tax" (DoublePrecision) (Just . toTaxA) cast IT
+StateIT:Column
+StateIT=notNull String "state" (Text) (Just . cast) cast IT
+TypeIT:Column
+TypeIT=nullable String "type" (VarChar 64) (Just . cast) cast IT
+DateInvoiceIT:Column
+DateInvoiceIT=notNull Date "date_invoice" (VarChar 10) (Just . cast) cast IT
+AmountUntaxedIT:Column
+AmountUntaxedIT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20) cast IT
+AmountTotalIT:Column
+AmountTotalIT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast IT
 --O2M
 
 namespace PrimResPartner
@@ -591,6 +644,161 @@ namespace PrimStockPicking
       read : HasIO io => (op:Op) -> io (List PrimStockPicking.RecordModel )
       read op = do
           l1 <- (liftIO $ (PrimStockPicking.main_runET op))
+          pure l1
+
+namespace PrimM2M_InvoiceTax
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [InvoiceLineIdM2M_IT, TaxIdM2M_IT]
+
+      M2M_IT_NP : Table
+      M2M_IT_NP = MkTable "account_invoice_line_tax" PrimM2M_InvoiceTax.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          invoice_line_id:(idrisTpe InvoiceLineIdM2M_IT)
+          tax_id:(idrisTpe TaxIdM2M_IT)
+      %runElab derive "PrimM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimM2M_InvoiceTax.PrimCols -> PrimM2M_InvoiceTax.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimM2M_InvoiceTax.RecordModel )
+      read_records_c c op = do
+          rows <- get c M2M_IT_NP (columns M2M_IT_NP) (PrimM2M_InvoiceTax.domain&&op)
+          let ret_s = [ PrimM2M_InvoiceTax.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimM2M_InvoiceTax.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimM2M_InvoiceTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimM2M_InvoiceTax.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimM2M_InvoiceTax.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimM2M_InvoiceTax.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimM2M_InvoiceTax.main_runET op))
+          pure l1
+
+namespace PrimAccountInvoiceLine
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkILT, InvoiceIdILT, PriceUnitILT, QuantityILT, NameILT, ProductIdILT]
+
+      ILT_NP : Table
+      ILT_NP = MkTable "account_invoice_line" PrimAccountInvoiceLine.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkILT)
+          invoice_id:(idrisTpe InvoiceIdILT)
+          price_unit:(idrisTpe PriceUnitILT)
+          quantity:(idrisTpe QuantityILT)
+          name:(idrisTpe NameILT)
+          product_id:(idrisTpe ProductIdILT)
+          --M2M
+      %runElab derive "PrimAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimAccountInvoiceLine.PrimCols -> PrimAccountInvoiceLine.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountInvoiceLine.RecordModel )
+      read_records_c c op = do
+          rows <- get c ILT_NP (columns ILT_NP) (PrimAccountInvoiceLine.domain&&op)
+          let ret_s = [ PrimAccountInvoiceLine.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimAccountInvoiceLine.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimAccountInvoiceLine.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimAccountInvoiceLine.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimAccountInvoiceLine.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimAccountInvoiceLine.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimAccountInvoiceLine.main_runET op))
+          pure l1
+
+namespace PrimAccountInvoice
+      domain : Op
+      domain = (True)
+      PrimCols : List Column
+      PrimCols = [PkIT, OriginIT, DateDueIT, NumberIT, AccountIdIT, PartnerIdIT, JournalIdIT, AmountTaxIT, StateIT, TypeIT, DateInvoiceIT, AmountUntaxedIT, AmountTotalIT]
+
+      IT_NP : Table
+      IT_NP = MkTable "account_invoice" PrimAccountInvoice.PrimCols
+
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkIT)
+          origin:(idrisTpe OriginIT)
+          date_due:(idrisTpe DateDueIT)
+          number:(idrisTpe NumberIT)
+          account_id:(idrisTpe AccountIdIT)
+          partner_id:(idrisTpe PartnerIdIT)
+          journal_id:(idrisTpe JournalIdIT)
+          amount_tax:(idrisTpe AmountTaxIT)
+          state:(idrisTpe StateIT)
+          type:(idrisTpe TypeIT)
+          date_invoice:(idrisTpe DateInvoiceIT)
+          amount_untaxed:(idrisTpe AmountUntaxedIT)
+          amount_total:(idrisTpe AmountTotalIT)
+          --O2M
+      %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+      toRecord : GetRow PrimAccountInvoice.PrimCols -> PrimAccountInvoice.RecordModel
+      toRecord = to . (\x => MkSOP $ Z x)
+
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountInvoice.RecordModel )
+      read_records_c c op = do
+          rows <- get c IT_NP (columns IT_NP) (PrimAccountInvoice.domain&&op)
+          let ret_s = [ PrimAccountInvoice.toRecord ox | ox <- rows]
+          pure ret_s
+
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List PrimAccountInvoice.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- PrimAccountInvoice.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List PrimAccountInvoice.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (PrimAccountInvoice.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List PrimAccountInvoice.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (PrimAccountInvoice.main_runET op))
           pure l1
 
 namespace O2MResPartner
@@ -1216,4 +1424,222 @@ namespace O2MStockPicking
       read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MStockPicking.RecordModel )
       read_ids xs op = do
           l1 <- (liftIO $ (O2MStockPicking.main_runET_ids xs op))
+          pure l1
+
+namespace O2MM2M_InvoiceTax
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = True
+      record RecordModel where
+          constructor MkRecordModel
+          invoice_line_id:(idrisTpe InvoiceLineIdM2M_IT)
+          tax_id:(idrisTpe TaxIdM2M_IT)
+      %runElab derive "O2MM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MM2M_InvoiceTax.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimM2M_InvoiceTax.RecordModel) ->io (List  O2MM2M_InvoiceTax.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimM2M_InvoiceTax.MkRecordModel invoice_line_id tax_id)::xs) = do
+            let ret =(O2MM2M_InvoiceTax.MkRecordModel invoice_line_id tax_id)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MM2M_InvoiceTax.RecordModel)
+          ret_x = do
+            rows <- PrimM2M_InvoiceTax.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MM2M_InvoiceTax.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MM2M_InvoiceTax.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MM2M_InvoiceTax.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MM2M_InvoiceTax.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MM2M_InvoiceTax.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MM2M_InvoiceTax.main_runET op))
+          pure l1
+
+namespace O2MAccountInvoiceLine
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkILT)
+          invoice_id:List PrimAccountInvoice.RecordModel
+          price_unit:(idrisTpe PriceUnitILT)
+          quantity:(idrisTpe QuantityILT)
+          name:(idrisTpe NameILT)
+          product_id:(idrisTpe ProductIdILT)
+          tax_ids:List PrimOrderTax.RecordModel
+      %runElab derive "O2MAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MAccountInvoiceLine.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimAccountInvoiceLine.RecordModel) ->io (List  O2MAccountInvoiceLine.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id)::xs) = do
+            let muf_m2m = ((JC PkOTax TaxIdM2M_IT)&&(InvoiceLineIdM2M_IT==(cast pk)))
+            tax_ids_np<-getJoin c OTax_NP M2M_IT_NP (columns OTax_NP) muf_m2m
+            let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
+            let muf_m2o = ((PkIT==(cast invoice_id))) --&&op
+            invoice_id <- PrimAccountInvoice.read_records_c c muf_m2o
+            let ret =(O2MAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id tax_ids)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MAccountInvoiceLine.RecordModel)
+          ret_x = do
+            rows <- PrimAccountInvoiceLine.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MAccountInvoiceLine.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MAccountInvoiceLine.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MAccountInvoiceLine.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MAccountInvoiceLine.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MAccountInvoiceLine.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MAccountInvoiceLine.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MAccountInvoiceLine.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkILT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MAccountInvoiceLine.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MAccountInvoiceLine.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MAccountInvoiceLine.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MAccountInvoiceLine.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MAccountInvoiceLine.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MAccountInvoiceLine.main_runET_ids xs op))
+          pure l1
+
+namespace O2MAccountInvoice
+      domain : Op
+      domain = (True)
+      isM2M_tab : Bool
+      isM2M_tab = False
+      record RecordModel where
+          constructor MkRecordModel
+          pk:(idrisTpe PkIT)
+          origin:(idrisTpe OriginIT)
+          date_due:(idrisTpe DateDueIT)
+          number:(idrisTpe NumberIT)
+          account_id:(idrisTpe AccountIdIT)
+          partner_id:(idrisTpe PartnerIdIT)
+          journal_id:(idrisTpe JournalIdIT)
+          amount_tax:(idrisTpe AmountTaxIT)
+          state:(idrisTpe StateIT)
+          type:(idrisTpe TypeIT)
+          date_invoice:(idrisTpe DateInvoiceIT)
+          amount_untaxed:(idrisTpe AmountUntaxedIT)
+          amount_total:(idrisTpe AmountTotalIT)
+          invoice_line:List O2MAccountInvoiceLine.RecordModel
+      %runElab derive "O2MAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      export
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MAccountInvoice.RecordModel )
+      read_records_c c op = ret_x where
+
+          add_lines : (List PrimAccountInvoice.RecordModel) ->io (List  O2MAccountInvoice.RecordModel)
+          add_lines [] = pure []
+          add_lines ((PrimAccountInvoice.MkRecordModel pk origin date_due number account_id partner_id journal_id amount_tax state type date_invoice amount_untaxed amount_total)::xs) = do
+            invoice_line <- O2MAccountInvoiceLine.read_records_c c ((InvoiceIdILT==(cast pk)))
+            let ret =(O2MAccountInvoice.MkRecordModel pk origin date_due number account_id partner_id journal_id amount_tax state type date_invoice amount_untaxed amount_total invoice_line)
+            ret_xs <- add_lines xs
+            pure ([ret]++ret_xs)
+
+          ret_x : io (List O2MAccountInvoice.RecordModel)
+          ret_x = do
+            rows <- PrimAccountInvoice.read_records_c c op
+            ret1 <- add_lines rows
+            pure ret1
+      export
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List O2MAccountInvoice.RecordModel )
+      read_records op = do
+          c <- connect DB_URI
+          ret <- O2MAccountInvoice.read_records_c c op
+          pure ret
+
+      export
+      main_runET : (op:Op) -> IO (List O2MAccountInvoice.RecordModel )
+      main_runET op = do 
+          Left err <- runEitherT (O2MAccountInvoice.read_records op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read : HasIO io => (op:Op) -> io (List O2MAccountInvoice.RecordModel )
+      read op = do
+          l1 <- (liftIO $ (O2MAccountInvoice.main_runET op))
+          pure l1
+      export
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List O2MAccountInvoice.RecordModel )
+      read_records_c_ids c [] op  = pure []
+      read_records_c_ids c (x::xs) op = do
+          r <- read_records_c c (( PkIT==(cast x))&&op) 
+          r_xs <- read_records_c_ids c xs op
+          pure (r++r_xs)
+      export
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List O2MAccountInvoice.RecordModel )
+      read_records_ids xs op = do
+          c <- connect DB_URI
+          ret <- O2MAccountInvoice.read_records_c_ids c xs op
+          pure ret
+
+      export
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List O2MAccountInvoice.RecordModel )
+      main_runET_ids xs op = do 
+          Left err <- runEitherT (O2MAccountInvoice.read_records_ids xs op {io = EitherT SQLError IO} )
+            | Right l1 => pure l1
+          printLn err
+          pure []
+
+      export
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List O2MAccountInvoice.RecordModel )
+      read_ids xs op = do
+          l1 <- (liftIO $ (O2MAccountInvoice.main_runET_ids xs op))
           pure l1

@@ -3,7 +3,13 @@ module Ledger.Schema.Order
 import Ledger.Schema.Types
 import Ledger.Schema.GenPG
 
--- Order
+
+export
+IT : TableName
+IT = MkTN "IT" "account_invoice" "AccountInvoice" False
+export
+ILT : TableName
+ILT = MkTN "ILT" "account_invoice_line" "AccountInvoiceLine" False
 export
 OT : TableName
 OT = MkTN "OT" "sale_order" "Order" False
@@ -13,31 +19,112 @@ OLT = MkTN "OLT" "sale_order_line" "OrderLine" False
 export
 OdooTaxTable : TableName
 OdooTaxTable = MkTN "OTax" "account_tax" "OrderTax" False
-
 export
 M2M_SaleTax : TableName
 M2M_SaleTax = MkTN "M2M_ST" "sale_order_tax" "M2M_OrderTax" True
+export
+M2M_InvoiceTax : TableName
+M2M_InvoiceTax = MkTN "M2M_IT" "account_invoice_line_tax" "M2M_InvoiceTax" True
 
 export
 RPT : TableName
 RPT = MkTN "RPT" "res_partner" "ResPartner" False
-
 export
 COT : TableName
 COT = MkTN "COT" "res_country" "ResCountry" False
-
 export
 ACVT : TableName
 ACVT = MkTN "ACVT" "account_voucher" "AccountVoucher" False
-
 export
 SPT : TableName
 SPT = MkTN "SPT" "stock_picking" "StockPicking" False
-
 export
 SMT : TableName
 SMT = MkTN "SMT" "stock_move" "StockMove" False
 
+export
+Id_ILT : Schema
+Id_ILT = Pk "Id_ILT" "id" ILT
+export
+InvoiceIDF : Field
+InvoiceIDF = (MkF NotNull I_Bits32 "invoice_id" (BigInt) "(Just . cast)" "cast" ILT)
+export
+InvoiceID : Schema
+InvoiceID = M2O IT InvoiceIDF ILT
+export
+PriceUnitILT : Schema
+PriceUnitILT = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" ILT)
+export
+QuantityILT : Schema
+QuantityILT = Prim (MkF NotNull I_TQty "quantity" DoublePrecision "(Just . cast)" "cast" ILT)
+export
+NameILT: Schema
+NameILT = Prim (MkF NotNull I_String "name" Text "(Just . cast)" "cast" ILT)
+export
+ProductIDIlt : Schema
+ProductIDIlt = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" ILT)
+-- "sale_order_tax"
+F1_ilt:Field
+F1_ilt = (MkF NotNull I_Bits32 "invoice_line_id" BigInt "(Just . cast)" "cast" M2M_InvoiceTax)
+F2_ilt:Field
+F2_ilt = (MkF NotNull I_Bits32 "tax_id" BigInt "(Just . cast)" "cast" M2M_InvoiceTax)
+export
+TaxesIlt : Schema
+TaxesIlt = M2M "tax_ids" F1_ilt F2_ilt M2M_InvoiceTax OdooTaxTable
+InvoiceLine : Schema
+InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt]
+export
+InvoiceTaxM2M : Schema
+InvoiceTaxM2M = Model M2M_InvoiceTax [ Prim F1_ilt, Prim F2_ilt]
+
+export
+Id_IT : Schema
+Id_IT = Pk "Id_IT" "id" IT
+export
+OriginIT: Schema
+OriginIT = Prim (MkF Nullable I_String "origin" (VarChar 64) "(Just . cast)" "cast" IT)
+export
+DateDue : Schema
+DateDue = Prim (MkF NotNull I_Date "date_due" (VarChar 10) "(Just . cast)" "cast" IT)
+export
+NumberIT : Schema
+NumberIT = Prim (MkF NotNull I_String "number" (VarChar 32) "(Just . cast)" "cast" IT)
+export
+AccountIDIT : Schema
+AccountIDIT = Prim (MkF Nullable I_Bits32 "account_id" BigInt "(Just . cast)" "cast" IT)
+export
+PartnerIDIT : Schema
+PartnerIDIT = Prim (MkF Nullable I_Bits32 "partner_id" (BigInt) "(Just . cast)" "cast" IT)
+export
+JournalIDIT : Schema
+JournalIDIT = Prim (MkF Nullable I_Bits32 "journal_id" (BigInt) "(Just . cast)" "cast" IT)
+export
+AmountTaxIT : Schema
+AmountTaxIT = Prim (MkF NotNull I_Price "amount_tax" DoublePrecision "(Just . toTaxA)" "cast" IT)
+export
+StateIT : Schema
+StateIT = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" IT)
+export
+TypeIT : Schema
+TypeIT = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" IT)
+export
+DateInvoice : Schema
+DateInvoice = Prim (MkF NotNull I_Date "date_invoice" (VarChar 10) "(Just . cast)" "cast" IT)
+export
+AmountUntaxedIT : Schema
+AmountUntaxedIT = Prim (MkF NotNull I_Price "amount_untaxed" DoublePrecision "(Just . toEX20)" "cast" IT)
+export
+AmountTotalIT : Schema
+AmountTotalIT = Prim (MkF NotNull I_Price "amount_total" DoublePrecision "(Just . toINC20)" "cast" IT)
+export
+InvoiceLines : Schema
+InvoiceLines = O2M "invoice_line" InvoiceIDF ILT
+export
+Invoice : Schema
+Invoice = Model IT [Id_IT,OriginIT,DateDue,NumberIT,AccountIDIT,PartnerIDIT,JournalIDIT,AmountTaxIT,StateIT,TypeIT,DateInvoice,AmountUntaxedIT,AmountTotalIT,InvoiceLines]
+
+
+---------------------
 export
 Id_Smt : Schema
 Id_Smt = Pk "Id_Smt" "id" SMT
@@ -214,10 +301,10 @@ Id_OLT = Pk "Id_OLT" "id" OLT
 export
 PrimOrderIDF : Field
 PrimOrderIDF = (MkF NotNull I_Bits32 "order_id" (BigInt) "(Just . cast)" "cast" OLT)
-
 export
 PrimOrderID : Schema
-PrimOrderID = M2O OT PrimOrderIDF OLT --(MkF NotNull I_Bits32 "order_id" BigInt "(Just . cast)" "cast" OLT)
+PrimOrderID = M2O OT PrimOrderIDF OLT
+
 export
 PriceUnit : Schema
 PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
@@ -346,7 +433,8 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher,StockMove,StockPicking] --,,OrderLineCols]
+PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher,StockMove,StockPicking,
+                             InvoiceTaxM2M,InvoiceLine,Invoice] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
