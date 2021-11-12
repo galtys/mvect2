@@ -247,7 +247,14 @@ ParentIDF = (MkF Nullable I_Bits32 "parent_id" (BigInt) "(Just . cast)" "cast" R
 export
 ParentID : Schema
 ParentID = Prim ParentIDF  -- M2O RPT "parent_id" RPT
+{-
+        'invoice_ids':fields.one2many('account.invoice','partner_id','History Invoices' ),
+        
+        'sales_orders':fields.one2many('sale.order','partner_id','sales orders'),
 
+        'payments':fields.one2many('account.voucher','partner_id','Payments'),#should change the names 
+        'deliverey_orders':fields.one2many('stock.picking.out','partner_id','Delivery Orders'),#the names should be appear different for supplier and customer        
+        -}
 export
 ChildContacts : Schema
 ChildContacts = O2M "child_ids" ParentIDF RPT
@@ -421,6 +428,11 @@ DeliveryNotes = Prim (MkF Nullable I_String "delivery_notes" Text "(Just . cast)
 export
 OrderLines : Schema
 OrderLines = O2M "order_line" PrimOrderIDF OLT
+{-
+        'invoice_ids': fields.many2many('account.invoice', 'sale_order_invoice_rel', 'order_id', 'invoice_id', 'Invoices', readonly=True, help="This is the list of invoices that have been generated for this sales order. The same sales order may have been invoiced in several times (by line for example)."),
+        
+        'picking_ids': fields.one2many('stock.picking.out', 'sale_id', 'Related Picking', readonly=True, help="This is a list of delivery orders that has been generated for this sales order."),        
+ -}
 
 so_cols : List Schema
 so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,PartnerInvoiceID,AmountUntaxed,AmountTotal, NameOT,PartnerShippingID,PickingPolicy,CarrierID,OrderLines,RequestedDate]

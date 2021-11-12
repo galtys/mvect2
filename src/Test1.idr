@@ -207,10 +207,24 @@ main = do
   --l1 <- SO_Simple.read (Id_OT == (cast so_id_44575)) --no implementation
   --l1 <- SO_Simple.read (NameOT == (cast "SO44512"))
   --test_main_x
-  ret <- O2MAccountInvoice.read (True)
-  traverse_ printLn ret
   
-  --ret <- O2MStockPicking.read (True)
+  so <- O2MOrder.read_ids [21833] (True)
+  
+  printLn so
+  {-
+  inv <- O2MAccountInvoice.read (True)
+  sp <- O2MStockPicking.read (True)
+  av <- O2MAccountVoucher.read (True)
+  
+  traverse_ printLn so
+  traverse_ printLn inv
+  traverse_ printLn sp  
+  traverse_ printLn av
+  -}
+  
+  
+  
+  --
   --traverse_ printLn ret
   
   --ret <- O2MResPartner.read_ids [11992] (True)
@@ -220,7 +234,7 @@ main = do
   --let x = (map child_ids ret)
   --traverse_ printLn x
   
-  --ret <- O2MAccountVoucher.read (True)
+  --
   --traverse_ printLn ret
   
   --[19446]
