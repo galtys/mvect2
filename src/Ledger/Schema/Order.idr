@@ -53,10 +53,10 @@ InvoiceID : Schema
 InvoiceID = M2O IT InvoiceIDF ILT
 export
 PriceUnitILT : Schema
-PriceUnitILT = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" ILT)
+PriceUnitILT = Prim (MkF NotNull I_EQty "price_unit" DoublePrecision "(Just . cast)" "cast" ILT)
 export
 QuantityILT : Schema
-QuantityILT = Prim (MkF NotNull I_TQty "quantity" DoublePrecision "(Just . cast)" "cast" ILT)
+QuantityILT = Prim (MkF NotNull I_EQty "quantity" DoublePrecision "(Just . cast)" "cast" ILT)
 export
 NameILT: Schema
 NameILT = Prim (MkF NotNull I_String "name" Text "(Just . cast)" "cast" ILT)
@@ -71,8 +71,11 @@ F2_ilt = (MkF NotNull I_Bits32 "tax_id" BigInt "(Just . cast)" "cast" M2M_Invoic
 export
 TaxesIlt : Schema
 TaxesIlt = M2M "tax_ids" F1_ilt F2_ilt M2M_InvoiceTax OdooTaxTable
+export
+DiscountILT : Schema
+DiscountILT = Prim (MkF Nullable I_EQty "discount" DoublePrecision "(Just . percent)" "cast" ILT)
 InvoiceLine : Schema
-InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt]
+InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt,DiscountILT]
 export
 InvoiceTaxM2M : Schema
 InvoiceTaxM2M = Model M2M_InvoiceTax [ Prim F1_ilt, Prim F2_ilt]
@@ -133,10 +136,10 @@ OriginSmt: Schema
 OriginSmt = Prim (MkF Nullable I_String "origin" (VarChar 64) "(Just . cast)" "cast" SMT)
 export
 PriceUnitSmt : Schema
-PriceUnitSmt = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" SMT)
+PriceUnitSmt = Prim (MkF NotNull I_EQty "price_unit" DoublePrecision "(Just . cast)" "cast" SMT)
 export
 ProductQty : Schema
-ProductQty = Prim (MkF NotNull I_TQty "product_qty" DoublePrecision "(Just . cast)" "cast" SMT)
+ProductQty = Prim (MkF NotNull I_EQty "product_qty" DoublePrecision "(Just . cast)" "cast" SMT)
 export
 ProductIDSmt : Schema
 ProductIDSmt = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" SMT)
@@ -206,7 +209,7 @@ JournalID : Schema
 JournalID = Prim (MkF Nullable I_Bits32 "journal_id" (BigInt) "(Just . cast)" "cast" ACVT)
 export
 AmountACVT : Schema
-AmountACVT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" ACVT)
+AmountACVT = Prim (MkF NotNull I_EQty "amount" DoublePrecision "(Just . cast)" "cast" ACVT)
 acv_cols : List Schema
 acv_cols = [Id_Acvt, NumberAcvt, PartnerIDAC,JournalID,AmountACVT]
 export
@@ -283,7 +286,7 @@ DescriptionTax : Schema
 DescriptionTax = Prim (MkF Nullable I_String "description" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
 export
 AmountT : Schema
-AmountT = Prim (MkF NotNull I_TQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTaxTable)
+AmountT = Prim (MkF NotNull I_EQty "amount" DoublePrecision "(Just . cast)" "cast" OdooTaxTable)
 export
 TypeTax : Schema
 TypeTax = Prim (MkF Nullable I_String "type" (VarChar 64) "(Just . cast)" "cast" OdooTaxTable)
@@ -314,13 +317,13 @@ PrimOrderID = M2O OT PrimOrderIDF OLT
 
 export
 PriceUnit : Schema
-PriceUnit = Prim (MkF NotNull I_TQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
+PriceUnit = Prim (MkF NotNull I_EQty "price_unit" DoublePrecision "(Just . cast)" "cast" OLT)
 export
 ProductUomQty : Schema
-ProductUomQty = Prim (MkF NotNull I_TQty "product_uom_qty" DoublePrecision "(Just . cast)" "cast" OLT)
+ProductUomQty = Prim (MkF NotNull I_EQty "product_uom_qty" DoublePrecision "(Just . cast)" "cast" OLT)
 export
 Discount : Schema
-Discount = Prim (MkF Nullable I_TQty "discount" DoublePrecision "(Just . cast)" "cast" OLT)
+Discount = Prim (MkF Nullable I_EQty "discount" DoublePrecision "(Just . percent)" "cast" OLT)
 export
 ProductID : Schema
 ProductID = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" OLT)

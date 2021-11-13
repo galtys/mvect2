@@ -16,7 +16,7 @@ data SDoc : Type where
    
 namespace OE
    public export
-   data PrimTypes = I_Bits32|I_Price|I_Date|I_String|I_TQty|I_Bool
+   data PrimTypes = I_Bits32|I_Price|I_Date|I_String|I_EQty|I_Bool
    %runElab derive "PrimTypes" [Generic, Meta, Eq, Ord, EnumToJSON,EnumFromJSON]
    
    export
@@ -25,7 +25,7 @@ namespace OE
    pt_show I_Price = "Price"
    pt_show I_Date = "Date"
    pt_show I_String = "String"
-   pt_show I_TQty = "TQty"
+   pt_show I_EQty = "EQty"
    pt_show I_Bool = "Bool"
    
    export

@@ -77,7 +77,7 @@ NameOTax=notNull String "name" (VarChar 64) (Just . cast) cast OTax
 DescriptionOTax:Column
 DescriptionOTax=nullable String "description" (VarChar 64) (Just . cast) cast OTax
 AmountOTax:Column
-AmountOTax=notNull TQty "amount" (DoublePrecision) (Just . cast) cast OTax
+AmountOTax=notNull EQty "amount" (DoublePrecision) (Just . cast) cast OTax
 TypeOTax:Column
 TypeOTax=nullable String "type" (VarChar 64) (Just . cast) cast OTax
 PriceIncludeOTax:Column
@@ -86,11 +86,11 @@ PriceIncludeOTax=nullable Bool "price_include" (Boolean) (Just . cast) cast OTax
 PkOLT:Column
 PkOLT=notNull Bits32 "id" (BigInt) (Just . cast) cast OLT
 PriceUnitOLT:Column
-PriceUnitOLT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast OLT
+PriceUnitOLT=notNull EQty "price_unit" (DoublePrecision) (Just . cast) cast OLT
 ProductUomQtyOLT:Column
-ProductUomQtyOLT=notNull TQty "product_uom_qty" (DoublePrecision) (Just . cast) cast OLT
+ProductUomQtyOLT=notNull EQty "product_uom_qty" (DoublePrecision) (Just . cast) cast OLT
 DiscountOLT:Column
-DiscountOLT=nullable TQty "discount" (DoublePrecision) (Just . cast) cast OLT
+DiscountOLT=nullable EQty "discount" (DoublePrecision) (Just . percent) cast OLT
 DeliveryLineOLT:Column
 DeliveryLineOLT=nullable Bool "delivery_line" (Boolean) (Just . cast) cast OLT
 OrderIdOLT:Column
@@ -140,16 +140,16 @@ PartnerIdACVT=nullable Bits32 "partner_id" (BigInt) (Just . cast) cast ACVT
 JournalIdACVT:Column
 JournalIdACVT=nullable Bits32 "journal_id" (BigInt) (Just . cast) cast ACVT
 AmountACVT:Column
-AmountACVT=notNull TQty "amount" (DoublePrecision) (Just . cast) cast ACVT
+AmountACVT=notNull EQty "amount" (DoublePrecision) (Just . cast) cast ACVT
 
 PkSMT:Column
 PkSMT=notNull Bits32 "id" (BigInt) (Just . cast) cast SMT
 OriginSMT:Column
 OriginSMT=nullable String "origin" (VarChar 64) (Just . cast) cast SMT
 PriceUnitSMT:Column
-PriceUnitSMT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast SMT
+PriceUnitSMT=notNull EQty "price_unit" (DoublePrecision) (Just . cast) cast SMT
 ProductQtySMT:Column
-ProductQtySMT=notNull TQty "product_qty" (DoublePrecision) (Just . cast) cast SMT
+ProductQtySMT=notNull EQty "product_qty" (DoublePrecision) (Just . cast) cast SMT
 ProductIdSMT:Column
 ProductIdSMT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast SMT
 LocationIdSMT:Column
@@ -189,14 +189,16 @@ PkILT=notNull Bits32 "id" (BigInt) (Just . cast) cast ILT
 InvoiceIdILT:Column
 InvoiceIdILT=notNull Bits32 "invoice_id" (BigInt) (Just . cast) cast ILT
 PriceUnitILT:Column
-PriceUnitILT=notNull TQty "price_unit" (DoublePrecision) (Just . cast) cast ILT
+PriceUnitILT=notNull EQty "price_unit" (DoublePrecision) (Just . cast) cast ILT
 QuantityILT:Column
-QuantityILT=notNull TQty "quantity" (DoublePrecision) (Just . cast) cast ILT
+QuantityILT=notNull EQty "quantity" (DoublePrecision) (Just . cast) cast ILT
 NameILT:Column
 NameILT=notNull String "name" (Text) (Just . cast) cast ILT
 ProductIdILT:Column
 ProductIdILT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast ILT
 --M2M
+DiscountILT:Column
+DiscountILT=nullable EQty "discount" (DoublePrecision) (Just . percent) cast ILT
 
 PkIT:Column
 PkIT=notNull Bits32 "id" (BigInt) (Just . cast) cast IT
@@ -696,7 +698,7 @@ namespace PrimAccountInvoiceLine
       domain : Op
       domain = (True)
       PrimCols : List Column
-      PrimCols = [PkILT, InvoiceIdILT, PriceUnitILT, QuantityILT, NameILT, ProductIdILT]
+      PrimCols = [PkILT, InvoiceIdILT, PriceUnitILT, QuantityILT, NameILT, ProductIdILT, DiscountILT]
 
       ILT_NP : Table
       ILT_NP = MkTable "account_invoice_line" PrimAccountInvoiceLine.PrimCols
@@ -710,6 +712,7 @@ namespace PrimAccountInvoiceLine
           name:(idrisTpe NameILT)
           product_id:(idrisTpe ProductIdILT)
           --M2M
+          discount:(idrisTpe DiscountILT)
       %runElab derive "PrimAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
       toRecord : GetRow PrimAccountInvoiceLine.PrimCols -> PrimAccountInvoiceLine.RecordModel
@@ -1487,6 +1490,7 @@ namespace O2MAccountInvoiceLine
           name:(idrisTpe NameILT)
           product_id:(idrisTpe ProductIdILT)
           tax_ids:List PrimOrderTax.RecordModel
+          discount:(idrisTpe DiscountILT)
       %runElab derive "O2MAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List O2MAccountInvoiceLine.RecordModel )
@@ -1494,13 +1498,13 @@ namespace O2MAccountInvoiceLine
 
           add_lines : (List PrimAccountInvoiceLine.RecordModel) ->io (List  O2MAccountInvoiceLine.RecordModel)
           add_lines [] = pure []
-          add_lines ((PrimAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id)::xs) = do
+          add_lines ((PrimAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id discount)::xs) = do
             let muf_m2m = ((JC PkOTax TaxIdM2M_IT)&&(InvoiceLineIdM2M_IT==(cast pk)))
             tax_ids_np<-getJoin c OTax_NP M2M_IT_NP (columns OTax_NP) muf_m2m
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
             let muf_m2o = ((PkIT==(cast invoice_id))) --&&op
             invoice_id <- PrimAccountInvoice.read_records_c c muf_m2o
-            let ret =(O2MAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id tax_ids)
+            let ret =(O2MAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id tax_ids discount)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 

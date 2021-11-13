@@ -41,6 +41,10 @@ Cast Double EQty where
   cast x = EQVal EValue (cast x)
 
 public export
+percent : Double -> EQty
+percent x = EQVal EPercent (cast x)
+
+public export
 Cast EQty Double where
   cast x = cast $ eval x 
 
