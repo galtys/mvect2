@@ -28,7 +28,7 @@ data EQty : Type where
 public export
 eval : EQty -> TQty
 eval (EQVal EValue x) = x
-eval (EQVal EPercent x) = x
+eval (EQVal EPercent x) = (100-x)/100
 eval (EQAdd x y) = (eval x) + (eval y)
 eval (EQMul x y) = (eval x) * (eval y)
 eval (EQNegate x) = negate (eval x)
