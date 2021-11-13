@@ -275,52 +275,6 @@ Eq TQty where
     (==) = eq_TQty
     
 
-public export
-data EQty : Type where
-     EQVal : (x:TQty) -> EQty
-     EQAdd : (x:EQty) -> (y:EQty) -> EQty
-     EQMul : (x:EQty) -> (y:EQty) -> EQty     
-     EQNegate : (x:EQty) -> EQty
-     EQSub : (x:EQty) -> (y:EQty) -> EQty
-     EQDiv : (x:EQty) -> (y:EQty) -> EQty
-     EQRecip : (x:EQty) -> EQty
-
-public export
-eval : EQty -> TQty
-eval (EQVal x) = x
-eval (EQAdd x y) = (eval x) + (eval y)
-eval (EQMul x y) = (eval x) * (eval y)
-eval (EQNegate x) = negate (eval x)
-eval (EQSub x y) = (eval x)-(eval y)
-eval (EQDiv x y) = (eval x)/(eval y)
-eval (EQRecip x) = recip (eval x)
-
-public export
-Num EQty where
-     (+) = EQAdd
-     (*) = EQMul
-     fromInteger x = (EQVal (fromInteger x))
-
-public export
-Neg EQty where
-     (-) = EQSub
-     negate = EQNegate
-
-public export     
-Fractional EQty where
-     (/) = EQDiv
-     recip = EQRecip
-               
-public export
-Eq EQty where
-     (==) x y = ( (eval x) == (eval y) )
-
-public export
-Ord EQty where
-     compare x y = compare (eval x) (eval y)
-     
-%runElab derive "EQty" [Generic, Meta, Show, ToJSON,FromJSON]     
-
 
 ||| Decimal number
 
