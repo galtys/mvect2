@@ -37,6 +37,14 @@ eval (EQDiv x y) = (eval x)/(eval y)
 eval (EQRecip x) = recip (eval x)
 
 public export
+Cast Double EQty where
+  cast = cast
+
+public export
+Cast EQty Double where
+  cast = cast 
+
+public export
 Num EQty where
      (+) = EQAdd
      (*) = EQMul
@@ -85,7 +93,7 @@ data TaxCode = ZeroVAT | INC20 | EX20 | TAXAMOUNT
 public export
 record Price where
   constructor MkPrice
-  price : TQty
+  price : EQty
   tax : TaxCode
 %runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
