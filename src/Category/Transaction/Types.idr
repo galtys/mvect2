@@ -59,7 +59,11 @@ Eq EQty where
 public export
 Ord EQty where
      compare x y = compare (eval x) (eval y)
-     
+
+public export
+Show EQty where
+     show = show . eval
+               
 %runElab derive "EQty" [Generic, Meta, Show, ToJSON,FromJSON]     
 
 
