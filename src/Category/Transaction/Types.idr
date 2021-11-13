@@ -38,11 +38,11 @@ eval (EQRecip x) = recip (eval x)
 
 public export
 Cast Double EQty where
-  cast = cast
+  cast x = EQVal EValue (cast x)
 
 public export
 Cast EQty Double where
-  cast = cast 
+  cast x = cast $ eval x 
 
 public export
 Num EQty where
