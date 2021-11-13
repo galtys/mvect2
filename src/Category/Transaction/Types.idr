@@ -124,15 +124,38 @@ record Acc where
    constructor MkAcc
    fro : Account
    to : Account
-
 %runElab derive "Acc" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
+
+
+public export
+record Wx where
+   constructor MkWx
+   w1 : Account
+   w2 : Account
+%runElab derive "Wx" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
+
+public export
+record Lx where
+   constructor MkLx
+   l1 : Account
+   l2 : Account
+%runElab derive "Lx" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
+
+data Wtype = Order | Invoice
+
+%runElab derive "Wtype" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+data Ltype = Reservation | Delivery
+%runElab derive "Ltype" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
 public export
 data Journal : Type where 
 -- JOrder : Account -> Account ->  Journal
- Jnil : Journal
+ Jstart : Journal
  --JAcc :  (a1:Account) -> (a2:Account) -> Journal --make it separate type
  JPro : (type:DocType) -> (date:Date) -> (origin:Journal) -> Journal
+ JWx : Wtype -> (date:Date) -> (from:Wx) -> (to:Wx) -> (origin:Journal) -> Journal
+ JLx : Ltype -> (date:Date) -> (from:Lx) -> (to:Lx) -> (origin:Journal) -> Journal 
  JProAcc :  (type:DocType) -> (date:Date) ->  (p1:Acc) -> (p2:Acc) -> (origin:Journal)-> Journal
 
 -- JSeq : List Journal -> Journal

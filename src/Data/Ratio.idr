@@ -279,6 +279,7 @@ public export
 data EQty : Type where
      EQVal : (x:TQty) -> EQty
      EQAdd : (x:EQty) -> (y:EQty) -> EQty
+     EQMul : (x:EQty) -> (y:EQty) -> EQty     
      EQNegate : (x:EQty) -> EQty
      EQSub : (x:EQty) -> (y:EQty) -> EQty
      EQDiv : (x:EQty) -> (y:EQty) -> EQty
@@ -288,6 +289,7 @@ public export
 eval : EQty -> TQty
 eval (EQVal x) = x
 eval (EQAdd x y) = (eval x) + (eval y)
+eval (EQMul x y) = (eval x) * (eval y)
 eval (EQNegate x) = negate (eval x)
 eval (EQSub x y) = (eval x)-(eval y)
 eval (EQDiv x y) = (eval x)/(eval y)
@@ -296,7 +298,7 @@ eval (EQRecip x) = recip (eval x)
 public export
 Num EQty where
      (+) = EQAdd
-     (*) = EQDiv
+     (*) = EQMul
      fromInteger x = (EQVal (fromInteger x))
 
 public export

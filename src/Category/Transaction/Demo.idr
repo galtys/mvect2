@@ -158,7 +158,7 @@ so1_j =
         j_hilton_loc = (MkAcc hilton_loc hilton_loc)
         j_pjb_loc = (MkAcc pjb_loc pjb_r)
         
-        j_w = (JProAcc WOrder "" j_hilton j_pjb Jnil )     
+        j_w = (JProAcc WOrder "" j_hilton j_pjb Jstart )     
         j_l = (JProAcc LRes  "" j_hilton_loc j_pjb_loc j_w) in jref j_l
 
 public export
