@@ -42,6 +42,40 @@ import Ledger.Schema.Order
 
 import Odoo.Schema.PJB
 
+public export
+data Ref : (l : label) -> Type -> Type where
+     [search l]
+     MkRef : IORef a -> Ref x a
+     
+export   
+newRef : HasIO io => (x : label) -> t -> io (Ref x t)
+newRef x val
+    = do ref <-  (newIORef val)
+         pure (MkRef ref)
+
+export %inline
+get : HasIO io => (x : label) -> {auto ref : Ref x a} -> io a
+get x {ref = MkRef io} = (readIORef io)
+
+export %inline
+put : HasIO io => (x : label) -> {auto ref : Ref x a} -> a -> io ()
+put x {ref = MkRef io} val = (writeIORef io val)
+
+export %inline
+update : HasIO io => (x : label) -> {auto ref : Ref x a} -> (a -> a) -> io ()
+update x f
+  = do v <- get x
+       put x (f v)
+       
+public export
+data MGs : Type where
+
+public export
+record MGSt where
+  constructor MkMGSt
+  cn : Int
+
+
 
 {-
 import Control.Monad.Either
@@ -104,7 +138,7 @@ WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
 
 
-x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
+x_my_http_handler : HasIO io => {auto cx:Ref MGs MGSt} -> Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    
                     --putStrLn ("HTTP is null: " ++ (show (is_ptr_null p_fn)))
@@ -136,12 +170,12 @@ x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
 x_my_http_handler p_conn ev p_ev p_fn = do 
                   pure ()
 
-my_http_handler : (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
+my_http_handler : {auto cx:Ref MGs MGSt} -> (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
 
 
 partial
-inf_loop : (Ptr MG_MGR) -> Int -> IO ()
+inf_loop : {auto cx:Ref MGs MGSt} -> (Ptr MG_MGR) -> Int -> IO ()
 inf_loop p_mgr time_out = do
   mg_mgr_poll p_mgr time_out
   inf_loop p_mgr time_out
