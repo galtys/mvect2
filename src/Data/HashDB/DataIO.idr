@@ -75,16 +75,22 @@ storeHType ht = do
  pure $ Right ()
 
 namespace DBList
+  append : HasIO io=>String->(prev:HType)->(lt:HType)->io (Either DBError HType )
+  append item prev lt = do
+     let new = tCons item prev lt --StrListT      
+     Right ok <- storeHType new
+       | Left x => pure $Left $ EIO (show x)     
+     pure $ Right (new)
+
   write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
   write' [] prev lt = do  
     Right x <- storeHType prev
       | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
     pure $ Right $ (ptr prev)  
-
   write' (x :: xs) prev lt= do
-     let new = tCons x prev lt --StrListT      
-     Right ok <- storeHType new
-       | Left x => pure $Left $ EIO (show x)     
+     Right new <- DBList.append x prev lt
+       | Left x => pure $Left $ EIO (show x)
+       
      Right ret <- DBList.write' xs new lt
       | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
      pure $ Right ret
@@ -130,6 +136,62 @@ namespace DBList
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right [<]
       _ => pure $ Left EHashLink
 
+namespace DBSnocList
+  write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
+  write' [] prev lt = do  
+    Right x <- storeHType prev
+      | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
+    pure $ Right $ (ptr prev)  
+
+  write' (x :: xs) prev lt= do
+     let new = tSnoc x prev lt --StrListT      
+     Right ok <- storeHType new
+       | Left x => pure $Left $ EIO (show x)     
+     Right ret <- DBSnocList.write' xs new lt
+      | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
+     pure $ Right ret
+
+  export
+  write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
+  write xs lt = do
+    let null = tLin lt
+    x<- storeHType null
+    Right ret <- DBSnocList.write' xs null lt
+       | Left x => pure $ Left $ EIO (show x)
+    pure $ Right ret
+
+  export
+  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read tp lt = do
+    Right ht <- readHType tp
+      | Left e => pure $ Left e
+    let arg = (val ht)
+    let ltype = (ptr lt)
+    --printLn arg
+    case arg of
+      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
+         Right ret_xs <- DBSnocList.read prev lt
+            | Left e => pure $ Left e       
+         pure $ Right (x::ret_xs)       
+      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right []
+      _ => pure $ Left EHashLink
+
+  export
+  readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+  readAsSnocList tp lt = do
+    Right ht <- readHType tp
+      | Left e => pure $ Left e
+    let arg = (val ht)
+    let ltype = (ptr lt)
+    --printLn arg
+    case arg of
+      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
+         Right ret_xs <- DBSnocList.readAsSnocList prev lt
+            | Left e => pure $ Left e       
+         pure $ Right (ret_xs:<x)       
+      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right [<]
+      _ => pure $ Left EHashLink
+
 
 export
 testList : List String
@@ -138,6 +200,9 @@ testList = [ (cast x) | x <- [1..10]]
 export
 testList2 : List String
 testList2 = [ "T2:"++x | x<- testList]    
+
+
+
 export
 db_main : HasIO io => io ()
 db_main = do
@@ -147,20 +212,23 @@ db_main = do
   Right p_t1 <- DBList.write testList StrListT
      | Left x => printLn "error writing list"
   printLn p_t1
-
-  Right p_t2 <- DBList.write testList2 StrListT
-     | Left x => printLn "error writing list"
-  printLn p_t2
-        
   ret <- DBList.read p_t1 StrListT
   printLn ret
 
-  Right ret <- DBList.readAsSnocList p_t2 StrListT
-     | Left e => pure ()
-    
-  printLn ret
-  printLn $ toList ret
+  printLn "snoclist"
+  Right p_ts <- DBSnocList.write testList StrSnocListT
+     | Left x => printLn "error writing snoclist"
+  printLn p_ts
   
+  ret <- DBSnocList.read p_ts StrSnocListT
+  printLn ret
+
+{-
+
+  Right ret <- DBList.readAsSnocList p_t1 StrListT
+     | Left e => pure ()
+  printLn ret
+  -}
     
   --let (prev, htype_map) = toHList testList
   --printLn prev
