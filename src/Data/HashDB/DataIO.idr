@@ -3,6 +3,8 @@ module Data.HashDB.DataIO
 import Data.HashDB.Types
 import System.Directory
 import System.File.ReadWrite
+import Data.SnocList
+
 --import public System.File.Error
 {-
 import System.File.Handle
@@ -123,6 +125,22 @@ db_read_list tp lt = do
     _ => pure $ Left EHashLink
 
 export
+db_read_snoclist : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+db_read_snoclist tp lt = do
+  Right ht <- readHType tp
+    | Left e => pure $ Left e
+  let arg = (val ht)
+  let ltype = (ptr lt)
+  --printLn arg
+  case arg of
+    ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
+       Right ret_xs <- db_read_snoclist prev lt
+          | Left e => pure $ Left e       
+       pure $ Right (ret_xs:<x)       
+    ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right [<]
+    _ => pure $ Left EHashLink
+
+export
 testList : List String
 testList = [ (cast x) | x <- [1..10]]
 
@@ -146,8 +164,12 @@ db_main = do
   ret <- db_read_list p_t1 StrListT
   printLn ret
 
-  ret <- db_read_list p_t2 StrListT
+  Right ret <- db_read_snoclist p_t2 StrListT
+     | Left e => pure ()
+    
   printLn ret
+  printLn $ toList ret
+  
     
   --let (prev, htype_map) = toHList testList
   --printLn prev
