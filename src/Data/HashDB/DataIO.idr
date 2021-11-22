@@ -80,7 +80,7 @@ namespace DBList
   append item prev lt = do
      let new_item = tCons item prev lt --StrListT      
      Right ok <- storeHType new_item
-       | Left x => pure $Left $ EIO (show x)     
+       | Left x => pure $Left x    
      pure $ Right (new_item)
   export
   new :HasIO io=>(lt:HType)->io (Either DBError HType )
@@ -115,8 +115,25 @@ namespace DBList
     pure $ Right ret
 
   export
+  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe String))
+  head tp lt = do
+    Right ht <- readHType tp
+      | Left e => pure $ Left e
+    let arg = (val ht)
+    let ltype = (ptr lt)
+
+    case arg of
+      ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
+         --Right ret_xs <- DBList.read prev lt
+         --   | Left e => pure $ Left e       
+         pure $ Right (Just x)
+      ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right Nothing
+      _ => pure $ Left EHashLink
+    
+  export
   read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
   read tp lt = do
+  
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -210,7 +227,30 @@ namespace DBSnocList
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right [<]
       _ => pure $ Left EHashLink
 
+namespace DBQueue
+  export
+  record FR where
+    constructor MkFR
+    f : TypePtr
+    r : TypePtr
 
+  new : HasIO io=>io (Either DBError FR)
+  new = do
+     Right new_f <- new StrListT
+       | Left x => pure $Left x       
+     Right new_r <- new StrListT
+       | Left x => pure $Left x    
+     pure $ Right (MkFR (ptr new_f) (ptr new_r))
+  {-
+    export
+  head : Queue a -> Maybe a   
+  head (MkQ [] r) = Nothing
+  head (MkQ (x :: xs) r) = Just x
+-}
+  head : HasIO io=> FR -> io (Either DBError (Maybe String) )
+  head (MkFR f r) = (DBList.head f StrListT)
+     
+   
 export
 testList : List String
 testList = [ (cast x) | x <- [1..10]]
