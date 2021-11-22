@@ -22,6 +22,8 @@ import public Language.Reflection.Pretty
 import public Language.Reflection.Syntax
 import public Language.Reflection.Types
 
+import public RT
+
 import PQ.Schema
 --import System.FFI
 import JSON
@@ -43,10 +45,51 @@ import Ledger.Schema.Order
 import Odoo.Schema.PJB
 import Data.SnocList
 
+%language ElabReflection
+
 namespace Queue
   public export
   data Queue : (a:Type) -> Type where
-     MkQ : (f:List a) -> (r:SnocList a) -> Queue a
+     MkQ : (f:List a) -> (r:SnocList a) -> Queue a  
+  %runElab derive "Queue" [Generic, Meta, Eq, Ord, Show]
+  
+  data Muf : Type where
+     C1 : Muf  
+     C2 : Int -> Muf -> Muf
+  %runElab derive "Muf" [Generic, Meta, Eq, Ord, Show]
+  
+  export  
+  L1 : (k:Type) -> Type
+  L1 k = SOP I [[],[k,(L1 k)] ]
+  
+  
+  export
+  S1 : (k:Type) -> Type
+  S1 k = SOP I [[],[(S1 k),k] ]
+  
+  export
+  Q1 : (k:Type) -> Type
+  Q1 k = NP I [(L1 k),(S1 k)]
+
+
+  Mus : L1 Int
+  Mus = MkSOP (Z [])
+  
+  Mu1 : (L1 Int)
+  Mu1 = MkSOP (S $ Z [4,Mus])
+  
+  Mu2 : (L1 Int)
+  Mu2 = MkSOP (S $ Z [1,Mu1])
+  
+  --N1 : (k:Type) -> Type
+  --N1 k = Z k --NS I [k]
+    
+  --L1Int : L1 Int
+  --L1Int = MkSOP ()
+  --Q1 : (k:Type) -> Type
+  --Q1 k = SOP I [[],[k,(Q1 k)] ]
+    
+            
   export
   head : Queue a -> Maybe a   
   head (MkQ [] r) = Nothing
@@ -291,7 +334,7 @@ main = do
   --l1 <- SO_Simple.read (Id_OT == (cast so_id_44575)) --no implementation
   --l1 <- SO_Simple.read (NameOT == (cast "SO44512"))
   --test_main_x
-  
+{-  
   so <- O2MOrder.read_ids [21833] (True)
   
   printLn so
@@ -304,12 +347,16 @@ main = do
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av
+-}
+  --traverse_ printLn (toHList testList Nothing)
+  printLn nullStrListT
+  printLn RT.l1
+  printLn RT.l2
   
-  
-  
-  
+  let (prev, htype_map) = toHList testList
+  --printLn prev
   --
-  --traverse_ printLn ret
+  traverse_ printLn (map snd (Data.SortedMap.toList htype_map))
   
   --ret <- O2MResPartner.read_ids [11992] (True)
   --traverse_ printLn ret
