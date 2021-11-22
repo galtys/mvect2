@@ -229,26 +229,31 @@ namespace DBSnocList
 
 namespace DBQueue
   export
+  Name : Type
+  Name = String
+
+  export
   record FR where
     constructor MkFR
     f : TypePtr
     r : TypePtr
-
-  new : HasIO io=>io (Either DBError FR)
-  new = do
+    qn : DBQueue.Name
+  export
+  new : HasIO io=> DBQueue.Name -> io (Either DBError FR)
+  new qn = do
      Right new_f <- new StrListT
        | Left x => pure $Left x       
      Right new_r <- new StrListT
        | Left x => pure $Left x    
-     pure $ Right (MkFR (ptr new_f) (ptr new_r))
+     pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
   {-
     export
   head : Queue a -> Maybe a   
   head (MkQ [] r) = Nothing
   head (MkQ (x :: xs) r) = Just x
 -}
-  head : HasIO io=> FR -> io (Either DBError (Maybe String) )
-  head (MkFR f r) = (DBList.head f StrListT)
+  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe String) )
+  head (MkFR f r qn) = (DBList.head f StrListT)
      
    
 export
