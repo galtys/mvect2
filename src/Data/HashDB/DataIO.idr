@@ -115,8 +115,8 @@ namespace DB_List
       _ => pure $ Left EHashLink
 
   export
-  db_read_snoclist : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
-  db_read_snoclist tp lt = do
+  db_read_as_snoclist : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+  db_read_as_snoclist tp lt = do
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -124,7 +124,7 @@ namespace DB_List
     --printLn arg
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- db_read_snoclist prev lt
+         Right ret_xs <- db_read_as_snoclist prev lt
             | Left e => pure $ Left e       
          pure $ Right (ret_xs:<x)       
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right [<]
@@ -154,7 +154,7 @@ db_main = do
   ret <- db_read_list p_t1 StrListT
   printLn ret
 
-  Right ret <- db_read_snoclist p_t2 StrListT
+  Right ret <- db_read_as_snoclist p_t2 StrListT
      | Left e => pure ()
     
   printLn ret
