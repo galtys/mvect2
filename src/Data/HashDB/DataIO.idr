@@ -25,6 +25,7 @@ tNil l = fromArg [ACon "NIL", toAPtr l]
 export
 tCons : (val:String) -> (prev:HType) -> (list:HType) -> HType
 tCons val prev tl = fromArg [ACon "CONS", AVal val, toAPtr prev, toAPtr tl]
+{-
 export
 tSnocList : (a:HType) -> HType
 tSnocList a = fromArg [AType "SnocList",toAPtr a]
@@ -34,7 +35,7 @@ tLin l = fromArg [ACon "LIN", toAPtr l]
 export
 tSnoc : (val:String) -> (prev:HType) -> (snoclist:HType) -> HType
 tSnoc val prev tsl = fromArg [ACon "SNOC", toAPtr prev, AVal val, toAPtr tsl]
-
+-}
 export
 StrT : HType
 StrT = toType "String"
@@ -42,6 +43,7 @@ export
 StrListT : HType
 StrListT = tList StrT
 
+{-
 export
 nullStrListT : HType
 nullStrListT = tNil StrListT
@@ -52,6 +54,7 @@ l1 = tCons "muf" nullStrListT StrListT
 export
 l2 : HType
 l2 = tCons "ocx" l1 StrListT
+-}
 
 data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data/"
@@ -84,58 +87,61 @@ storeHType ht = do
      | Left x => pure $ Left (EIO $show x)
  pure $ Right ()
 
-db_write_test : HasIO io => io ()  
-db_write_test = do
-  Right d <- listDir data_store_dir 
-    | Left x => printLn ("Directory does not exist:"++data_store_dir)  
-  
-  Right x <- storeHType nullStrListT
-    | Left x => printLn x
-  
-  Right x <- storeHType l1
-    | Left x => printLn x
-  
-  Right x <- storeHType l2
-    | Left x => printLn x
-  pure ()
-
-db_write_list' : HasIO io => List String -> (prev:HType) -> io (Either DBError TypePtr )
-db_write_list' [] prev = do  
-
+db_write_list' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
+db_write_list' [] prev lt = do  
   Right x <- storeHType prev
     | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
   pure $ Right $ (ptr prev)  
 
-db_write_list' (x :: xs) prev = do
-   let new = tCons x prev StrListT   
-   
+db_write_list' (x :: xs) prev lt= do
+   let new = tCons x prev lt --StrListT      
    Right ok <- storeHType new
-     | Left x => pure $Left $ EIO (show x)
-     
-   Right ret <- db_write_list' xs new
-    | Left x => pure $Left $ EIO ("error writing: "++(ptr new))
-    
+     | Left x => pure $Left $ EIO (show x)     
+   Right ret <- db_write_list' xs new lt
+    | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
    pure $ Right ret
 
---0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F
-db_write_list : HasIO io => List String -> io (Either DBError TypePtr)
-db_write_list xs = do
-  let null = nullStrListT
+export
+db_write_list : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
+db_write_list xs lt = do
+  let null = tNil lt --nullStrListT
   x<- storeHType null
-  Right ret <- db_write_list' xs null
+  Right ret <- db_write_list' xs null lt
      | Left x => pure $ Left $ EIO (show x)
   pure $ Right ret
 
 export
+db_read_list : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+db_read_list tp lt = do
+  Right ht <- readHType tp
+    | Left e => pure $ Left e
+  let arg = (val ht)
+  let ltype = (ptr lt)
+  --printLn arg
+  case arg of
+    ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
+       Right ret_xs <- db_read_list prev lt
+          | Left e => pure $ Left e       
+       pure $ Right (x::ret_xs)       
+    ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right []
+    _ => pure $ Left EHashLink
+    
+export
 db_main : HasIO io => io ()
 db_main = do
+  --printLn StrListT
   
-  Right p_list <- db_write_list testList
+  Right p_list <- db_write_list testList StrListT
      | Left x => printLn "error writing list"
   printLn p_list
   
-  --printLn (ptr l1)
+  --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
   
+  --Right ht <- readHType p_list
+  --  | Left e => printLn e  
+  
+  ret <- db_read_list p_list StrListT
+  printLn ret
   
   --let (prev, htype_map) = toHList testList
   --printLn prev
