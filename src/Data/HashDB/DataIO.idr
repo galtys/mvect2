@@ -75,31 +75,41 @@ storeHType ht = do
  pure $ Right ()
 
 namespace DBList
+  export
   append : HasIO io=>String->(prev:HType)->(lt:HType)->io (Either DBError HType )
   append item prev lt = do
-     let new = tCons item prev lt --StrListT      
-     Right ok <- storeHType new
+     let new_item = tCons item prev lt --StrListT      
+     Right ok <- storeHType new_item
        | Left x => pure $Left $ EIO (show x)     
-     pure $ Right (new)
+     pure $ Right (new_item)
+  export
+  new :HasIO io=>(lt:HType)->io (Either DBError HType )
+  new lt = do
+    let null = tNil lt --nullStrListT
+    Right x<- storeHType null
+      | Left y => pure $Left $ EIO (show y)
+    pure $ Right null
 
   write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
-  write' [] prev lt = do  
-    Right x <- storeHType prev
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
-    pure $ Right $ (ptr prev)  
+  write' [] last lt = do  
+    Right x <- storeHType last
+      | Left x => pure $Left $ EIO ("error writing: "++(ptr last))
+    pure $ Right $ (ptr last)  
   write' (x :: xs) prev lt= do
-     Right new <- DBList.append x prev lt
+     Right newi <- DBList.append x prev lt
        | Left x => pure $Left $ EIO (show x)
        
-     Right ret <- DBList.write' xs new lt
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
+     Right ret <- DBList.write' xs newi lt
+      | Left x => pure $Left $ EIO ("error writing: "++(ptr newi))    
      pure $ Right ret
 
   export
   write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
   write xs lt = do
-    let null = tNil lt --nullStrListT
-    x<- storeHType null
+        
+    Right null <- DBList.new lt
+       | Left x => pure $ Left $ x
+    
     Right ret <- DBList.write' xs null lt
        | Left x => pure $ Left $ EIO (show x)
     pure $ Right ret
