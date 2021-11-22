@@ -1,7 +1,7 @@
 module Test1
 
 import Data.IORef
-import System.Directory
+
 
 import Web.Mongoose.Types
 import Web.Mongoose.FFI
@@ -22,7 +22,8 @@ import public Language.Reflection.Pretty
 import public Language.Reflection.Syntax
 import public Language.Reflection.Types
 
-import public RT
+import Data.HashDB.Types
+import Data.HashDB.DataIO
 
 import PQ.Schema
 --import System.FFI
@@ -168,8 +169,6 @@ record MGSt where
   constructor MkMGSt
   cn : Int
 
-
-
 {-
 import Control.Monad.Either
 
@@ -277,8 +276,6 @@ inf_loop p_mgr time_out = do
 fn_data_ref : HasIO io => io (IORef Country)
 fn_data_ref = newIORef UK
 
-data_store_dir : String
-data_store_dir = "/home/jan/github.com/mvect2/data"
 
 gen_adder : Int -> (Int ->Int)
 gen_adder x = (\a => a+x)
@@ -349,15 +346,7 @@ main = do
   traverse_ printLn av
 -}
   --traverse_ printLn (toHList testList Nothing)
-  printLn nullStrListT
-  printLn RT.l1
-  printLn RT.l2
-  
-  let (prev, htype_map) = toHList testList
-  --printLn prev
-  --
-  traverse_ printLn (map snd (Data.SortedMap.toList htype_map))
-  
+  db_main  
   --ret <- O2MResPartner.read_ids [11992] (True)
   --traverse_ printLn ret
   
@@ -393,10 +382,6 @@ main = do
   --putStrLn (show c)
   
   {-
-  Right d <- listDir data_store_dir 
-    | Left x => printLn ("Directory does not exist:"++data_store_dir)
-  
-  printLn d
   
   mg_log_set "3"
   p_mgr <- get_and_malloc__mg_mgr
