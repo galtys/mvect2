@@ -13,10 +13,6 @@ import public System.File.Types
 import JSON
 
 export
-testList : List String
-testList = [ (cast x) | x <- [1..10]]
-
-export
 tList : (a:HType) -> HType
 tList a = fromArg [AType "List",toAPtr a]
 export
@@ -125,24 +121,34 @@ db_read_list tp lt = do
        pure $ Right (x::ret_xs)       
     ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right []
     _ => pure $ Left EHashLink
-    
+
+export
+testList : List String
+testList = [ (cast x) | x <- [1..10]]
+
+export
+testList2 : List String
+testList2 = [ "T2:"++x | x<- testList]    
 export
 db_main : HasIO io => io ()
 db_main = do
   --printLn StrListT
-  
-  Right p_list <- db_write_list testList StrListT
-     | Left x => printLn "error writing list"
-  printLn p_list
-  
   --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
   
-  --Right ht <- readHType p_list
-  --  | Left e => printLn e  
-  
-  ret <- db_read_list p_list StrListT
+  Right p_t1 <- db_write_list testList StrListT
+     | Left x => printLn "error writing list"
+  printLn p_t1
+
+  Right p_t2 <- db_write_list testList2 StrListT
+     | Left x => printLn "error writing list"
+  printLn p_t2
+        
+  ret <- db_read_list p_t1 StrListT
   printLn ret
-  
+
+  ret <- db_read_list p_t2 StrListT
+  printLn ret
+    
   --let (prev, htype_map) = toHList testList
   --printLn prev
   --
