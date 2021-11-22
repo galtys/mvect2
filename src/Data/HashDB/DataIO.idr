@@ -147,18 +147,26 @@ namespace DBList
       _ => pure $ Left EHashLink
 
 namespace DBSnocList
+  export
+  append : HasIO io=>String->(prev:HType)->(lt:HType)->io (Either DBError HType )
+  append item prev lt = do
+     let new_item = tSnoc item prev lt
+     Right ok <- storeHType new_item
+       | Left x => pure $Left $ EIO (show x)     
+     pure $ Right (new_item)
+  
   write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
   write' [] prev lt = do  
     Right x <- storeHType prev
       | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
     pure $ Right $ (ptr prev)  
-
+    
   write' (x :: xs) prev lt= do
-     let new = tSnoc x prev lt --StrListT      
-     Right ok <- storeHType new
-       | Left x => pure $Left $ EIO (show x)     
+     Right new <- DBSnocList.append x prev lt
+       | Left x => pure $Left x 
+           
      Right ret <- DBSnocList.write' xs new lt
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
+      | Left x => pure $Left x
      pure $ Right ret
 
   export
