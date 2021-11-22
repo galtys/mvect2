@@ -74,33 +74,33 @@ storeHType ht = do
      | Left x => pure $ Left (EIO $show x)
  pure $ Right ()
 
-namespace DB_List
-  db_write_list' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
-  db_write_list' [] prev lt = do  
+namespace DBList
+  write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
+  write' [] prev lt = do  
     Right x <- storeHType prev
       | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
     pure $ Right $ (ptr prev)  
 
-  db_write_list' (x :: xs) prev lt= do
+  write' (x :: xs) prev lt= do
      let new = tCons x prev lt --StrListT      
      Right ok <- storeHType new
        | Left x => pure $Left $ EIO (show x)     
-     Right ret <- db_write_list' xs new lt
+     Right ret <- DBList.write' xs new lt
       | Left x => pure $Left $ EIO ("error writing: "++(ptr new))    
      pure $ Right ret
 
   export
-  db_write_list : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
-  db_write_list xs lt = do
+  write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
+  write xs lt = do
     let null = tNil lt --nullStrListT
     x<- storeHType null
-    Right ret <- db_write_list' xs null lt
+    Right ret <- DBList.write' xs null lt
        | Left x => pure $ Left $ EIO (show x)
     pure $ Right ret
 
   export
-  db_read_list : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
-  db_read_list tp lt = do
+  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read tp lt = do
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -108,15 +108,15 @@ namespace DB_List
     --printLn arg
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- db_read_list prev lt
+         Right ret_xs <- DBList.read prev lt
             | Left e => pure $ Left e       
          pure $ Right (x::ret_xs)       
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right []
       _ => pure $ Left EHashLink
 
   export
-  db_read_as_snoclist : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
-  db_read_as_snoclist tp lt = do
+  readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+  readAsSnocList tp lt = do
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -124,11 +124,12 @@ namespace DB_List
     --printLn arg
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- db_read_as_snoclist prev lt
+         Right ret_xs <- DBList.readAsSnocList prev lt
             | Left e => pure $ Left e       
          pure $ Right (ret_xs:<x)       
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right [<]
       _ => pure $ Left EHashLink
+
 
 export
 testList : List String
@@ -143,18 +144,18 @@ db_main = do
   --printLn StrListT
   --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
   
-  Right p_t1 <- db_write_list testList StrListT
+  Right p_t1 <- DBList.write testList StrListT
      | Left x => printLn "error writing list"
   printLn p_t1
 
-  Right p_t2 <- db_write_list testList2 StrListT
+  Right p_t2 <- DBList.write testList2 StrListT
      | Left x => printLn "error writing list"
   printLn p_t2
         
-  ret <- db_read_list p_t1 StrListT
+  ret <- DBList.read p_t1 StrListT
   printLn ret
 
-  Right ret <- db_read_as_snoclist p_t2 StrListT
+  Right ret <- DBList.readAsSnocList p_t2 StrListT
      | Left e => pure ()
     
   printLn ret
