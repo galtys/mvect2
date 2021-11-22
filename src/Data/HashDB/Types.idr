@@ -15,9 +15,9 @@ TypePtr = String --H256
 public export
 data Arg = AType String | AVal String | ACon String | APtr TypePtr
 %runElab derive "Arg" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
-
-data DBErrors = EIO | EJS
-%runElab derive "DBErrors" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
+public export
+data DBError = EIO | EJS
+%runElab derive "DBError" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
 
 --public export
 toString : Arg -> String

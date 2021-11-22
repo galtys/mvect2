@@ -64,21 +64,22 @@ readHcnt tp = do
  pure cnt
 
 
-readHType : HasIO io => TypePtr -> io (Maybe HType)
+readHType : HasIO io => TypePtr -> io (Either DBError HType)
 readHType tp = do
   Right cnt <- readHcnt tp
-    | Left x => pure Nothing  
+    | Left x => pure $ Left EIO --Nothing  
   case (decode cnt) of
-    Left x => pure Nothing
-    Right arg => pure $Just (MkHT arg tp)
+    Left x => pure $ Left EJS --Nothing
+    Right arg => pure $ Right (MkHT arg tp)
 
 export
-storeHType : HasIO io => HType -> io (Either FileError ())
+storeHType : HasIO io => HType -> io (Either DBError ())
 storeHType ht = do
  let pth = data_store_dir ++ (ptr ht)
      cnt = (encode $ val ht)
- rw <- writeFile pth cnt
- pure rw
+ Right ret <- writeFile pth cnt
+     | Left x => pure $ Left EIO
+ pure $ Right ()
   
 export
 db_main : HasIO io => io ()
