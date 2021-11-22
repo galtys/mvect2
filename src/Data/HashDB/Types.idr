@@ -16,8 +16,8 @@ public export
 data Arg = AType String | AVal String | ACon String | APtr TypePtr
 %runElab derive "Arg" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
 public export
-data DBError = EIO | EJS
-%runElab derive "DBError" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
+data DBError = EIO String | EJS
+%runElab derive "DBError" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
 
 --public export
 toString : Arg -> String
