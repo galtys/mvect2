@@ -53,3 +53,17 @@ toType x = fromArg [AType x]
 export
 toAPtr : HType -> Arg
 toAPtr x = (APtr (ptr x))
+
+namespace DBQueue
+  public export
+  Name : Type
+  Name = String
+
+  public export
+  record FR where
+    constructor MkFR
+    f : TypePtr
+    r : TypePtr
+    lt : HType    
+    slt : HType
+

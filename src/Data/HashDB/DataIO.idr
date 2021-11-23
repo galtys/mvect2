@@ -217,19 +217,7 @@ namespace DBSnocList
 
 namespace DBQueue
   export
-  Name : Type
-  Name = String
-
-  export
-  record FR where
-    constructor MkFR
-    f : TypePtr
-    r : TypePtr
-    lt : HType    
-    slt : HType
-
-  export
-  new : HasIO io => MonadError DBError io => DBQueue.Name -> io (DBQueue.FR)
+  new : HasIO io => MonadError DBError io => Types.DBQueue.Name -> io (DBQueue.FR)
   new qn = do
      let slt = fromArg [AVar qn, toAPtr StrSnocListT]
          lt =  fromArg [AVar qn, toAPtr StrListT]
