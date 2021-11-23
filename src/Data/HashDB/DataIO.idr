@@ -314,6 +314,19 @@ namespace DBQueue
          Nothing => do       
             ret <- DBQueue.checkf (MkFR pf pr  qn)
             pure ret
+  export
+  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
+  head (MkFR f r qn) = (DBList.head f StrListT)
+     
+  show : HasIO io=> DBQueue.FR -> io (Either DBError () )
+  show (MkFR p_f p_r qn) = do
+     printLn ("f: "++qn)
+     retf <- DBList.read p_f StrListT
+     printLn retf
+     printLn ("r: "++qn)     
+     retr <- DBSnocList.read p_r StrSnocListT
+     printLn retr
+     pure $ Right ()
       
       {-
   checkf : Queue a -> Queue a
@@ -334,10 +347,7 @@ namespace DBQueue
   head (MkQ [] r) = Nothing
   head (MkQ (x :: xs) r) = Just x
 -}
-  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
-  head (MkFR f r qn) = (DBList.head f StrListT)
-     
-   
+  
 export
 test_f : List String
 test_f = [ (cast x) | x <- [1..5]]
@@ -347,10 +357,41 @@ test_r : List String
 test_r = [ (cast x) | x<- [6..10]]    
 
 
+export
+db_test_queue : HasIO io => io ()
+db_test_queue = do
+  Right q1 <- DBQueue.new "test" 
+    | Left e => pure () 
+  
+  Right q1 <- DBQueue.snoc q1 "t3ocas" 
+    | Left e => pure () 
+  Right q1 <- DBQueue.snoc q1 "8ssa" 
+    | Left e => pure () 
+  Right q1 <- DBQueue.snoc q1 "ts" 
+    | Left e => pure () 
+  Right q1 <- DBQueue.snoc q1 "qq" 
+    | Left e => pure ()     
+    
+  Right q1 <- DBQueue.tail q1
+    | Left e => pure () 
+  Right q1 <- DBQueue.tail q1
+    | Left e => pure () 
+    
+  ret <- DBQueue.show q1  
+  printLn ret    
+  Right h <- DBQueue.head q1
+    | Left e => pure ()   
+  printLn h
 
 export
 db_main : HasIO io => io ()
 db_main = do
+  db_test_queue
+  --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
+
+export
+db_list_test : HasIO io => io ()
+db_list_test = do
   --printLn StrListT
   --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
   printLn "create front"  
