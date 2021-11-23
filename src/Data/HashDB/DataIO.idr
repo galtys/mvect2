@@ -126,23 +126,7 @@ namespace DBList
          pure $ Right (Just (x,prev))
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right Nothing
       _ => pure $ Left EHashLink
-    {-
-  export
-  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
-  read tp lt = do  
-    Right ht <- readHType tp
-      | Left e => pure $ Left e
-    let arg = (val ht)
-    let ltype = (ptr lt)
-    --printLn arg
-    case arg of
-      ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- DBList.read prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (x::ret_xs)       
-      ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right []
-      _ => pure $ Left EHashLink
--}
+  
   export
   read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
   read tp lt = do  
@@ -158,18 +142,16 @@ namespace DBList
   export
   readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
   readAsSnocList tp lt = do
-    Right ht <- readHType tp
+    Right ht <- DBList.head tp lt
       | Left e => pure $ Left e
-    let arg = (val ht)
-    let ltype = (ptr lt)
-    --printLn arg
-    case arg of
-      ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
+    case ht of
+      Just (x,prev) => do
          Right ret_xs <- DBList.readAsSnocList prev lt
             | Left e => pure $ Left e       
-         pure $ Right (ret_xs:<x)       
-      ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right [<]
-      _ => pure $ Left EHashLink
+         pure $ Right (ret_xs:<x)
+         
+      Nothing => pure $ Right [<]
+  
 
 namespace DBSnocList
   export
@@ -255,6 +237,16 @@ namespace DBSnocList
   export
   readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
   readAsSnocList tp lt = do
+    Right ht <- DBSnocList.head tp lt
+      | Left e => pure $ Left e
+    case ht of
+      Just (x,prev) => do
+         Right ret_xs <- DBSnocList.readAsSnocList prev lt
+            | Left e => pure $ Left e       
+         pure $ Right (ret_xs:<x)
+         
+      Nothing => pure $ Right [<]
+{-  
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -267,7 +259,7 @@ namespace DBSnocList
          pure $ Right (ret_xs:<x)       
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right [<]
       _ => pure $ Left EHashLink
-      
+  -}    
       
       
       {-
