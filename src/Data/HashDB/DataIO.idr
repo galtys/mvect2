@@ -277,18 +277,6 @@ namespace DBQueue
      Right new_r <- DBSnocList.new StrSnocListT
        | Left x => pure $Left x    
      pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
-      {-
-  checkf : Queue a -> Queue a
-  checkf (MkQ [] r) = MkQ (toList r) [<]
-  checkf q = q 
-  export
-  snoc : {a:Type} -> Queue a -> a -> Queue a
-  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
-  export
-  tail : Queue a -> Queue a
-  tail (MkQ [] r) = checkf (MkQ [] r)
-  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
-  export -}
   
   checkf : HasIO io=> DBQueue.FR -> io (Either DBError DBQueue.FR) 
   checkf (MkFR f r qn) = do
@@ -311,7 +299,34 @@ namespace DBQueue
         | Left e => pure $ Left e
       Right ht <- DBSnocList.append item r StrSnocListT
         | Left e => pure $ Left e
-      pure $ Right $ (MkFR f (ptr ht)  qn)
+      ret <- DBQueue.checkf (MkFR f (ptr ht)  qn)
+      pure ret
+  
+  export
+  tail : HasIO io=> DBQueue.FR ->io (Either DBError DBQueue.FR) 
+  tail (MkFR pf pr qn) = do      
+      Right hx <- DBList.head pf StrListT 
+         | Left y => pure $ Left y
+      case hx of
+         Just (x,p_xsf) => do
+            ret <- DBQueue.checkf (MkFR p_xsf pr  qn)
+            pure ret             
+         Nothing => do       
+            ret <- DBQueue.checkf (MkFR pf pr  qn)
+            pure ret
+      
+      {-
+  checkf : Queue a -> Queue a
+  checkf (MkQ [] r) = MkQ (toList r) [<]
+  checkf q = q 
+  export
+  snoc : {a:Type} -> Queue a -> a -> Queue a
+  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
+  export
+  tail : Queue a -> Queue a
+  tail (MkQ [] r) = checkf (MkQ [] r)
+  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
+  export -}
         
   {-
     export
