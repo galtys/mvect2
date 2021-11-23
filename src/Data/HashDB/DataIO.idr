@@ -120,20 +120,16 @@ namespace DBList
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
-    let ltype = (ptr lt)
-    
+    let ltype = (ptr lt)    
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         --Right ret_xs <- DBList.read prev lt
-         --   | Left e => pure $ Left e       
          pure $ Right (Just (x,prev))
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right Nothing
       _ => pure $ Left EHashLink
-    
+    {-
   export
   read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
-  read tp lt = do
-  
+  read tp lt = do  
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -146,6 +142,18 @@ namespace DBList
          pure $ Right (x::ret_xs)       
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right []
       _ => pure $ Left EHashLink
+-}
+  export
+  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read tp lt = do  
+    Right ht <- DBList.head tp lt
+      | Left e => pure $ Left e
+    case ht of
+      Just (x,prev) => do
+         Right ret_xs <- DBList.read prev lt
+            | Left e => pure $ Left e       
+         pure $ Right (x::ret_xs)       
+      Nothing => pure $ Right []
 
   export
   readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
@@ -214,7 +222,7 @@ namespace DBSnocList
     Right ret <- DBSnocList.write' xs null lt
        | Left x => pure $ Left $ EIO (show x)
     pure $ Right ret
-
+{-
   export
   read2 : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
   read2 tp lt = do
@@ -230,7 +238,7 @@ namespace DBSnocList
          pure $ Right (x::ret_xs)       
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right []
       _ => pure $ Left EHashLink
-  
+  -}
    
   export
   read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
