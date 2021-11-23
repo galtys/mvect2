@@ -13,18 +13,20 @@ TypePtr : Type
 TypePtr = String --H256
 
 public export
-data Arg = AType String | AVal String | ACon String | APtr TypePtr
+data Arg = AType String | AVal String | ACon String | APtr TypePtr | AVar String
 %runElab derive "Arg" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
 public export
 data DBError = EIO String | EJS | EHashLink
 %runElab derive "DBError" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
 
 --public export
+
 toString : Arg -> String
 toString (AType x) = x
 toString (AVal x) = x
 toString (ACon x) = x
 toString (APtr x) = x
+toString (AVar x) =x
 
 public export
 record HType where

@@ -42,7 +42,7 @@ StrListT : HType
 StrListT = tList StrT
 export
 StrSnocListT : HType
-StrSnocListT = tList StrT
+StrSnocListT = tSnocList StrT
 
 data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data/"
@@ -268,63 +268,68 @@ namespace DBQueue
     constructor MkFR
     f : TypePtr
     r : TypePtr
-    qn : DBQueue.Name
+    --qn : DBQueue.Name
+    lt : HType    
+    slt : HType
+
   export
   new : HasIO io=> DBQueue.Name -> io (Either DBError DBQueue.FR)
   new qn = do
-     Right new_f <- DBList.new StrListT
+     let slt = fromArg [AVar qn, toAPtr StrSnocListT]
+         lt =  fromArg [AVar qn, toAPtr StrListT]
+     Right new_f <- DBList.new lt
        | Left x => pure $Left x       
-     Right new_r <- DBSnocList.new StrSnocListT
+     Right new_r <- DBSnocList.new slt
        | Left x => pure $Left x    
-     pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
+     pure $ Right (MkFR (ptr new_f) (ptr new_r) lt slt)
   
   checkf : HasIO io=> DBQueue.FR -> io (Either DBError DBQueue.FR) 
-  checkf (MkFR f r qn) = do
-      Right hx <- DBList.head f StrListT 
+  checkf (MkFR f r lt slt) = do
+      Right hx <- DBList.head f lt
         | Left y => pure $ Left y
       case hx of
          Nothing => do 
-            Right new_f <- DBSnocList.toDBList r StrSnocListT StrListT
+            Right new_f <- DBSnocList.toDBList r slt lt
               | Left e => pure$Left e              
-            Right new_r <- DBSnocList.new StrSnocListT
+            Right new_r <- DBSnocList.new slt
               | Left e => pure $Left e
             case new_f of 
-              Just nf => pure $ Right (MkFR nf (ptr new_r) qn)    
-              Nothing => pure $ Right (MkFR f r qn)
-         Just h =>  pure $ Right $ (MkFR f r qn)
+              Just nf => pure $ Right (MkFR nf (ptr new_r) lt slt)    
+              Nothing => pure $ Right (MkFR f r lt slt)
+         Just h =>  pure $ Right $ (MkFR f r lt slt)
   export
   snoc : HasIO io=> DBQueue.FR -> String ->io (Either DBError DBQueue.FR) 
-  snoc (MkFR f pr qn) item = do  
+  snoc (MkFR f pr lt slt) item = do  
       Right r <- readHType pr 
         | Left e => pure $ Left e
-      Right ht <- DBSnocList.append item r StrSnocListT
+      Right ht <- DBSnocList.append item r slt
         | Left e => pure $ Left e
-      ret <- DBQueue.checkf (MkFR f (ptr ht)  qn)
+      ret <- DBQueue.checkf (MkFR f (ptr ht) lt slt)
       pure ret
   
   export
   tail : HasIO io=> DBQueue.FR ->io (Either DBError DBQueue.FR) 
-  tail (MkFR pf pr qn) = do      
-      Right hx <- DBList.head pf StrListT 
+  tail (MkFR pf pr lt slt) = do      
+      Right hx <- DBList.head pf lt
          | Left y => pure $ Left y
       case hx of
          Just (x,p_xsf) => do
-            ret <- DBQueue.checkf (MkFR p_xsf pr  qn)
+            ret <- DBQueue.checkf (MkFR p_xsf pr lt slt)
             pure ret             
          Nothing => do       
-            ret <- DBQueue.checkf (MkFR pf pr  qn)
+            ret <- DBQueue.checkf (MkFR pf pr lt slt)
             pure ret
   export
   head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
-  head (MkFR f r qn) = (DBList.head f StrListT)
+  head (MkFR f r lt slt) = (DBList.head f lt)
      
   show : HasIO io=> DBQueue.FR -> io (Either DBError () )
-  show (MkFR p_f p_r qn) = do
-     printLn ("f: "++qn)
-     retf <- DBList.read p_f StrListT
+  show (MkFR p_f p_r lt slt) = do
+     printLn (show lt)
+     retf <- DBList.read p_f lt 
      printLn retf
-     printLn ("r: "++qn)     
-     retr <- DBSnocList.read p_r StrSnocListT
+     printLn (show slt)
+     retr <- DBSnocList.read p_r slt
      printLn retr
      pure $ Right ()
       
