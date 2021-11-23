@@ -258,18 +258,6 @@ namespace DBSnocList
       
       Nothing => pure $ Right Nothing
 
-      {-
-  checkf : Queue a -> Queue a
-  checkf (MkQ [] r) = MkQ (toList r) [<]
-  checkf q = q 
-  export
-  snoc : {a:Type} -> Queue a -> a -> Queue a
-  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
-  export
-  tail : Queue a -> Queue a
-  tail (MkQ [] r) = checkf (MkQ [] r)
-  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
-  export -}
 namespace DBQueue
   export
   Name : Type
@@ -289,15 +277,42 @@ namespace DBQueue
      Right new_r <- DBSnocList.new StrSnocListT
        | Left x => pure $Left x    
      pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
-     
+      {-
+  checkf : Queue a -> Queue a
+  checkf (MkQ [] r) = MkQ (toList r) [<]
+  checkf q = q 
+  export
+  snoc : {a:Type} -> Queue a -> a -> Queue a
+  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
+  export
+  tail : Queue a -> Queue a
+  tail (MkQ [] r) = checkf (MkQ [] r)
+  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
+  export -}
+  
   checkf : HasIO io=> DBQueue.FR -> io (Either DBError DBQueue.FR) 
   checkf (MkFR f r qn) = do
-      Right hx <- DBList.head f StrSnocListT 
+      Right hx <- DBList.head f StrListT 
         | Left y => pure $ Left y
       case hx of
-         Nothing => pure $ Right $ (MkFR f r qn)
+         Nothing => do 
+            Right new_f <- DBSnocList.toDBList r StrSnocListT StrListT
+              | Left e => pure$Left e              
+            Right new_r <- DBSnocList.new StrSnocListT
+              | Left e => pure $Left e
+            case new_f of 
+              Just nf => pure $ Right (MkFR nf (ptr new_r) qn)    
+              Nothing => pure $ Right (MkFR f r qn)
          Just h =>  pure $ Right $ (MkFR f r qn)
-
+  export
+  snoc : HasIO io=> DBQueue.FR -> String ->io (Either DBError DBQueue.FR) 
+  snoc (MkFR f pr qn) item = do  
+      Right r <- readHType pr 
+        | Left e => pure $ Left e
+      Right ht <- DBSnocList.append item r StrSnocListT
+        | Left e => pure $ Left e
+      pure $ Right $ (MkFR f (ptr ht)  qn)
+        
   {-
     export
   head : Queue a -> Maybe a   
