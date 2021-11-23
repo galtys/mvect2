@@ -1,7 +1,5 @@
 module Test1
 
-import Data.IORef
-
 
 import Web.Mongoose.Types
 import Web.Mongoose.FFI
@@ -29,9 +27,6 @@ import PQ.Schema
 --import System.FFI
 import JSON
 
-import Generics.Derive
-import JSON
-
 import PQ.CRUD
 import PQ.FFI
 import PQ.Schema
@@ -44,184 +39,10 @@ import Ledger.Schema.Types
 import Ledger.Schema.Order
 
 import Odoo.Schema.PJB
-import Data.SnocList
 
-%language ElabReflection
+import Core.Context
 
-namespace Queue
-  public export
-  data Queue : (a:Type) -> Type where
-     MkQ : (f:List a) -> (r:SnocList a) -> Queue a  
-  %runElab derive "Queue" [Generic, Meta, Eq, Ord, Show]
-  
-  data Muf : Type where
-     C1 : Muf  
-     C2 : Int -> Muf -> Muf
-  %runElab derive "Muf" [Generic, Meta, Eq, Ord, Show]
-  
-  export  
-  L1 : (k:Type) -> Type
-  L1 k = SOP I [[],[k,(L1 k)] ]
-  
-  
-  export
-  S1 : (k:Type) -> Type
-  S1 k = SOP I [[],[(S1 k),k] ]
-  
-  export
-  Q1 : (k:Type) -> Type
-  Q1 k = NP I [(L1 k),(S1 k)]
-
-
-  Mus : L1 Int
-  Mus = MkSOP (Z [])
-  
-  Mu1 : (L1 Int)
-  Mu1 = MkSOP (S $ Z [4,Mus])
-  
-  Mu2 : (L1 Int)
-  Mu2 = MkSOP (S $ Z [1,Mu1])
-  
-  --N1 : (k:Type) -> Type
-  --N1 k = Z k --NS I [k]
-    
-  --L1Int : L1 Int
-  --L1Int = MkSOP ()
-  --Q1 : (k:Type) -> Type
-  --Q1 k = SOP I [[],[k,(Q1 k)] ]
-    
-            
-  export
-  head : Queue a -> Maybe a   
-  head (MkQ [] r) = Nothing
-  head (MkQ (x :: xs) r) = Just x
-  
-  checkf : Queue a -> Queue a
-  checkf (MkQ [] r) = MkQ (toList r) [<]
-  checkf q = q 
-  export
-  snoc : {a:Type} -> Queue a -> a -> Queue a
-  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
-  export
-  tail : Queue a -> Queue a
-  tail (MkQ [] r) = checkf (MkQ [] r)
-  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
-  export
-  qtoList : Queue a -> List a
-  qtoList x = case (head x) of
-     Nothing => []
-     Just y => [y] ++ (qtoList $ tail x)
-  export
-  toQueue : {a:Type} -> List a -> Queue a
-  toQueue [] = MkQ [] [<]
-  toQueue (x :: xs) = snoc (toQueue xs) x 
-
-q1 : Queue Int
-q1 = MkQ [] [<]
-
-q2 : Queue Int
-q2 = snoc q1 10
-
-q3 : Queue Int
-q3 = snoc q2 20
-
-q4 : Queue Int
-q4 = snoc q3 120
-
-  --snoc (MkQ f (sx :< x)) a = ?sdfsdf_2 --(MkQ f (sx :< x))
-  
-  --snoc (MkQ f [<]) a = ?sdfsdf_1 --(MkQ f [<])
-  --snoc (MkQ f (sx :< x)) a = ?sdfsdf_2 --(MkQ f (sx :< x))
-
-
-
-
-public export
-data Ref : (l : label) -> Type -> Type where
-     [search l]
-     MkRef : IORef a -> Ref x a
-     
-export   
-newRef : HasIO io => (x : label) -> t -> io (Ref x t)
-newRef x val
-    = do ref <-  (newIORef val)
-         pure (MkRef ref)
-
-export %inline
-get : HasIO io => (x : label) -> {auto ref : Ref x a} -> io a
-get x {ref = MkRef io} = (readIORef io)
-
-export %inline
-put : HasIO io => (x : label) -> {auto ref : Ref x a} -> a -> io ()
-put x {ref = MkRef io} val = (writeIORef io val)
-
-export %inline
-update : HasIO io => (x : label) -> {auto ref : Ref x a} -> (a -> a) -> io ()
-update x f
-  = do v <- get x
-       put x (f v)
-       
-public export
-data MGs : Type where
-
-public export
-record MGSt where
-  constructor MkMGSt
-  cn : Int
-
-{-
-import Control.Monad.Either
-
-import PQ.CRUD
-import PQ.FFI
-import PQ.Schema
-import PQ.Types
--}
-
-%language ElabReflection
 %ambiguity_depth 10
-
-{-
-data RunIO : Type -> Type where
-     Quit : a -> RunIO a
-     Do : IO a -> (a -> Inf (RunIO b)) -> RunIO b
-     Seq : IO () -> Inf (RunIO b) -> RunIO b
-
-(>>=) : IO a -> (a -> Inf (RunIO b)) -> RunIO b
-(>>=) = Do
-
-(>>) : IO () -> Inf (RunIO b) -> RunIO b
-(>>) = Seq
-
-data Fuel = Dry | More (Lazy Fuel)
-
-run : Fuel -> RunIO a -> IO (Maybe a)
-run fuel (Quit val) = do pure (Just val)
-run (More fuel) (Do c f) = do res <- c
-                              run fuel (f res)
-run (More fuel) (Seq io k) = do io; run fuel k
-run Dry p = pure Nothing
-
-
-partial
-forever : Fuel
-forever = More forever
-
-greet : RunIO ()
-greet = do putStr "Enter your name: "
-           name <- getLine
-           if name == ""
-              then do putStrLn "Bye bye!"
-                      Quit ()
-              else do putStrLn ("Hello " ++ name)
-                      greet
-
-inf_loop2 : (Ptr MG_MGR) -> Int -> RunIO ()
-inf_loop2 p_mgr time_out = do
-  mg_mgr_poll p_mgr time_out
-  inf_loop2 p_mgr time_out
-
--}
 
 json_result : String
 json_result = "{\"result\": 332}"
@@ -273,56 +94,12 @@ inf_loop p_mgr time_out = do
   inf_loop p_mgr time_out
 
 
-fn_data_ref : HasIO io => io (IORef Country)
-fn_data_ref = newIORef UK
-
 
 gen_adder : Int -> (Int ->Int)
 gen_adder x = (\a => a+x)
 
 so_id_44575 : Bits32
 so_id_44575 = 44575
-
-
-{-
-          add_lines : (List PrimOrderLine.RecordModel) ->io (List  O2MOrderLine.RecordModel)
-          add_lines [] = pure []
-          add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
-
-             let muf1 = ((JC PkOTax TaxIdM2M_ST)&&(OrderLineIdM2M_ST==(cast pk) ))
-             tax_ids_np <- getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) muf1
-             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
-             let muf = ((PkOT==(cast order_id)))
-             order_id <- PrimOrder.read_records_c c muf            
-             let ret =(O2MOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
-             ret_xs <- add_lines xs
-             pure ([ret]++ret_xs)
--}
-
-{-
-          add_lines : (List PrimOrder.RecordModel) ->io (List  O2MOrder.RecordModel)
-          add_lines [] = pure []
-          add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
-            let muf = ((OrderIdOLT==(cast pk)))
-
-            order_line <- O2MOrderLine.read_records_c c muf
-            
-            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
-            ret_xs <- add_lines xs
-            pure ([ret]++ret_xs)          
--}
-
-
-{-
-
-            let muf = ((OrderIdOLT==(cast pk)))
-
-            order_line <- O2MOrderLine.read_records_c c muf
-            
-            let ret =(O2MOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
-            ret_xs <- add_lines xs
-            pure ([ret]++ret_xs)
--}
 
 main : IO ()
 main = do
