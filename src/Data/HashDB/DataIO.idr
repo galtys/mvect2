@@ -240,7 +240,7 @@ namespace DBSnocList
          Right ret <- DBSnocList.toDBList' snocprev slt lt ni
            | Left e => pure $ Left e
          pure $ Right ret
-      Nothing => pure $ Left EHashLink
+      Nothing => pure $ Right (ptr dst)
   export    
   toDBList : HasIO io => (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> io (Either DBError (Maybe TypePtr) )
   toDBList snoc slt lt = do
@@ -249,6 +249,7 @@ namespace DBSnocList
     
     case ht of
       Just (x,prev) => do 
+
          Right null <- DBList.new lt
             | Left e => pure $ Left $ e             
          Right ret <- DBSnocList.toDBList' snoc slt lt null
@@ -308,12 +309,12 @@ namespace DBQueue
      
    
 export
-testList : List String
-testList = [ (cast x) | x <- [1..10]]
+test_f : List String
+test_f = [ (cast x) | x <- [1..5]]
 
 export
-testList2 : List String
-testList2 = [ "T2:"++x | x<- testList]    
+test_r : List String
+test_r = [ (cast x) | x<- [6..10]]    
 
 
 
@@ -322,29 +323,35 @@ db_main : HasIO io => io ()
 db_main = do
   --printLn StrListT
   --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
-  
-  Right p_t1 <- DBList.write testList StrListT
+  printLn "create front"  
+  Right p_f <- DBList.write test_f StrListT
      | Left x => printLn "error writing list"
-  printLn p_t1
-  ret <- DBList.read p_t1 StrListT
+  --printLn p_t1  
+  ret <- DBList.read p_f StrListT
   printLn ret
 
-  printLn "snoclist orig"
-  Right p_ts <- DBSnocList.write testList StrSnocListT
+
+  printLn "create rear"
+  Right p_r <- DBSnocList.write test_r StrSnocListT
      | Left x => printLn "error writing snoclist"
-  printLn p_ts
+  printLn p_r
   
-  printLn "snoclist printing"  
-  ret <- DBSnocList.read p_ts StrSnocListT
+  printLn "rear printing"  
+  ret <- DBSnocList.read p_r StrSnocListT
   printLn ret
   
   printLn "converting: .."
-  
-  
-  Right cnv <- DBSnocList.toDBList p_ts StrSnocListT StrListT
+  Right p_r_cnv <- DBSnocList.toDBList p_r StrSnocListT StrListT
      | Left x => printLn (show x)
-  printLn cnv
+  printLn p_r_cnv
   
+  printLn "print converted: .."
+  
+  case p_r_cnv of
+    (Just px) => do
+       ret <- DBList.read px StrListT
+       printLn ret
+    Nothing => pure ()
   
 {-
 
