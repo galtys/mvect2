@@ -50,22 +50,20 @@ json_result = "{\"result\": 332}"
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
 
-
-x_my_http_handler : HasIO io => {auto cx:Ref MGs MGSt} -> Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
+x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    
                     --putStrLn ("HTTP is null: " ++ (show (is_ptr_null p_fn)))
-                    putStrLn ("HTTP val: " ++ (show (get_p_int p_fn )))                    
-                    
+                    putStrLn ("HTTP val: " ++ (show (get_p_int p_fn )))                                        
                     if (mg_http_match_uri hm "/rest")==1 then do
                            mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
-                           set_p_int p_fn 100
-                           
+                           set_p_int p_fn 100                           
                        else if (mg_http_match_uri hm "/websocket")==1 then do
                            mg_ws_upgrade p_conn p_ev get_pchar_NULL  
                          else do
                              p_opts <- (get_and_malloc__mg_http_serve_opts  WEB_ROOT)
                              mg_http_serve_dir p_conn hm p_opts 
+
 x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
                     --putStrLn ("MG_EV_ACCEPT: " ++ (show (is_ptr_null p_fn)))
                     putStrLn ("EV acceptp_fn  val: " ++ (show (get_p_int p_fn)))
@@ -83,12 +81,12 @@ x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
 x_my_http_handler p_conn ev p_ev p_fn = do 
                   pure ()
 
-my_http_handler : {auto cx:Ref MGs MGSt} -> (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
+my_http_handler :  (Ptr MG_CONNECTION) -> Int -> (Ptr EV_DATA) -> (Ptr FN_DATA) -> PrimIO ()
 my_http_handler p_conn ev p_ev p_fn = toPrim ( x_my_http_handler p_conn (fromBits8 ev) p_ev p_fn)
 
 
 partial
-inf_loop : {auto cx:Ref MGs MGSt} -> (Ptr MG_MGR) -> Int -> IO ()
+inf_loop : (Ptr MG_MGR) -> Int -> IO ()
 inf_loop p_mgr time_out = do
   mg_mgr_poll p_mgr time_out
   inf_loop p_mgr time_out
@@ -101,64 +99,21 @@ gen_adder x = (\a => a+x)
 so_id_44575 : Bits32
 so_id_44575 = 44575
 
-main : IO ()
-main = do
-
-  --l1 <- muf_3
-  --l1 <- SO_Simple.read (Id_OT == (cast so_id_44575)) --no implementation
-  --l1 <- SO_Simple.read (NameOT == (cast "SO44512"))
-  --test_main_x
-{-  
+pjb_test : IO ()
+pjb_test = do
   so <- O2MOrder.read_ids [21833] (True)
-  
   printLn so
-  
   inv <- O2MAccountInvoice.read (True)
   sp <- O2MStockPicking.read (True)
-  av <- O2MAccountVoucher.read (True)
-  
+  av <- O2MAccountVoucher.read (True)  
   --traverse_ printLn so
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av
--}
-  --traverse_ printLn (toHList testList Nothing)
-  db_main  
-  --ret <- O2MResPartner.read_ids [11992] (True)
-  --traverse_ printLn ret
-  
-  --ret <- O2MResPartner.read  (True)
-  --let x = (map child_ids ret)
-  --traverse_ printLn x
-  
-  --
-  --traverse_ printLn ret
-  
-  --[19446]
-  --ret2 <- O2MOrder.read  (True)
-  --traverse_ printLn ret2
-  
-  pure ()
-  {-
-  l1 <- PrimOrder.read (True)
-      
-  traverse_ printLn l1
-  printLn (length l1)
-  -}
-  
-  
-  --l2 <- SOL_Simple.read (True)
-  --traverse_ printLn l2
-  --printLn (length l2)  
-  
---  read_bom 44
+
+mg_test : IO ()
+mg_test = do
   --ignore $ run forever greet
-  
-  --c_ref <- fn_data_ref
-  --c <- readIORef c_ref
-  --putStrLn (show c)
-  
-  {-
   
   mg_log_set "3"
   p_mgr <- get_and_malloc__mg_mgr
@@ -170,20 +125,11 @@ main = do
   mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler x1
   --inf_loop p_mgr 1000
   mg_mgr_free p_mgr 
-  -}
   
-  --test_demo
-  --printLn ( (get_hom1 so1_lt1 ))  
-  --printLn (mufum (get_hom1 so1_lt1 ))
 
-  
-{-  
-  p_mgr <- get_and_malloc__mg_mgr
-  mg_mgr_init p_mgr 
-  
-  --mg_http_listen p_mgr "0.0.0.0:8000" prim__fn_http_handler p_mgr
-  mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler p_mgr
-  
-  inf_loop p_mgr 1000
-  mg_mgr_free p_mgr 
--}
+main : IO ()
+main = do
+
+
+  db_main  
+  pure ()
