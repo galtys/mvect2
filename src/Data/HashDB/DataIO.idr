@@ -171,6 +171,13 @@ namespace DBSnocList
      Right ok <- storeHType new_item
        | Left x => pure $Left $ EIO (show x)     
      pure $ Right (new_item)
+  export
+  new :HasIO io=>(lt:HType)->io (Either DBError HType )
+  new lt = do
+    let null = tLin lt --nullStrSnocListT
+    Right x<- storeHType null
+      | Left y => pure $Left $ EIO (show y)
+    pure $ Right null
   
   write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
   write' [] prev lt = do  
@@ -189,8 +196,8 @@ namespace DBSnocList
   export
   write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
   write xs lt = do
-    let null = tLin lt
-    x<- storeHType null
+    Right null <- DBSnocList.new lt
+       | Left x => pure $ Left $ x
     Right ret <- DBSnocList.write' xs null lt
        | Left x => pure $ Left $ EIO (show x)
     pure $ Right ret
@@ -241,9 +248,9 @@ namespace DBQueue
   export
   new : HasIO io=> DBQueue.Name -> io (Either DBError FR)
   new qn = do
-     Right new_f <- new StrListT
+     Right new_f <- DBList.new StrListT
        | Left x => pure $Left x       
-     Right new_r <- new StrListT
+     Right new_r <- DBSnocList.new StrSnocListT
        | Left x => pure $Left x    
      pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
   {-
