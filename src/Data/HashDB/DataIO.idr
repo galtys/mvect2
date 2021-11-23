@@ -115,7 +115,7 @@ namespace DBList
     pure $ Right ret
 
   export
-  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe String))
+  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe (String,TypePtr)) )
   head tp lt = do
     Right ht <- readHType tp
       | Left e => pure $ Left e
@@ -126,7 +126,7 @@ namespace DBList
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
          --Right ret_xs <- DBList.read prev lt
          --   | Left e => pure $ Left e       
-         pure $ Right (Just x)
+         pure $ Right (Just (x,prev))
       ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right Nothing
       _ => pure $ Left EHashLink
     
@@ -233,7 +233,21 @@ namespace DBSnocList
          pure $ Right (ret_xs:<x)       
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right [<]
       _ => pure $ Left EHashLink
-
+      
+      
+      
+      {-
+  checkf : Queue a -> Queue a
+  checkf (MkQ [] r) = MkQ (toList r) [<]
+  checkf q = q 
+  export
+  snoc : {a:Type} -> Queue a -> a -> Queue a
+  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
+  export
+  tail : Queue a -> Queue a
+  tail (MkQ [] r) = checkf (MkQ [] r)
+  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
+  export -}
 namespace DBQueue
   export
   Name : Type
@@ -246,20 +260,29 @@ namespace DBQueue
     r : TypePtr
     qn : DBQueue.Name
   export
-  new : HasIO io=> DBQueue.Name -> io (Either DBError FR)
+  new : HasIO io=> DBQueue.Name -> io (Either DBError DBQueue.FR)
   new qn = do
      Right new_f <- DBList.new StrListT
        | Left x => pure $Left x       
      Right new_r <- DBSnocList.new StrSnocListT
        | Left x => pure $Left x    
      pure $ Right (MkFR (ptr new_f) (ptr new_r) qn)
+     
+  checkf : HasIO io=> DBQueue.FR -> io (Either DBError DBQueue.FR) 
+  checkf (MkFR f r qn) = do
+      Right hx <- DBList.head f StrSnocListT 
+        | Left y => pure $ Left y
+      case hx of
+         Nothing => pure $ Right $ (MkFR f r qn)
+         Just h =>  pure $ Right $ (MkFR f r qn)
+
   {-
     export
   head : Queue a -> Maybe a   
   head (MkQ [] r) = Nothing
   head (MkQ (x :: xs) r) = Just x
 -}
-  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe String) )
+  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
   head (MkFR f r qn) = (DBList.head f StrListT)
      
    
