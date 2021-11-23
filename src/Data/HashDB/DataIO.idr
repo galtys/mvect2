@@ -204,24 +204,7 @@ namespace DBSnocList
     Right ret <- DBSnocList.write' xs null lt
        | Left x => pure $ Left $ EIO (show x)
     pure $ Right ret
-{-
-  export
-  read2 : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
-  read2 tp lt = do
-    Right ht <- readHType tp
-      | Left e => pure $ Left e
-    let arg = (val ht)
-    let ltype = (ptr lt)
-    --printLn arg
-    case arg of
-      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- DBSnocList.read2 prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (x::ret_xs)       
-      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right []
-      _ => pure $ Left EHashLink
-  -}
-   
+    
   export
   read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
   read tp lt = do
@@ -233,7 +216,7 @@ namespace DBSnocList
             | Left e => pure $ Left e       
          pure $ Right (x::ret_xs)       
       Nothing => pure $ Right []
-
+            
   export
   readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
   readAsSnocList tp lt = do
@@ -243,25 +226,37 @@ namespace DBSnocList
       Just (x,prev) => do
          Right ret_xs <- DBSnocList.readAsSnocList prev lt
             | Left e => pure $ Left e       
-         pure $ Right (ret_xs:<x)
-         
+         pure $ Right (ret_xs:<x)         
       Nothing => pure $ Right [<]
-{-  
-    Right ht <- readHType tp
+  
+  toDBList': HasIO io => (snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> io (Either DBError TypePtr)
+  toDBList' snoc slt lt dst = do
+    Right ht <- DBSnocList.head snoc slt
       | Left e => pure $ Left e
-    let arg = (val ht)
-    let ltype = (ptr lt)
-    --printLn arg
-    case arg of
-      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- DBSnocList.readAsSnocList prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (ret_xs:<x)       
-      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right [<]
-      _ => pure $ Left EHashLink
-  -}    
+    case ht of
+      Just (x,snocprev) => do
+         Right ni <- DBList.append x dst lt
+           | Left e => pure $ Left e
+         Right ret <- DBSnocList.toDBList' snocprev slt lt ni
+           | Left e => pure $ Left e
+         pure $ Right ret
+      Nothing => pure $ Left EHashLink
+  export    
+  toDBList : HasIO io => (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> io (Either DBError (Maybe TypePtr) )
+  toDBList snoc slt lt = do
+    Right ht <- DBSnocList.head snoc slt
+      | Left e => pure $ Left e
+    
+    case ht of
+      Just (x,prev) => do 
+         Right null <- DBList.new lt
+            | Left e => pure $ Left $ e             
+         Right ret <- DBSnocList.toDBList' snoc slt lt null
+            | Left e => pure $ Left $ e    
+         pure $ Right (Just ret)
       
-      
+      Nothing => pure $ Right Nothing
+
       {-
   checkf : Queue a -> Queue a
   checkf (MkQ [] r) = MkQ (toList r) [<]
@@ -334,14 +329,23 @@ db_main = do
   ret <- DBList.read p_t1 StrListT
   printLn ret
 
-  printLn "snoclist"
+  printLn "snoclist orig"
   Right p_ts <- DBSnocList.write testList StrSnocListT
      | Left x => printLn "error writing snoclist"
   printLn p_ts
   
+  printLn "snoclist printing"  
   ret <- DBSnocList.read p_ts StrSnocListT
   printLn ret
-
+  
+  printLn "converting: .."
+  
+  
+  Right cnv <- DBSnocList.toDBList p_ts StrSnocListT StrListT
+     | Left x => printLn (show x)
+  printLn cnv
+  
+  
 {-
 
   Right ret <- DBList.readAsSnocList p_t1 StrListT
