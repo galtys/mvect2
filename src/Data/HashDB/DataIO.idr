@@ -121,7 +121,7 @@ namespace DBList
       | Left e => pure $ Left e
     let arg = (val ht)
     let ltype = (ptr lt)
-
+    
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
          --Right ret_xs <- DBList.read prev lt
@@ -172,6 +172,19 @@ namespace DBSnocList
        | Left x => pure $Left $ EIO (show x)     
      pure $ Right (new_item)
   export
+  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe (String,TypePtr)) )
+  head tp lt = do
+    Right ht <- readHType tp
+      | Left e => pure $ Left e
+    let arg = (val ht)
+    let ltype = (ptr lt)    
+    case arg of
+      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
+         pure $ Right (Just (x,prev))
+      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right Nothing
+      _ => pure $ Left EHashLink
+     
+  export
   new :HasIO io=>(lt:HType)->io (Either DBError HType )
   new lt = do
     let null = tLin lt --nullStrSnocListT
@@ -203,8 +216,8 @@ namespace DBSnocList
     pure $ Right ret
 
   export
-  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
-  read tp lt = do
+  read2 : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read2 tp lt = do
     Right ht <- readHType tp
       | Left e => pure $ Left e
     let arg = (val ht)
@@ -212,11 +225,24 @@ namespace DBSnocList
     --printLn arg
     case arg of
       ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
-         Right ret_xs <- DBSnocList.read prev lt
+         Right ret_xs <- DBSnocList.read2 prev lt
             | Left e => pure $ Left e       
          pure $ Right (x::ret_xs)       
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right []
       _ => pure $ Left EHashLink
+  
+   
+  export
+  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read tp lt = do
+    Right ht <- DBSnocList.head tp lt
+      | Left e => pure $ Left e
+    case ht of
+      Just (x,prev) => do
+         Right ret_xs <- DBSnocList.read prev lt
+            | Left e => pure $ Left e       
+         pure $ Right (x::ret_xs)       
+      Nothing => pure $ Right []
 
   export
   readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
