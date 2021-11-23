@@ -322,7 +322,7 @@ namespace DBQueue
   export
   head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
   head (MkFR f r lt slt) = (DBList.head f lt)
-     
+  export
   show : HasIO io=> DBQueue.FR -> io (Either DBError () )
   show (MkFR p_f p_r lt slt) = do
      printLn (show lt)
