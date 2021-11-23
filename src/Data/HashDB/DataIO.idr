@@ -5,6 +5,8 @@ import System.Directory
 import System.File.ReadWrite
 import Data.SnocList
 
+import Control.Monad.Either
+
 --import public System.File.Error
 {-
 import System.File.Handle
@@ -56,207 +58,209 @@ readHcnt tp = do
  pure cnt
 
 
-readHType : HasIO io => TypePtr -> io (Either DBError HType)
+readHType : HasIO io=>MonadError DBError io => TypePtr -> io HType
 readHType tp = do
   Right cnt <- readHcnt tp
-    | Left x => pure $ Left $EIO (show x)
+    | Left e => throwError (EIO $show e) --pure $ Left $EIO (show x)
   case (decode cnt) of
-    Left x => pure $ Left $ EIO (show x) --Nothing
-    Right arg => pure $ Right (MkHT arg tp)
+    Left e => throwError (EIO $show e) --pure $ Left $ EIO (show x) 
+    Right arg => pure (MkHT arg tp)
 
 export
-storeHType : HasIO io => HType -> io (Either DBError ())
+storeHType: HasIO io=>MonadError DBError io => HType -> io ()
 storeHType ht = do
  --putStrLn$show ht 
  let pth = data_store_dir ++ (ptr ht)
      cnt = (encode $ val ht)
  Right ret <- writeFile pth cnt
-     | Left x => pure $ Left (EIO $show x)
- pure $ Right ()
+     | Left e => throwError (EIO $show e)
+ pure ()
 
 namespace DBList
   export
-  append : HasIO io=>String->(prev:HType)->(lt:HType)->io (Either DBError HType )
-  append item prev lt = do
-     let new_item = tCons item prev lt --StrListT      
-     Right ok <- storeHType new_item
-       | Left x => pure $Left x    
-     pure $ Right (new_item)
-  export
-  new :HasIO io=>(lt:HType)->io (Either DBError HType )
+  new :HasIO io=>MonadError DBError io =>(lt:HType)->io ( HType )
   new lt = do
     let null = tNil lt --nullStrListT
-    Right x<- storeHType null
-      | Left y => pure $Left $ EIO (show y)
-    pure $ Right null
-
-  write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
-  write' [] last lt = do  
-    Right x <- storeHType last
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr last))
-    pure $ Right $ (ptr last)  
-  write' (x :: xs) prev lt= do
-     Right newi <- DBList.append x prev lt
-       | Left x => pure $Left $ EIO (show x)
-       
-     Right ret <- DBList.write' xs newi lt
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr newi))    
-     pure $ Right ret
+    storeHType null
+    --  | Left e => throwError e --$ ConnectionError BAD msg --pure null --pure $Left e
+    pure null
 
   export
-  write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
+  append : HasIO io=>MonadError DBError io=>String->(prev:HType)->(lt:HType)->io HType
+  append item prev lt = do
+     let new_item = tCons item prev lt --StrListT      
+     storeHType new_item
+     --  | Left x => pure $Left x    
+     pure (new_item)
+
+  write' : HasIO io=>MonadError DBError io => List String -> (prev:HType) ->(lt:HType)-> io TypePtr
+  write' [] last lt = do  
+    storeHType last
+    --  | Left x => pure $Left $ EIO ("error writing: "++(ptr last))
+    pure $ ptr last
+    
+  write' (x :: xs) prev lt= do
+     newi <- DBList.append x prev lt
+     --  | Left x => pure $Left $ EIO (show x)
+       
+     ret <- DBList.write' xs newi lt
+     -- | Left x => pure $Left $ EIO ("error writing: "++(ptr newi))    
+     pure  ret
+
+  export
+  write : HasIO io=>MonadError DBError io  => List String -> (lt:HType) -> io TypePtr
   write xs lt = do
         
-    Right null <- DBList.new lt
-       | Left x => pure $ Left $ x
+    null <- DBList.new lt
+    --   | Left x => pure $ Left $ x
     
-    Right ret <- DBList.write' xs null lt
-       | Left x => pure $ Left $ EIO (show x)
-    pure $ Right ret
+    ret <- DBList.write' xs null lt
+    --   | Left x => pure $ Left $ EIO (show x)
+    pure ret
 
   export
-  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe (String,TypePtr)) )
+  head : HasIO io=>MonadError DBError io  => TypePtr -> (lt:HType)->io (Maybe (String,TypePtr))
   head tp lt = do
-    Right ht <- readHType tp
-      | Left e => pure $ Left e
+    ht <- readHType tp
+    --  | Left e => pure $ Left e
     let arg = (val ht)
     let ltype = (ptr lt)    
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         pure $ Right (Just (x,prev))
-      ( (ACon "NIL")::(APtr ltype)::[] ) => pure $ Right Nothing
-      _ => pure $ Left EHashLink
+         pure (Just (x,prev))
+      ( (ACon "NIL")::(APtr ltype)::[] ) => pure Nothing
+      _ => throwError EHashLink
   
   export
-  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read : HasIO io=>MonadError DBError io  => TypePtr -> (lt:HType)->io (List String)
   read tp lt = do  
-    Right ht <- DBList.head tp lt
-      | Left e => pure $ Left e
+    ht <- DBList.head tp lt
+    --  | Left e => pure $ Left e
     case ht of
       Just (x,prev) => do
-         Right ret_xs <- DBList.read prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (x::ret_xs)       
-      Nothing => pure $ Right []
+         ret_xs <- DBList.read prev lt
+         --   | Left e => pure $ Left e       
+         pure (x::ret_xs)       
+      Nothing => pure []
 
   export
-  readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+  readAsSnocList : HasIO io=>MonadError DBError io  => TypePtr -> (lt:HType)->io (SnocList String)
   readAsSnocList tp lt = do
-    Right ht <- DBList.head tp lt
-      | Left e => pure $ Left e
+    ht <- DBList.head tp lt
+    --  | Left e => pure $ Left e
     case ht of
       Just (x,prev) => do
-         Right ret_xs <- DBList.readAsSnocList prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (ret_xs:<x)
+         ret_xs <- DBList.readAsSnocList prev lt
+         --   | Left e => pure $ Left e       
+         pure (ret_xs:<x)
          
-      Nothing => pure $ Right [<]
+      Nothing => pure [<]
   
 
 namespace DBSnocList
   export
-  append : HasIO io=>String->(prev:HType)->(lt:HType)->io (Either DBError HType )
+  new :HasIO io=>MonadError DBError io => (lt:HType)->io (HType)
+  new lt = do
+    let null = tLin lt --nullStrSnocListT
+    storeHType null
+    --  | Left y => pure null --$Left $ EIO (show y)
+    pure null
+  
+  export
+  append : HasIO io=>MonadError DBError io=>String->(prev:HType)->(lt:HType)->io HType
   append item prev lt = do
      let new_item = tSnoc item prev lt
-     Right ok <- storeHType new_item
-       | Left x => pure $Left $ EIO (show x)     
-     pure $ Right (new_item)
+     ok <- storeHType new_item
+     --  | Left x => pure $Left $ EIO (show x)     
+     pure new_item
   export
-  head : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (Maybe (String,TypePtr)) )
+  head : HasIO io=>MonadError DBError io => TypePtr -> (lt:HType)->io (Maybe (String,TypePtr))
   head tp lt = do
-    Right ht <- readHType tp
-      | Left e => pure $ Left e
+    ht <- readHType tp
+    --  | Left e => pure $ Left e
     let arg = (val ht)
     let ltype = (ptr lt)    
     case arg of
       ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
-         pure $ Right (Just (x,prev))
-      ( (ACon "LIN")::(APtr ltype)::[] ) => pure $ Right Nothing
-      _ => pure $ Left EHashLink
+         pure (Just (x,prev))
+      ( (ACon "LIN")::(APtr ltype)::[] ) => pure Nothing
+      _ => throwError EHashLink --pure $ Left EHashLink
      
-  export
-  new :HasIO io=>(lt:HType)->io (Either DBError HType )
-  new lt = do
-    let null = tLin lt --nullStrSnocListT
-    Right x<- storeHType null
-      | Left y => pure $Left $ EIO (show y)
-    pure $ Right null
-  
-  write' : HasIO io => List String -> (prev:HType) ->(lt:HType)-> io (Either DBError TypePtr )
+  write' : HasIO io=>MonadError DBError io => List String -> (prev:HType) ->(lt:HType)-> io TypePtr
   write' [] prev lt = do  
-    Right x <- storeHType prev
-      | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
-    pure $ Right $ (ptr prev)  
+    x <- storeHType prev
+    --  | Left x => pure $Left $ EIO ("error writing: "++(ptr prev))
+    pure (ptr prev)  
     
   write' (x :: xs) prev lt= do
-     Right new <- DBSnocList.append x prev lt
-       | Left x => pure $Left x 
+     new <- DBSnocList.append x prev lt
+     --  | Left x => pure $Left x 
            
-     Right ret <- DBSnocList.write' xs new lt
-      | Left x => pure $Left x
-     pure $ Right ret
+     ret <- DBSnocList.write' xs new lt
+     -- | Left x => pure $Left x
+     pure ret
 
   export
-  write : HasIO io => List String -> (lt:HType) -> io (Either DBError TypePtr)
+  write : HasIO io=>MonadError DBError io => List String -> (lt:HType) -> io TypePtr
   write xs lt = do
-    Right null <- DBSnocList.new lt
-       | Left x => pure $ Left $ x
-    Right ret <- DBSnocList.write' xs null lt
-       | Left x => pure $ Left $ EIO (show x)
-    pure $ Right ret
+    null <- DBSnocList.new lt
+    --   | Left x => pure $ Left $ x
+    ret <- DBSnocList.write' xs null lt
+    --   | Left x => pure $ Left $ EIO (show x)
+    pure ret
     
   export
-  read : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (List String))
+  read : HasIO io=>MonadError DBError io => TypePtr -> (lt:HType)->io (List String)
   read tp lt = do
-    Right ht <- DBSnocList.head tp lt
-      | Left e => pure $ Left e
+    ht <- DBSnocList.head tp lt
+    --  | Left e => pure $ Left e
     case ht of
       Just (x,prev) => do
-         Right ret_xs <- DBSnocList.read prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (x::ret_xs)       
-      Nothing => pure $ Right []
+         ret_xs <- DBSnocList.read prev lt
+         --   | Left e => pure e       
+         pure (x::ret_xs)       
+      Nothing => pure []
             
   export
-  readAsSnocList : HasIO io => TypePtr -> (lt:HType)->io (Either DBError (SnocList String))
+  readAsSnocList : HasIO io=>MonadError DBError io => TypePtr -> (lt:HType)->io ((SnocList String))
   readAsSnocList tp lt = do
-    Right ht <- DBSnocList.head tp lt
-      | Left e => pure $ Left e
+    ht <- DBSnocList.head tp lt
+    --  | Left e => pure $ Left e
     case ht of
       Just (x,prev) => do
-         Right ret_xs <- DBSnocList.readAsSnocList prev lt
-            | Left e => pure $ Left e       
-         pure $ Right (ret_xs:<x)         
-      Nothing => pure $ Right [<]
+         ret_xs <- DBSnocList.readAsSnocList prev lt
+           -- | Left e => pure $ Left e       
+         pure (ret_xs:<x)         
+      Nothing => pure [<]
   
-  toDBList': HasIO io => (snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> io (Either DBError TypePtr)
+  toDBList': HasIO io=>MonadError DBError io => (snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> io TypePtr
   toDBList' snoc slt lt dst = do
-    Right ht <- DBSnocList.head snoc slt
-      | Left e => pure $ Left e
+    ht <- DBSnocList.head snoc slt
+    --  | Left e => pure $ Left e
     case ht of
       Just (x,snocprev) => do
-         Right ni <- DBList.append x dst lt
-           | Left e => pure $ Left e
-         Right ret <- DBSnocList.toDBList' snocprev slt lt ni
-           | Left e => pure $ Left e
-         pure $ Right ret
-      Nothing => pure $ Right (ptr dst)
+         ni <- DBList.append x dst lt
+         --  | Left e => pure $ Left e
+         ret <- DBSnocList.toDBList' snocprev slt lt ni
+         --  | Left e => pure $ Left e
+         pure ret
+      Nothing => pure (ptr dst)
   export    
-  toDBList : HasIO io => (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> io (Either DBError (Maybe TypePtr) )
+  toDBList : HasIO io=>MonadError DBError io => (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> io ((Maybe TypePtr) )
   toDBList snoc slt lt = do
-    Right ht <- DBSnocList.head snoc slt
-      | Left e => pure $ Left e
+    ht <- DBSnocList.head snoc slt
+    --  | Left e => pure $ Left e
     
     case ht of
       Just (x,prev) => do 
 
-         Right null <- DBList.new lt
-            | Left e => pure $ Left $ e             
-         Right ret <- DBSnocList.toDBList' snoc slt lt null
-            | Left e => pure $ Left $ e    
-         pure $ Right (Just ret)
+         null <- DBList.new lt
+         --   | Left e => pure $ Left $ e             
+         ret <- DBSnocList.toDBList' snoc slt lt null
+         --   | Left e => pure $ Left $ e    
+         pure (Just ret)
       
-      Nothing => pure $ Right Nothing
+      Nothing => pure Nothing
 
 namespace DBQueue
   export
@@ -268,50 +272,50 @@ namespace DBQueue
     constructor MkFR
     f : TypePtr
     r : TypePtr
-    --qn : DBQueue.Name
     lt : HType    
     slt : HType
 
   export
-  new : HasIO io=> DBQueue.Name -> io (Either DBError DBQueue.FR)
+  new : HasIO io => MonadError DBError io => DBQueue.Name -> io (DBQueue.FR)
   new qn = do
      let slt = fromArg [AVar qn, toAPtr StrSnocListT]
          lt =  fromArg [AVar qn, toAPtr StrListT]
-     Right new_f <- DBList.new lt
-       | Left x => pure $Left x       
-     Right new_r <- DBSnocList.new slt
-       | Left x => pure $Left x    
-     pure $ Right (MkFR (ptr new_f) (ptr new_r) lt slt)
+     new_f <- DBList.new lt
+     --  | Left x => pure $Left x       
+     new_r <- DBSnocList.new slt
+     --  | Left x => pure $Left x    
+     pure (MkFR (ptr new_f) (ptr new_r) lt slt)
   
-  checkf : HasIO io=> DBQueue.FR -> io (Either DBError DBQueue.FR) 
+  checkf : HasIO io=> MonadError DBError io=> DBQueue.FR -> io (DBQueue.FR) 
   checkf (MkFR f r lt slt) = do
-      Right hx <- DBList.head f lt
-        | Left y => pure $ Left y
+      hx <- DBList.head f lt
+      --  | Left y => pure $ Left y
       case hx of
          Nothing => do 
-            Right new_f <- DBSnocList.toDBList r slt lt
-              | Left e => pure$Left e              
-            Right new_r <- DBSnocList.new slt
-              | Left e => pure $Left e
+            new_f <- DBSnocList.toDBList r slt lt
+            --  | Left e => pure$Left e              
+            new_r <- DBSnocList.new slt
+            --  | Left e => pure $Left e
             case new_f of 
-              Just nf => pure $ Right (MkFR nf (ptr new_r) lt slt)    
-              Nothing => pure $ Right (MkFR f r lt slt)
-         Just h =>  pure $ Right $ (MkFR f r lt slt)
+              Just nf => pure (MkFR nf (ptr new_r) lt slt)    
+              Nothing => pure (MkFR f r lt slt)
+         Just h =>  pure (MkFR f r lt slt)
+         
   export
-  snoc : HasIO io=> DBQueue.FR -> String ->io (Either DBError DBQueue.FR) 
+  snoc : HasIO io=> MonadError DBError io=> DBQueue.FR -> String ->io DBQueue.FR
   snoc (MkFR f pr lt slt) item = do  
-      Right r <- readHType pr 
-        | Left e => pure $ Left e
-      Right ht <- DBSnocList.append item r slt
-        | Left e => pure $ Left e
+      r <- readHType pr 
+      --  | Left e => pure $ Left e
+      ht <- DBSnocList.append item r slt
+      --  | Left e => pure $ Left e
       ret <- DBQueue.checkf (MkFR f (ptr ht) lt slt)
       pure ret
   
   export
-  tail : HasIO io=> DBQueue.FR ->io (Either DBError DBQueue.FR) 
+  tail : HasIO io=> MonadError DBError io=> DBQueue.FR ->io DBQueue.FR 
   tail (MkFR pf pr lt slt) = do      
-      Right hx <- DBList.head pf lt
-         | Left y => pure $ Left y
+      hx <- DBList.head pf lt
+      --   | Left y => pure $ Left y
       case hx of
          Just (x,p_xsf) => do
             ret <- DBQueue.checkf (MkFR p_xsf pr lt slt)
@@ -320,10 +324,10 @@ namespace DBQueue
             ret <- DBQueue.checkf (MkFR pf pr lt slt)
             pure ret
   export
-  head : HasIO io=> DBQueue.FR -> io (Either DBError (Maybe (String,TypePtr)) )
+  head : HasIO io=> MonadError DBError io=> DBQueue.FR -> io (Maybe (String,TypePtr))
   head (MkFR f r lt slt) = (DBList.head f lt)
   export
-  show : HasIO io=> DBQueue.FR -> io (Either DBError () )
+  show : HasIO io=> MonadError DBError io=> DBQueue.FR -> io ()
   show (MkFR p_f p_r lt slt) = do
      printLn (show lt)
      retf <- DBList.read p_f lt 
@@ -331,28 +335,8 @@ namespace DBQueue
      printLn (show slt)
      retr <- DBSnocList.read p_r slt
      printLn retr
-     pure $ Right ()
-      
-      {-
-  checkf : Queue a -> Queue a
-  checkf (MkQ [] r) = MkQ (toList r) [<]
-  checkf q = q 
-  export
-  snoc : {a:Type} -> Queue a -> a -> Queue a
-  snoc (MkQ f r) x = checkf (MkQ f (r:<x))
-  export
-  tail : Queue a -> Queue a
-  tail (MkQ [] r) = checkf (MkQ [] r)
-  tail (MkQ (x :: xs) r) = checkf (MkQ xs r)  
-  export -}
-        
-  {-
-    export
-  head : Queue a -> Maybe a   
-  head (MkQ [] r) = Nothing
-  head (MkQ (x :: xs) r) = Just x
--}
-  
+     pure ()
+    
 export
 test_f : List String
 test_f = [ (cast x) | x <- [1..5]]
@@ -361,55 +345,22 @@ export
 test_r : List String
 test_r = [ (cast x) | x<- [6..10]]    
 
-
 export
-db_test_queue : HasIO io => io ()
-db_test_queue = do
-  Right q1 <- DBQueue.new "test" 
-    | Left e => pure () 
-  
-  Right q1 <- DBQueue.snoc q1 "t3ocas" 
-    | Left e => pure () 
-  Right q1 <- DBQueue.snoc q1 "8ssa" 
-    | Left e => pure () 
-  Right q1 <- DBQueue.snoc q1 "ts" 
-    | Left e => pure () 
-  Right q1 <- DBQueue.snoc q1 "qq" 
-    | Left e => pure ()     
-    
-  Right q1 <- DBQueue.tail q1
-    | Left e => pure () 
-  Right q1 <- DBQueue.tail q1
-    | Left e => pure () 
-    
-  ret <- DBQueue.show q1  
-  printLn ret    
-  Right h <- DBQueue.head q1
-    | Left e => pure ()   
-  printLn h
-
-export
-db_main : HasIO io => io ()
-db_main = do
-  db_test_queue
-  --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
-
-export
-db_list_test : HasIO io => io ()
+db_list_test : HasIO io=> MonadError DBError io => io ()
 db_list_test = do
   --printLn StrListT
   --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
   printLn "create front"  
-  Right p_f <- DBList.write test_f StrListT
-     | Left x => printLn "error writing list"
+  p_f <- DBList.write test_f StrListT
+  --   | Left x => printLn "error writing list"
   --printLn p_t1  
   ret <- DBList.read p_f StrListT
   printLn ret
 
 
   printLn "create rear"
-  Right p_r <- DBSnocList.write test_r StrSnocListT
-     | Left x => printLn "error writing snoclist"
+  p_r <- DBSnocList.write test_r StrSnocListT
+  --   | Left x => printLn "error writing snoclist"
   printLn p_r
   
   printLn "rear printing"  
@@ -417,8 +368,8 @@ db_list_test = do
   printLn ret
   
   printLn "converting: .."
-  Right p_r_cnv <- DBSnocList.toDBList p_r StrSnocListT StrListT
-     | Left x => printLn (show x)
+  p_r_cnv <- DBSnocList.toDBList p_r StrSnocListT StrListT
+  --   | Left x => printLn (show x)
   printLn p_r_cnv
   
   printLn "print converted: .."
@@ -428,16 +379,41 @@ db_list_test = do
        ret <- DBList.read px StrListT
        printLn ret
     Nothing => pure ()
-  
-{-
+ 
 
-  Right ret <- DBList.readAsSnocList p_t1 StrListT
-     | Left e => pure ()
-  printLn ret
-  -}
+export
+db_test_queue : HasIO io=> MonadError DBError io => io ()
+db_test_queue = do
+  db_list_test
+  q1 <- DBQueue.new "test"   
+  
+  q1 <- DBQueue.snoc q1 "t3ocas" 
+  --  | Left e => pure () 
+  q1 <- DBQueue.snoc q1 "8ssa" 
+  --  | Left e => pure () 
+  q1 <- DBQueue.snoc q1 "ts" 
+  --  | Left e => pure () 
+  q1 <- DBQueue.snoc q1 "qq" 
+  --  | Left e => pure ()     
     
-  --let (prev, htype_map) = toHList testList
-  --printLn prev
-  --
-  --traverse_ printLn (map snd (Data.SortedMap.toList htype_map))
+  q1 <- DBQueue.tail q1
+  --  | Left e => pure () 
+  q1 <- DBQueue.tail q1
+  --  | Left e => pure () 
+    
+  ret <- DBQueue.show q1  
+  printLn ret    
+  h <- DBQueue.head q1
+  --  | Left e => pure ()   
+  printLn h
+
+
+export
+db_main : IO ()
+db_main = do
+    Left err <- runEitherT (db_test_queue {io = EitherT DBError IO})
+            | Right () => pure ()
+    printLn err  
+  --db_test_queue
+  --let p_list = "0A769E8F51F42A4D935984EA4824CBCC7B969B724CA5E6DE6624FB5ABD97E65F"
 
