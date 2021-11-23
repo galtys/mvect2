@@ -74,11 +74,13 @@ namespace Subscriber
     mg_index : Int
     inq : DBQueue.FR -- incomming msg queue
     outq : DBQueue.FR -- outgoing msg queue
+  %runElab derive "Subscriber.Rec" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
 
 namespace Observable
+
   public export
-  data OblCmd = ObAll | ObOne 
-  %runElab derive "OblCmd" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
+  data Cmd = ObAll | ObOne 
+  %runElab derive "Observable.Cmd" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
   
   public export
   record Rec where
