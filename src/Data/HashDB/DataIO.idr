@@ -269,6 +269,21 @@ namespace DBQueue
      retr <- DBSnocList.read p_r slt
      printLn retr
      pure ()
+
+namespace Observable
+  export
+  new : HasIO io => MonadError DBError io => String -> io (Observable.Rec)
+  new on = do
+     let lo = fromArg [AVar on, AVar "subscribers", toAPtr StrListT]
+         lr =  fromArg [AVar on,AVar "removed",   toAPtr StrListT]
+         --lr =  fromArg [AVar qn,AVar "inq",   toAPtr StrListT]         
+     new_o <- DBList.new lo
+     new_rm <- DBList.new lr
+     new_inq <- DBQueue.new (on++"inq")
+     new_cmd <- DBQueue.new (on++"cmd")              
+     pure (Observable.MkO (ptr new_o) (ptr new_rm) lo lr new_inq new_cmd)
+  
+  
     
 export
 test_f : List String

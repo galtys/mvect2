@@ -58,7 +58,6 @@ namespace DBQueue
   public export
   Name : Type
   Name = String
-
   public export
   record FR where
     constructor MkFR
@@ -66,4 +65,29 @@ namespace DBQueue
     r : TypePtr
     lt : HType    
     slt : HType
+  %runElab derive "DBQueue.FR" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
 
+namespace Subscriber
+  public export
+  record Rec where
+    constructor MkS
+    mg_index : Int
+    inq : DBQueue.FR -- incomming msg queue
+    outq : DBQueue.FR -- outgoing msg queue
+
+namespace Observable
+  public export
+  data OblCmd = ObAll | ObOne 
+  %runElab derive "OblCmd" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
+  
+  public export
+  record Rec where
+    constructor MkO
+    subscribers : TypePtr -- List of Subscriber s
+    removed : TypePtr  -- List of deactivated subscribers, should be tree
+    lo : HType
+    lr : HType
+    inq : DBQueue.FR -- incomming msg queue
+    cmd : DBQueue.FR -- command queue
+    
+  %runElab derive "Observable.Rec" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
