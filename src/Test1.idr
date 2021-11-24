@@ -54,7 +54,7 @@ x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DAT
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    
                     --putStrLn ("HTTP is null: " ++ (show (is_ptr_null p_fn)))
-                    putStrLn ("HTTP val: " ++ (show (get_p_int p_fn )))                                        
+                    putStrLn ("HTTP val: " ++ (show (get_p_int p_fn ) ))                                        
                     if (mg_http_match_uri hm "/rest")==1 then do
                            mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
                            set_p_int p_fn 100                           

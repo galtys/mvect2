@@ -50,6 +50,11 @@ fromArg x = MkHT x (getPtr x)
 export
 toType : String -> HType
 toType x = fromArg [AType x]
+
+export
+fromName : String -> HType
+fromName x = fromArg [AVar x]
+
 export
 toAPtr : HType -> Arg
 toAPtr x = (APtr (ptr x))

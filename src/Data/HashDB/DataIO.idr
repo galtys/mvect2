@@ -205,13 +205,16 @@ namespace DBSnocList
  
 namespace DBQueue
   export
-  new : Types.DBQueue.Name -> HCommand (DBQueue.FR)
+  new : (qname:HType) -> HCommand (DBQueue.FR) --Types.DBQueue.Name 
   new qn = do
-     let slt = fromArg [AVar qn, toAPtr StrSnocListT]
-         lt =  fromArg [AVar qn, toAPtr StrListT]
+     let slt = fromArg [toAPtr qn, toAPtr StrSnocListT]
+         lt =  fromArg [toAPtr qn, toAPtr StrListT]
      new_f <- DBList.new lt
      new_r <- DBSnocList.new slt
-     Pure (MkFR ( new_f) ( new_r) lt slt)
+     Pure (MkFR new_f new_r lt slt)
+  
+--  export
+--  new2 : 
   
   checkf : DBQueue.FR -> HCommand (DBQueue.FR) 
   checkf (MkFR f r lt slt) = do
@@ -261,10 +264,10 @@ namespace DBQueue
      Log "Rear SnocList"
      Show retr
      Pure ()
-
+{-
 namespace Observable
   export
-  new : String -> HCommand (Observable.Rec)
+  new : String -> HCommand Observable.Rec
   new on = do
      let lo = fromArg [AVar on, AVar "subscribers", toAPtr StrListT]
          lr =  fromArg [AVar on,AVar "removed",   toAPtr StrListT]
@@ -273,7 +276,10 @@ namespace Observable
      new_rm <- DBList.new lr
      new_inq <- DBQueue.new (on++"inq")
      new_cmd <- DBQueue.new (on++"cmd")              
-     Pure (Observable.MkO ( new_o) ( new_rm) lo lr new_inq new_cmd)
+     Pure (Observable.MkO new_o new_rm lo lr new_inq new_cmd)
+-}     
+  --new2 : String -> HCommand TypePtr
+  --new2 
 
 export
 test_f : List String
@@ -310,7 +316,7 @@ export
 db_test_queue : HCommand ()
 db_test_queue = do
   --db_list_test
-  q1 <- DBQueue.new "test"   
+  q1 <- DBQueue.new $ fromName "test"   
   q1 <- DBQueue.snoc q1 "t3ocas" 
   q1 <- DBQueue.snoc q1 "8ssa" 
   q1 <- DBQueue.snoc q1 "ts" 
