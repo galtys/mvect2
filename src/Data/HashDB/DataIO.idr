@@ -137,7 +137,6 @@ namespace DBSnocList
   head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
   head tp lt = do
     ht <- Read tp
-
     let ltype = (ptr lt)
     case (val ht) of
       ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
