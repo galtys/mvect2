@@ -50,6 +50,27 @@ json_result = "{\"result\": 332}"
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
 
+
+export
+db_test_queue2 : HCommand ()
+db_test_queue2 = do
+  qn <- fromName "test2"   
+  q1 <- DBQueueStr.new qn
+  q1 <- DBQueueStr.snoc q1 "t3ocas" 
+  q1 <- DBQueueStr.snoc q1 "8ssa" 
+  q1 <- DBQueueStr.snoc q1 "ts" 
+  q1 <- DBQueueStr.snoc q1 "qq" 
+  q1 <- DBQueueStr.tail q1
+  q1 <- DBQueueStr.tail q1
+    
+  ret <- DBQueueStr.show q1  
+  Show ret    
+  h <- DBQueueStr.head q1
+  Show  h
+
+
+
+
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    

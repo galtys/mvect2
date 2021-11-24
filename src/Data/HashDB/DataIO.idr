@@ -359,7 +359,6 @@ db_list_test = do
 export
 db_test_queue : HCommand ()
 db_test_queue = do
-
   qn <- fromName "test"   
   q1 <- DBQueueStr.new qn
   q1 <- DBQueueStr.snoc q1 "t3ocas" 
@@ -373,6 +372,7 @@ db_test_queue = do
   Show ret    
   h <- DBQueueStr.head q1
   Show  h
+  
 
 -- IO part  
       
