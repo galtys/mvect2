@@ -59,11 +59,11 @@ namespace HCommandDo
  
 namespace DBList  
   export
-  new : (lt:HType) -> HCommand HType
+  new : (lt:HType) -> HCommand (TypePtr) --HType
   new lt = do
     let null = tNil lt
     Store null
-    Pure null
+    Pure (ptr null)
  
   export
   append : String->(prev:HType)->(lt:HType)->HCommand HType
@@ -84,7 +84,8 @@ namespace DBList
   export
   write : List String -> (lt:HType) -> HCommand TypePtr
   write xs lt = do        
-    null <- DBList.new lt
+    p_null <- DBList.new lt
+    null <- Read p_null
     ret <- DBList.write' xs null lt
     Pure ret
     
@@ -121,11 +122,11 @@ namespace DBList
       
 namespace DBSnocList
   export
-  new :(lt:HType)->HCommand (HType)
+  new :(lt:HType)->HCommand (TypePtr) --TypePtr
   new lt = do
     let null = tLin lt
     Store null
-    Pure null  
+    Pure (ptr null)  
   export
   append : String->(prev:HType)->(lt:HType)->HCommand HType
   append item prev lt = do
@@ -156,7 +157,8 @@ namespace DBSnocList
   export
   write : List String -> (lt:HType) -> HCommand TypePtr
   write xs lt = do
-    null <- DBSnocList.new lt
+    p_null <- DBSnocList.new lt
+    null <- Read p_null
     ret <- DBSnocList.write' xs null lt
     Pure ret
     
@@ -194,8 +196,9 @@ namespace DBSnocList
   toDBList snoc slt lt = do
     ht <- DBSnocList.head snoc slt    
     case ht of
-      Just (x,prev) => do 
-         null <- DBList.new lt
+      Just (x,prev) => do          
+         p_null <- DBList.new lt
+         null <- Read p_null
          ret <- DBSnocList.toDBList' snoc slt lt null
          Pure (Just ret)
       
@@ -209,7 +212,7 @@ namespace DBQueue
          lt =  fromArg [AVar qn, toAPtr StrListT]
      new_f <- DBList.new lt
      new_r <- DBSnocList.new slt
-     Pure (MkFR (ptr new_f) (ptr new_r) lt slt)
+     Pure (MkFR ( new_f) ( new_r) lt slt)
   
   checkf : DBQueue.FR -> HCommand (DBQueue.FR) 
   checkf (MkFR f r lt slt) = do
@@ -219,7 +222,7 @@ namespace DBQueue
             new_f <- DBSnocList.toDBList r slt lt
             new_r <- DBSnocList.new slt
             case new_f of 
-              Just nf => Pure (MkFR nf (ptr new_r) lt slt)    
+              Just nf => Pure (MkFR nf ( new_r) lt slt)    
               Nothing => Pure (MkFR f r lt slt)
          Just h =>  Pure (MkFR f r lt slt)
          
@@ -271,7 +274,7 @@ namespace Observable
      new_rm <- DBList.new lr
      new_inq <- DBQueue.new (on++"inq")
      new_cmd <- DBQueue.new (on++"cmd")              
-     Pure (Observable.MkO (ptr new_o) (ptr new_rm) lo lr new_inq new_cmd)
+     Pure (Observable.MkO ( new_o) ( new_rm) lo lr new_inq new_cmd)
 
 export
 test_f : List String
