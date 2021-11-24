@@ -270,7 +270,7 @@ export
 test_r : List String
 test_r = [ (cast x) | x<- [6..10]]    
 export
-db_list_test : HCommand ()
+db_list_test : HCommand (List String)
 db_list_test = do
   p_f <- DBList.write test_f StrListT
   ret <- DBList.read p_f StrListT
@@ -293,7 +293,8 @@ db_list_test = do
        ret <- DBList.read px StrListT
        Show ret
     Nothing => Pure ()
-
+  Pure ret
+  
 export
 db_test_queue : HCommand ()
 db_test_queue = do
@@ -347,7 +348,7 @@ runHCommand (Bind c f) = do res <- runHCommand c
                             runHCommand (f res)
 
 export
-db_runc : HasIO io => MonadError DBError io => io ()
+db_runc : HasIO io => MonadError DBError io => io (List String)
 db_runc = do
     runHCommand (db_test_queue >> db_list_test)
     
@@ -356,10 +357,10 @@ export
 db_main : IO ()
 db_main = do
     
-    Left err <- runEitherT (db_runc {io = EitherT DBError IO})
-            | Right () => pure ()
-    printLn err  
-
+    Right ret <- runEitherT (db_runc {io = EitherT DBError IO})
+            | Left (err) => pure ()
+    printLn ret 
+    
 
 {-
   export  
