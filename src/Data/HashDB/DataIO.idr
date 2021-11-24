@@ -42,17 +42,10 @@ data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data/"
 
 export
-readHcnt : HasIO io => TypePtr -> io (Either FileError String)
-readHcnt tp = do
- let pth = data_store_dir ++ tp
- cnt <- readFile pth
- pure cnt
-
-export
 readHType : HasIO io=>MonadError DBError io => TypePtr -> io HType
 readHType tp = do
-
-  Right cnt <- readHcnt tp
+  let pth = data_store_dir ++ tp
+  Right cnt <- readFile pth
     | Left e => throwError (EIO $show e)
   case (decode cnt) of
     Left e => throwError (EIO $show e)
