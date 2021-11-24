@@ -70,21 +70,29 @@ fromArg : List Arg -> HType
 fromArg x = MkHT x (getPtr x)
 
 export
+fromArgCmd : List Arg -> HCommand HType
+fromArgCmd x = do
+  --let p_x = (getPtr x)
+  let ht =MkHT x (getPtr x)
+  Store ht
+  Pure ht
+
+export
 toType : String -> HType
 toType x = fromArg [AType x]
 
 export
-fromName : String -> HType
-fromName x = fromArg [AVar x]
+fromName : String -> HCommand HType
+fromName x = fromArgCmd [AVar x]
 
 export
 toAPtr : HType -> Arg
 toAPtr x = (APtr (ptr x))
 
 namespace DBQueue
-  public export
+{-  public export
   Name : Type
-  Name = String
+  Name = String-}
   public export
   record FR where
     constructor MkFR

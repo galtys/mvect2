@@ -188,8 +188,9 @@ namespace DBQueue
   export
   new : (qname:HType) -> HCommand (DBQueue.FR) --Types.DBQueue.Name 
   new qn = do
-     let slt = fromArg [toAPtr qn, toAPtr StrSnocListT]
-         lt =  fromArg [toAPtr qn, toAPtr StrListT]
+     slt <- fromArgCmd [toAPtr qn, toAPtr StrSnocListT]
+     lt <-  fromArgCmd [toAPtr qn, toAPtr StrListT]
+     
      new_f <- DBList.new lt
      new_r <- DBSnocList.new slt
      Pure (MkFR new_f new_r lt slt)
@@ -296,8 +297,9 @@ db_list_test = do
 export
 db_test_queue : HCommand ()
 db_test_queue = do
-  --db_list_test
-  q1 <- DBQueue.new $ fromName "test"   
+
+  qn <- fromName "test"   
+  q1 <- DBQueue.new qn
   q1 <- DBQueue.snoc q1 "t3ocas" 
   q1 <- DBQueue.snoc q1 "8ssa" 
   q1 <- DBQueue.snoc q1 "ts" 
