@@ -100,7 +100,42 @@ namespace DBListStr
          ret_xs <- DBListStr.readAsSnocList prev lt
          Pure (ret_xs:<x)
       Nothing => Pure [<]
-      
+
+namespace DBList
+  export
+  append :(ToJSON vty)=>(FromJSON vty)=> vty->(prev:HType)->(lt:HType)->HCommand HType
+  append vty prev lt = DBListStr.append (encode vty) prev lt
+  export
+  head : (FromJSON vty)=>TypePtr->(lt:HType)->HCommand (Maybe (vty,TypePtr))
+  head tp lt = do
+    Just (str_ret,p_ret) <- DBListStr.head tp lt
+      | Nothing => Pure Nothing
+    case (decode str_ret) of
+      Left err => LinkError Nothing
+      Right x => Pure $ Just (x,p_ret)
+  export
+  write : (ToJSON vty)=>List vty->(lt:HType)->HCommand TypePtr
+  write xs lt = do
+     let str_list = map encode xs
+     ret <- DBListStr.write str_list lt
+     Pure ret
+  export
+  read : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (Maybe (List vty))
+  read tp lt = do
+     ret <- DBListStr.read tp lt
+     let decodeOne : String -> (Maybe vty)
+         decodeOne str = do
+            case (decode str) of 
+              Left err => Nothing
+              Right x => Just x
+         retxs : (Maybe (List vty))
+         retxs = traverse decodeOne ret
+     case retxs of 
+       Nothing => DecodeError Nothing
+       (Just xs) => Pure $Just xs
+     
+--     Pure $ retxs ret 
+
 namespace DBSnocListStr
   export
   new :(lt:HType)->HCommand (TypePtr) --TypePtr
@@ -343,6 +378,7 @@ runHCommand (Read x)= readHType x --getLine
 runHCommand (Log x )= printLn x
 runHCommand (Show x) = printLn $ show x
 runHCommand (LinkError x) = throwError EHashLink
+runHCommand (DecodeError x) = throwError (ErrorJS "Error while decoding JS")
 runHCommand (Pure val) = pure val
 runHCommand (Bind c f) = do res <- runHCommand c
                             runHCommand (f res)

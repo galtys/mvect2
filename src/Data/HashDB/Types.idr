@@ -46,7 +46,7 @@ data HCommand : Type -> Type where
      Log : String -> HCommand ()
      Show : (Show ty) => ty -> HCommand ()
      LinkError : ty -> HCommand ty
---     DecodeError : ty -> 
+     DecodeError : ty -> HCommand ty
      Pure : ty -> HCommand ty
      Bind : HCommand a -> (a -> HCommand b) -> HCommand b
 
