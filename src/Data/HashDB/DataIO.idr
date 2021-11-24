@@ -51,6 +51,7 @@ readHcnt tp = do
 export
 readHType : HasIO io=>MonadError DBError io => TypePtr -> io HType
 readHType tp = do
+
   Right cnt <- readHcnt tp
     | Left e => throwError (EIO $show e)
   case (decode cnt) of
@@ -149,9 +150,9 @@ namespace DBSnocList
   head : HasIO io=>MonadError DBError io => TypePtr -> (lt:HType)->io (Maybe (String,TypePtr))
   head tp lt = do
     ht <- readHType tp
-    let arg = (val ht)
-    let ltype = (ptr lt)    
-    case arg of
+    --let arg = (val ht)
+    let ltype = (ptr lt)
+    case (val ht) of
       ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
          pure (Just (x,prev))
       ( (ACon "LIN")::(APtr ltype)::[] ) => pure Nothing
@@ -345,3 +346,27 @@ db_main = do
     Left err <- runEitherT (db_test_queue {io = EitherT DBError IO})
             | Right () => pure ()
     printLn err  
+
+{-
+  export  
+  L1 : (k:Type) -> Type
+  L1 k = SOP I [[],[k,(L1 k)] ]
+  export
+  S1 : (k:Type) -> Type
+  S1 k = SOP I [[],[(S1 k),k] ]
+  export
+  Q1 : (k:Type) -> Type
+  Q1 k = NP I [(L1 k),(S1 k)]
+  Mus : L1 Int
+  Mus = MkSOP (Z [])
+  Mu1 : (L1 Int)
+  Mu1 = MkSOP (S $ Z [4,Mus])
+  Mu2 : (L1 Int)
+  Mu2 = MkSOP (S $ Z [1,Mu1])
+  --N1 : (k:Type) -> Type
+  --N1 k = Z k --NS I [k]
+  --L1Int : L1 Int
+  --L1Int = MkSOP ()
+  --Q1 : (k:Type) -> Type
+  --Q1 k = SOP I [[],[k,(Q1 k)] ]
+-}

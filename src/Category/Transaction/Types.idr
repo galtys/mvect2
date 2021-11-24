@@ -328,12 +328,12 @@ Product : Type
 Product = (ProdKey, TQty)
     
 public export
-Product2 : Type
-Product2 = (ProdKey2, LineTerm)
-
-public export
 Hom1 : Type
 Hom1 = List Product
+
+public export
+Product2 : Type
+Product2 = (ProdKey2, LineTerm)
 
 public export
 Hom2 : Type
