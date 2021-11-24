@@ -46,6 +46,7 @@ data HCommand : Type -> Type where
      Log : String -> HCommand ()
      Show : (Show ty) => ty -> HCommand ()
      LinkError : ty -> HCommand ty
+--     DecodeError : ty -> 
      Pure : ty -> HCommand ty
      Bind : HCommand a -> (a -> HCommand b) -> HCommand b
 
@@ -89,7 +90,7 @@ export
 toAPtr : HType -> Arg
 toAPtr x = (APtr (ptr x))
 
-namespace DBQueue
+namespace DBQueueStr--DBQueue
 {-  public export
   Name : Type
   Name = String-}
@@ -100,15 +101,15 @@ namespace DBQueue
     r : TypePtr
     lt : HType    
     slt : HType
-  %runElab derive "DBQueue.FR" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
+  %runElab derive "DBQueueStr.FR" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
 
 namespace Subscriber
   public export
   record Rec where
     constructor MkS
     mg_index : Int
-    inq : DBQueue.FR -- incomming msg queue
-    outq : DBQueue.FR -- outgoing msg queue
+    inq : DBQueueStr.FR -- incomming msg queue
+    outq : DBQueueStr.FR -- outgoing msg queue
   %runElab derive "Subscriber.Rec" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
 
 namespace Observable
@@ -124,8 +125,8 @@ namespace Observable
     removed : TypePtr  -- List of deactivated subscribers, should be tree
     lo : HType
     lr : HType
-    inq : DBQueue.FR -- incomming msg queue
-    cmd : DBQueue.FR -- command queue
+    inq : DBQueueStr.FR -- incomming msg queue
+    cmd : DBQueueStr.FR -- command queue
     
   %runElab derive "Observable.Rec" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
 

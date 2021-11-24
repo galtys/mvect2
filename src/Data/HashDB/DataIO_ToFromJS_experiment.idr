@@ -15,8 +15,8 @@ export
 tNil : (tList:HType) -> HType
 tNil l = fromArg [ACon "NIL", toAPtr l]
 export
-tCons : (val:String) -> (prev:HType) -> (list:HType) -> HType
-tCons val prev tl = fromArg [ACon "CONS", AVal val, toAPtr prev, toAPtr tl]
+tCons : (ToJSON valty)=> valty -> (prev:HType) -> (list:HType) -> HType
+tCons vty prev tl = fromArg [ACon "CONS", AVal (encode vty), toAPtr prev, toAPtr tl]
 
 export
 tSnocList : (a:HType) -> HType
@@ -25,8 +25,8 @@ export
 tLin : (tList:HType) -> HType
 tLin l = fromArg [ACon "LIN", toAPtr l]
 export
-tSnoc : (val:String) -> (prev:HType) -> (snoclist:HType) -> HType
-tSnoc val prev tsl = fromArg [ACon "SNOC", toAPtr prev, AVal val, toAPtr tsl]
+tSnoc : (ToJSON valty)=> (valty) -> (prev:HType) -> (snoclist:HType) -> HType
+tSnoc vty prev tsl = fromArg [ACon "SNOC", toAPtr prev, AVal (encode vty), toAPtr tsl]
 
 export
 StrT : HType
@@ -38,230 +38,232 @@ export
 StrSnocListT : HType
 StrSnocListT = tSnocList StrT
  
-namespace DBListStr  
+namespace DBList  
   export
   new : (lt:HType) -> HCommand (TypePtr) --HType
   new lt = do
     let null = tNil lt
     Store null
     Pure (ptr null)
- 
+
   export
-  append : String->(prev:HType)->(lt:HType)->HCommand HType
+  append : (ToJSON valty) => valty ->(prev:HType)->(lt:HType)->HCommand HType
   append item prev lt = do
      let new_item = tCons item prev lt
      Store new_item
      Pure new_item
-       
-  write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
+
+  write' : (ToJSON valty) => List valty -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
   write' [] last lt = do  
     Store last
     Pure $ ptr last        
   write' (x :: xs) prev lt= do
-     newi <- DBListStr.append x prev lt
-     ret <- DBListStr.write' xs newi lt
+     newi <- DBList.append x prev lt
+     ret <- DBList.write' xs newi lt
      Pure ret
-     
+
   export
-  write : List String -> (lt:HType) -> HCommand TypePtr
+  write : (ToJSON valty) =>List valty -> (lt:HType) -> HCommand TypePtr
   write xs lt = do        
-    p_null <- DBListStr.new lt
+    p_null <- DBList.new lt
     null <- Read p_null
-    ret <- DBListStr.write' xs null lt
+    ret <- DBList.write' xs null lt
     Pure ret
-    
-  export
-  head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
+
+  export  -- !!! Improve LinkError (add params about the error)
+  head : (FromJSON vty) => TypePtr -> (lt:HType)->HCommand (Maybe (vty,TypePtr))
   head tp lt = do
     ht <- Read tp
     let arg = (val ht)
     let ltype = (ptr lt)    
     case arg of
       ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
-         Pure (Just (x,prev))
+         case (decode x) of 
+           Left err => LinkError Nothing -- (ErrorJS $ show err)
+           Right xd => Pure (Just (xd,prev))
       ( (ACon "NIL")::(APtr ltype)::[] ) => Pure Nothing      
       _ => LinkError Nothing 
-  
+
   export
-  read : TypePtr -> (lt:HType)->HCommand (List String)
+  read : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (List vty)
   read tp lt = do  
-    ht <- DBListStr.head tp lt
+    ht <- DBList.head tp lt
     case ht of
       Just (x,prev) => do
-         ret_xs <- DBListStr.read prev lt
+         ret_xs <- DBList.read prev lt
          Pure (x::ret_xs)       
       Nothing => Pure []
 
-  readAsSnocList : TypePtr -> (lt:HType)->HCommand (SnocList String)
+  readAsSnocList : (FromJSON vty)=>TypePtr->(lt:HType)->HCommand (SnocList vty)
   readAsSnocList tp lt = do
-    ht <- DBListStr.head tp lt
+    ht <- DBList.head tp lt
     case ht of
       Just (x,prev) => do
-         ret_xs <- DBListStr.readAsSnocList prev lt
+         ret_xs <- DBList.readAsSnocList prev lt
          Pure (ret_xs:<x)
       Nothing => Pure [<]
-      
-namespace DBSnocListStr
+
+namespace DBSnocList
   export
   new :(lt:HType)->HCommand (TypePtr) --TypePtr
   new lt = do
     let null = tLin lt
     Store null
     Pure (ptr null)  
+    
   export
-  append : String->(prev:HType)->(lt:HType)->HCommand HType
+  append : (ToJSON vty)=>vty->(prev:HType)->(lt:HType)->HCommand HType
   append item prev lt = do
      let new_item = tSnoc item prev lt
      ok <- Store new_item
-     Pure new_item
+     Pure new_item 
+     
   export
-  head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
+  head : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (Maybe (vty,TypePtr))
   head tp lt = do
     ht <- Read tp
     let ltype = (ptr lt)
     case (val ht) of
       ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
-         Pure (Just (x,prev))
+         case (decode x) of 
+           Left err => LinkError Nothing -- (ErrorJS $ show err)
+           Right xd => Pure (Just (xd,prev))
+         --Pure (Just (x,prev))
       ( (ACon "LIN")::(APtr ltype)::[] ) => Pure Nothing
       _ => LinkError Nothing
      
-  write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
+  write' : (ToJSON vty)=>List vty -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
   write' [] prev lt = do  
     x <- Store prev
     Pure (ptr prev)      
   write' (x :: xs) prev lt= do
-     new <- DBSnocListStr.append x prev lt
-     ret <- DBSnocListStr.write' xs new lt
+     new <- DBSnocList.append x prev lt
+     ret <- DBSnocList.write' xs new lt
      Pure ret
 
   export
-  write : List String -> (lt:HType) -> HCommand TypePtr
+  write : (ToJSON vty)=>List vty-> (lt:HType) -> HCommand TypePtr
   write xs lt = do
-    p_null <- DBSnocListStr.new lt
+    p_null <- DBSnocList.new lt
     null <- Read p_null
-    ret <- DBSnocListStr.write' xs null lt
+    ret <- DBSnocList.write' xs null lt
     Pure ret
-    
+
   export
-  read : TypePtr -> (lt:HType)->HCommand (List String)
+  read : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (List vty)
   read tp lt = do
-    ht <- DBSnocListStr.head tp lt
+    ht <- DBSnocList.head tp lt
     case ht of
       Just (x,prev) => do
-         ret_xs <- DBSnocListStr.read prev lt
+         ret_xs <- DBSnocList.read prev lt
          Pure (x::ret_xs)       
       Nothing => Pure []
-            
+
   export
-  readAsSnocList : TypePtr -> (lt:HType)->HCommand (SnocList String)
+  readAsSnocList : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (SnocList vty)
   readAsSnocList tp lt = do
-    ht <- DBSnocListStr.head tp lt
+    ht <- DBSnocList.head tp lt
     case ht of
       Just (x,prev) => do
-         ret_xs <- DBSnocListStr.readAsSnocList prev lt
+         ret_xs <- DBSnocList.readAsSnocList prev lt
          Pure (ret_xs:<x)         
       Nothing => Pure [<]
-  
-  toDBListStr': (snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> HCommand TypePtr
-  toDBListStr' snoc slt lt dst = do
-    ht <- DBSnocListStr.head snoc slt
+
+  toDBList': (FromJSON vty)=>(ToJSON vty)=>(snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> HCommand (Maybe vty,Maybe TypePtr)
+  toDBList' snoc slt lt dst = do
+    let sHead : HCommand (Maybe (vty,TypePtr))
+        sHead = DBSnocList.head snoc slt
+    ht <- sHead
+    
     case ht of
       Just (x,snocprev) => do
-         ni <- DBListStr.append x dst lt
-         ret <- DBSnocListStr.toDBListStr' snocprev slt lt ni
+         ni <- DBList.append x dst lt
+         let retDBL' : HCommand (Maybe vty,Maybe TypePtr)
+             retDBL' = DBSnocList.toDBList' snocprev slt lt ni
+             
+         ret <- retDBL'
+         --ret <- DBSnocList.toDBList' snocprev slt lt ni
          Pure ret
-      Nothing => Pure (ptr dst)
+      Nothing => Pure (Nothing,Just (ptr dst))
+
   export    
-  toDBListStr : (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> HCommand ((Maybe TypePtr) )
-  toDBListStr snoc slt lt = do
-    ht <- DBSnocListStr.head snoc slt    
+  toDBList : (FromJSON vty)=>(ToJSON vty)=>(snoc:TypePtr) -> (slt:HType)->(lt:HType) -> HCommand (Maybe TypePtr) --((Maybe TypePtr),(Maybe vty) )
+  toDBList snoc slt lt = do
+    --ht <- DBSnocList.head snoc slt    
+    let sHead : HCommand (Maybe (vty,TypePtr))
+        sHead = DBSnocList.head snoc slt
+    ht <- sHead
     case ht of
       Just (x,prev) => do          
-         p_null <- DBListStr.new lt
+         p_null <- DBList.new lt
          null <- Read p_null
-         ret <- DBSnocListStr.toDBListStr' snoc slt lt null
-         Pure (Just ret)
+         let retDBL' : HCommand (Maybe vty,Maybe TypePtr)
+             retDBL' = DBSnocList.toDBList' snoc slt lt null         
+         (vty,ret) <- retDBL' --DBSnocList.toDBList' snoc slt lt null
+         Pure ret
       
       Nothing => Pure Nothing
  
-namespace DBQueueStr--DBQueueStr
+namespace DBQueue
   export
-  new : (qname:HType) -> HCommand (DBQueueStr.FR) --Types.DBQueueStr.Name 
+  new : (qname:HType) -> HCommand (DBQueue.FR) --Types.DBQueue.Name 
   new qn = do
      slt <- fromArgCmd [toAPtr qn, toAPtr StrSnocListT]
      lt <-  fromArgCmd [toAPtr qn, toAPtr StrListT]
      
-     new_f <- DBListStr.new lt
-     new_r <- DBSnocListStr.new slt
+     new_f <- DBList.new lt
+     new_r <- DBSnocList.new slt
      Pure (MkFR new_f new_r lt slt)
   
---  export
---  new2 : 
   
-  checkf : DBQueueStr.FR -> HCommand (DBQueueStr.FR) 
+  checkf : (FromJSON vty)=>(ToJSON vty)=>DBQueue.FR -> HCommand (DBQueue.FR) 
   checkf (MkFR f r lt slt) = do
-      hx <- DBListStr.head f lt
+      hx <- DBList.head f lt
       case hx of
          Nothing => do 
-            new_f <- DBSnocListStr.toDBListStr r slt lt
-            new_r <- DBSnocListStr.new slt
+            new_f <- DBSnocList.toDBList r slt lt
+            new_r <- DBSnocList.new slt
             case new_f of 
               Just nf => Pure (MkFR nf ( new_r) lt slt)    
               Nothing => Pure (MkFR f r lt slt)
          Just h =>  Pure (MkFR f r lt slt)
-         
+{-         
   export
-  snoc : DBQueueStr.FR -> String ->HCommand DBQueueStr.FR
+  snoc : DBQueue.FR -> String ->HCommand DBQueue.FR
   snoc (MkFR f pr lt slt) item = do  
       r <- Read pr 
-      ht <- DBSnocListStr.append item r slt
-      ret <- DBQueueStr.checkf (MkFR f (ptr ht) lt slt)
+      ht <- DBSnocList.append item r slt
+      ret <- DBQueue.checkf (MkFR f (ptr ht) lt slt)
       Pure ret
 
   export
-  tail : DBQueueStr.FR ->HCommand DBQueueStr.FR 
+  tail : DBQueue.FR ->HCommand DBQueue.FR 
   tail (MkFR pf pr lt slt) = do      
-      hx <- DBListStr.head pf lt
+      hx <- DBList.head pf lt
       case hx of
          Just (x,p_xsf) => do
-            ret <- DBQueueStr.checkf (MkFR p_xsf pr lt slt)
+            ret <- DBQueue.checkf (MkFR p_xsf pr lt slt)
             Pure ret             
          Nothing => do       
-            ret <- DBQueueStr.checkf (MkFR pf pr lt slt)
+            ret <- DBQueue.checkf (MkFR pf pr lt slt)
             Pure ret
   export
-  head : DBQueueStr.FR -> HCommand (Maybe (String,TypePtr))
-  head (MkFR f r lt slt) = (DBListStr.head f lt)
+  head : DBQueue.FR -> HCommand (Maybe (String,TypePtr))
+  head (MkFR f r lt slt) = (DBList.head f lt)
   export
-  show : DBQueueStr.FR -> HCommand ()
+  show : DBQueue.FR -> HCommand ()
   show (MkFR p_f p_r lt slt) = do
      Log "lt"
      Show lt
-     retf <- DBListStr.read p_f lt 
+     retf <- DBList.read p_f lt 
      Log "Front List"
      Show retf
      Log "slt"
      Show slt
-     retr <- DBSnocListStr.read p_r slt
+     retr <- DBSnocList.read p_r slt
      Log "Rear SnocList"
      Show retr
      Pure ()
-{-
-namespace Observable
-  export
-  new : String -> HCommand Observable.Rec
-  new on = do
-     let lo = fromArg [AVar on, AVar "subscribers", toAPtr StrListT]
-         lr =  fromArg [AVar on,AVar "removed",   toAPtr StrListT]
-         --lr =  fromArg [AVar qn,AVar "inq",   toAPtr StrListT]         
-     new_o <- DBListStr.new lo
-     new_rm <- DBListStr.new lr
-     new_inq <- DBQueueStr.new (on++"inq")
-     new_cmd <- DBQueueStr.new (on++"cmd")              
-     Pure (Observable.MkO new_o new_rm lo lr new_inq new_cmd)
--}     
-  --new2 : String -> HCommand TypePtr
-  --new2 
 
 export
 test_f : List String
@@ -272,25 +274,25 @@ test_r = [ (cast x) | x<- [6..10]]
 export
 db_list_test : HCommand (List String)
 db_list_test = do
-  p_f <- DBListStr.write test_f StrListT
-  ret <- DBListStr.read p_f StrListT
+  p_f <- DBList.write test_f StrListT
+  ret <- DBList.read p_f StrListT
   Show ret --  printLn ret
   Log "create rear"
-  p_r <- DBSnocListStr.write test_r StrSnocListT
+  p_r <- DBSnocList.write test_r StrSnocListT
   Show p_r
   
   Log ("rear printing")
-  ret <- DBSnocListStr.read p_r StrSnocListT
+  ret <- DBSnocList.read p_r StrSnocListT
   Show ret
   
   Log ("converting: ..")
-  p_r_cnv <- DBSnocListStr.toDBListStr p_r StrSnocListT StrListT
+  p_r_cnv <- DBSnocList.toDBList p_r StrSnocListT StrListT
   Show p_r_cnv
   Log "print converted: .."
   
   case p_r_cnv of
     (Just px) => do
-       ret <- DBListStr.read px StrListT
+       ret <- DBList.read px StrListT
        Show ret
     Nothing => Pure ()
   Pure ret
@@ -300,17 +302,17 @@ db_test_queue : HCommand ()
 db_test_queue = do
 
   qn <- fromName "test"   
-  q1 <- DBQueueStr.new qn
-  q1 <- DBQueueStr.snoc q1 "t3ocas" 
-  q1 <- DBQueueStr.snoc q1 "8ssa" 
-  q1 <- DBQueueStr.snoc q1 "ts" 
-  q1 <- DBQueueStr.snoc q1 "qq" 
-  q1 <- DBQueueStr.tail q1
-  q1 <- DBQueueStr.tail q1
+  q1 <- DBQueue.new qn
+  q1 <- DBQueue.snoc q1 "t3ocas" 
+  q1 <- DBQueue.snoc q1 "8ssa" 
+  q1 <- DBQueue.snoc q1 "ts" 
+  q1 <- DBQueue.snoc q1 "qq" 
+  q1 <- DBQueue.tail q1
+  q1 <- DBQueue.tail q1
     
-  ret <- DBQueueStr.show q1  
+  ret <- DBQueue.show q1  
   Show ret    
-  h <- DBQueueStr.head q1
+  h <- DBQueue.head q1
   Show  h
 
 -- IO part  
@@ -351,16 +353,22 @@ export
 db_runc : HasIO io => MonadError DBError io => io (List String)
 db_runc = do
     runHCommand (db_test_queue >> db_list_test)
-    
+-}    
 
 export
 db_main : IO ()
 db_main = do
-    
+    pure () {-  
     Right ret <- runEitherT (db_runc {io = EitherT DBError IO})
             | Left (err) => pure ()
     printLn ret 
+-}
     
+        
+            
+                
+                    
+                            
 
 {-
   export  
@@ -385,3 +393,19 @@ db_main = do
   --Q1 : (k:Type) -> Type
   --Q1 k = SOP I [[],[k,(Q1 k)] ]
 -}
+{-
+namespace Observable
+  export
+  new : String -> HCommand Observable.Rec
+  new on = do
+     let lo = fromArg [AVar on, AVar "subscribers", toAPtr StrListT]
+         lr =  fromArg [AVar on,AVar "removed",   toAPtr StrListT]
+         --lr =  fromArg [AVar qn,AVar "inq",   toAPtr StrListT]         
+     new_o <- DBList.new lo
+     new_rm <- DBList.new lr
+     new_inq <- DBQueue.new (on++"inq")
+     new_cmd <- DBQueue.new (on++"cmd")              
+     Pure (Observable.MkO new_o new_rm lo lr new_inq new_cmd)
+-}     
+  --new2 : String -> HCommand TypePtr
+  --new2 
