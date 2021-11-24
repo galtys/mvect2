@@ -60,6 +60,21 @@ storeHType ht = do
      | Left e => throwError (EIO $show e)
  pure ()
 
+data HCommand : Type -> Type where
+  Store : HType -> HCommand ()
+  Read : (tp:TypePtr)-> HCommand HType
+
+export
+runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a
+runHCommand (Store ht) = storeHType ht
+runHCommand (Read ht)=  readHType ht
+
+data HConsoleIO : Type -> Type where
+  Quit : a -> HConsoleIO a
+  Do : HCommand a -> (a -> (HConsoleIO b)) -> HConsoleIO b
+
+  
+      
 namespace DBList
   export
   new :HasIO io=>MonadError DBError io =>(lt:HType)->io ( HType )
