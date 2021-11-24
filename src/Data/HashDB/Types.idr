@@ -39,6 +39,28 @@ public export
 Show HType where
   show ht = (show $ ptr ht ) ++ "->"++(show $ val ht) 
 
+public export
+data HCommand : Type -> Type where
+     Store : HType -> HCommand ()
+     Read : TypePtr -> HCommand HType --String
+     Log : String -> HCommand ()
+     Show : (Show ty) => ty -> HCommand ()
+     LinkError : ty -> HCommand ty
+     Pure : ty -> HCommand ty
+     Bind : HCommand a -> (a -> HCommand b) -> HCommand b
+
+namespace HCommandDo
+  public export
+  (>>=) : HCommand a -> (a -> HCommand b) -> HCommand b
+  (>>=) = Bind
+
+  public export
+  (>>) : HCommand () -> HCommand b -> HCommand b
+  ma >> mb = Bind ma (\ _ => mb)
+
+
+
+
 getPtr : List Arg -> TypePtr
 getPtr [] = (sha256 "")
 getPtr (x::xs) = sha256 ((sha256 $ toString x)++(getPtr xs))

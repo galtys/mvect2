@@ -37,25 +37,6 @@ StrListT = tList StrT
 export
 StrSnocListT : HType
 StrSnocListT = tSnocList StrT
-
-export
-data HCommand : Type -> Type where
-     Store : HType -> HCommand ()
-     Read : TypePtr -> HCommand HType --String
-     Log : String -> HCommand ()
-     Show : (Show ty) => ty -> HCommand ()
-     LinkError : ty -> HCommand ty
-     Pure : ty -> HCommand ty
-     Bind : HCommand a -> (a -> HCommand b) -> HCommand b
-
-namespace HCommandDo
-  export
-  (>>=) : HCommand a -> (a -> HCommand b) -> HCommand b
-  (>>=) = Bind
-
-  export
-  (>>) : HCommand () -> HCommand b -> HCommand b
-  ma >> mb = Bind ma (\ _ => mb)
  
 namespace DBList  
   export
