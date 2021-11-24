@@ -59,23 +59,245 @@ storeHType ht = do
  Right ret <- writeFile pth cnt
      | Left e => throwError (EIO $show e)
  pure ()
-
+ 
+ 
+export
 data HCommand : Type -> Type where
-  Store : HType -> HCommand ()
-  Read : (tp:TypePtr)-> HCommand HType
+     Store : HType -> HCommand ()
+     Read : TypePtr -> HCommand HType --String
+     Log : String -> HCommand ()
+     Show : (Show ty) => ty -> HCommand ()
+     LinkError : ty -> HCommand ty
+     Pure : ty -> HCommand ty
+     Bind : HCommand a -> (a -> HCommand b) -> HCommand b
+{-
+export
+data ConsoleIO : Type -> Type where
+     Quit : a -> ConsoleIO a
+     Do : HCommand a -> (a -> Inf (ConsoleIO b)) -> ConsoleIO b
+     Seq : HCommand () -> Inf (ConsoleIO a) -> ConsoleIO a
+-}
+namespace HCommandDo
+  export
+  (>>=) : HCommand a -> (a -> HCommand b) -> HCommand b
+  (>>=) = Bind
+
+  export
+  (>>) : HCommand () -> HCommand b -> HCommand b
+  ma >> mb = Bind ma (\ _ => mb)
+{-
+namespace ConsoleDo
+  export
+  (>>=) : HCommand a -> (a -> Inf (ConsoleIO b)) -> ConsoleIO b
+  (>>=) = Do
+
+  export
+  (>>) : HCommand () -> Inf (ConsoleIO b) -> ConsoleIO b
+  (>>) = Seq
+-}
+--data Fuel = Dry | More (Lazy Fuel)
+
+runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a --HCommand a -> IO a
+runHCommand (Store x) = storeHType x --putStr (show x)
+runHCommand (Read x)= readHType x --getLine
+runHCommand (Log x )= printLn x
+runHCommand (Show x) = printLn $ show x
+runHCommand (LinkError x) = throwError EHashLink
+runHCommand (Pure val) = pure val
+runHCommand (Bind c f) = do res <- runHCommand c
+                            runHCommand (f res)
+{-
+run : Fuel -> ConsoleIO a -> IO (Maybe a)
+run fuel (Quit val) = do pure (Just val)
+run (More fuel) (Do c f) = do res <- runHCommand c
+                              run fuel (f res)
+run (More fuel) (Seq c d) = do runHCommand c; run fuel d
+run Dry p = pure Nothing
+-}
+ 
+namespace DBList  
+  export
+  new : (lt:HType) -> HCommand HType
+  new lt = do
+    let null = tNil lt
+    Store null
+    Pure null
+ 
+  export
+  append : String->(prev:HType)->(lt:HType)->HCommand HType
+  append item prev lt = do
+     let new_item = tCons item prev lt
+     Store new_item
+     Pure new_item
+       
+  write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
+  write' [] last lt = do  
+    Store last
+    Pure $ ptr last        
+  write' (x :: xs) prev lt= do
+     newi <- DBList.append x prev lt
+     ret <- DBList.write' xs newi lt
+     Pure ret
+     
+  export
+  write : List String -> (lt:HType) -> HCommand TypePtr
+  write xs lt = do        
+    null <- DBList.new lt
+    ret <- DBList.write' xs null lt
+    Pure ret
+    
+  export
+  head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
+  head tp lt = do
+    ht <- Read tp
+    let arg = (val ht)
+    let ltype = (ptr lt)    
+    case arg of
+      ( (ACon "CONS")::(AVal x)::(APtr prev)::(APtr ltype)::[]  ) => do
+         Pure (Just (x,prev))
+      ( (ACon "NIL")::(APtr ltype)::[] ) => Pure Nothing      
+      _ => LinkError Nothing 
+  
+  export
+  read : TypePtr -> (lt:HType)->HCommand (List String)
+  read tp lt = do  
+    ht <- DBList.head tp lt
+    case ht of
+      Just (x,prev) => do
+         ret_xs <- DBList.read prev lt
+         Pure (x::ret_xs)       
+      Nothing => Pure []
+
+  readAsSnocList : TypePtr -> (lt:HType)->HCommand (SnocList String)
+  readAsSnocList tp lt = do
+    ht <- DBList.head tp lt
+    case ht of
+      Just (x,prev) => do
+         ret_xs <- DBList.readAsSnocList prev lt
+         Pure (ret_xs:<x)
+      Nothing => Pure [<]
+      
+namespace DBSnocList
+  export
+  new :(lt:HType)->HCommand (HType)
+  new lt = do
+    let null = tLin lt
+    Store null
+    Pure null  
+  export
+  append : String->(prev:HType)->(lt:HType)->HCommand HType
+  append item prev lt = do
+     let new_item = tSnoc item prev lt
+     ok <- Store new_item
+     Pure new_item
+  export
+  head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
+  head tp lt = do
+    ht <- Read tp
+
+    let ltype = (ptr lt)
+    case (val ht) of
+      ( (ACon "SNOC")::(APtr prev)::(AVal x)::(APtr ltype)::[]  ) => do
+         Pure (Just (x,prev))
+      ( (ACon "LIN")::(APtr ltype)::[] ) => Pure Nothing
+      _ => LinkError Nothing
+     
+  write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
+  write' [] prev lt = do  
+    x <- Store prev
+    Pure (ptr prev)      
+  write' (x :: xs) prev lt= do
+     new <- DBSnocList.append x prev lt
+     ret <- DBSnocList.write' xs new lt
+     Pure ret
+
+  export
+  write : List String -> (lt:HType) -> HCommand TypePtr
+  write xs lt = do
+    null <- DBSnocList.new lt
+    ret <- DBSnocList.write' xs null lt
+    Pure ret
+    
+  export
+  read : TypePtr -> (lt:HType)->HCommand (List String)
+  read tp lt = do
+    ht <- DBSnocList.head tp lt
+    case ht of
+      Just (x,prev) => do
+         ret_xs <- DBSnocList.read prev lt
+         Pure (x::ret_xs)       
+      Nothing => Pure []
+            
+  export
+  readAsSnocList : TypePtr -> (lt:HType)->HCommand (SnocList String)
+  readAsSnocList tp lt = do
+    ht <- DBSnocList.head tp lt
+    case ht of
+      Just (x,prev) => do
+         ret_xs <- DBSnocList.readAsSnocList prev lt
+         Pure (ret_xs:<x)         
+      Nothing => Pure [<]
+  
+  toDBList': (snoc:TypePtr) -> (slt:HType)->(lt:HType)->(dst:HType) -> HCommand TypePtr
+  toDBList' snoc slt lt dst = do
+    ht <- DBSnocList.head snoc slt
+    case ht of
+      Just (x,snocprev) => do
+         ni <- DBList.append x dst lt
+         ret <- DBSnocList.toDBList' snocprev slt lt ni
+         Pure ret
+      Nothing => Pure (ptr dst)
+  export    
+  toDBList : (snoc:TypePtr) -> (slt:HType)->(lt:HType) -> HCommand ((Maybe TypePtr) )
+  toDBList snoc slt lt = do
+    ht <- DBSnocList.head snoc slt    
+    case ht of
+      Just (x,prev) => do 
+         null <- DBList.new lt
+         ret <- DBSnocList.toDBList' snoc slt lt null
+         Pure (Just ret)
+      
+      Nothing => Pure Nothing
 
 export
-runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a
-runHCommand (Store ht) = storeHType ht
-runHCommand (Read ht)=  readHType ht
-
-data HConsoleIO : Type -> Type where
-  Quit : a -> HConsoleIO a
-  Do : HCommand a -> (a -> (HConsoleIO b)) -> HConsoleIO b
-
+test_f : List String
+test_f = [ (cast x) | x <- [1..5]]
+export
+test_r : List String
+test_r = [ (cast x) | x<- [6..10]]    
+export
+db_list_test : HCommand ()
+db_list_test = do
+  p_f <- DBList.write test_f StrListT
+  ret <- DBList.read p_f StrListT
+  Show ret --  printLn ret
+  Log "create rear"
+  p_r <- DBSnocList.write test_r StrSnocListT
+  Show p_r
   
-      
+  Log ("rear printing")
+  ret <- DBSnocList.read p_r StrSnocListT
+  Show ret
+  
+  Log ("converting: ..")
+  p_r_cnv <- DBSnocList.toDBList p_r StrSnocListT StrListT
+  Show p_r_cnv
+  Log "print converted: .."
+  
+  case p_r_cnv of
+    (Just px) => do
+       ret <- DBList.read px StrListT
+       Show ret
+    Nothing => Pure ()
+ 
+ 
+ 
+ 
+
+{-    
 namespace DBList
+
+
   export
   new :HasIO io=>MonadError DBError io =>(lt:HType)->io ( HType )
   new lt = do
@@ -295,12 +517,6 @@ namespace Observable
   
     
 export
-test_f : List String
-test_f = [ (cast x) | x <- [1..5]]
-
-export
-test_r : List String
-test_r = [ (cast x) | x<- [6..10]]    
 
 export
 db_list_test : HasIO io=> MonadError DBError io => io ()
@@ -347,13 +563,20 @@ db_test_queue = do
   printLn ret    
   h <- DBQueue.head q1
   printLn h
+-}
 
+db_runc : HasIO io => MonadError DBError io => io ()
+db_runc = do
+    runHCommand db_list_test
+    
 export
 db_main : IO ()
 db_main = do
-    Left err <- runEitherT (db_test_queue {io = EitherT DBError IO})
+    
+    Left err <- runEitherT (db_runc {io = EitherT DBError IO})
             | Right () => pure ()
     printLn err  
+
 
 {-
   export  
