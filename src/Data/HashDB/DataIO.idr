@@ -366,7 +366,8 @@ runHCommand (Bind c f) = do res <- runHCommand c
 export
 db_runc : HasIO io => MonadError DBError io => io ()
 db_runc = do
-    runHCommand db_test_queue --db_list_test
+    runHCommand (db_test_queue >> db_list_test)
+    
 
 export
 db_main : IO ()
