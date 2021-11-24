@@ -324,7 +324,7 @@ readHType tp = do
   Right cnt <- readFile pth
     | Left e => throwError (EIO $show e)
   case (decode cnt) of
-    Left e => throwError (EIO $show e)
+    Left e => throwError (ErrorJS $show e)
     Right arg => pure (MkHT arg tp)
 
 export
