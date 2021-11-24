@@ -91,7 +91,7 @@ namespace DBListStr
          ret_xs <- DBListStr.read prev lt
          Pure (x::ret_xs)       
       Nothing => Pure []
-
+  export
   readAsSnocList : TypePtr -> (lt:HType)->HCommand (SnocList String)
   readAsSnocList tp lt = do
     ht <- DBListStr.head tp lt
@@ -133,8 +133,20 @@ namespace DBList
      case retxs of 
        Nothing => DecodeError Nothing
        (Just xs) => Pure $Just xs
-     
---     Pure $ retxs ret 
+  export
+  readAsSnocList : (FromJSON vty)=>TypePtr -> (lt:HType)->HCommand (Maybe (SnocList vty))
+  readAsSnocList tp lt = do
+     ret <- DBListStr.readAsSnocList tp lt
+     let decodeOne : String -> (Maybe vty)
+         decodeOne str = do
+            case (decode str) of 
+              Left err => Nothing
+              Right x => Just x
+         retxs : (Maybe (SnocList vty))
+         retxs = traverse decodeOne ret
+     case retxs of 
+       Nothing => DecodeError Nothing
+       (Just xs) => Pure $Just xs
 
 namespace DBSnocListStr
   export
@@ -218,7 +230,8 @@ namespace DBSnocListStr
          Pure (Just ret)
       
       Nothing => Pure Nothing
- 
+--namespace DBSnocList
+
 namespace DBQueueStr--DBQueueStr
   export
   new : (qname:HType) -> HCommand (DBQueueStr.FR) --Types.DBQueueStr.Name 
@@ -281,6 +294,19 @@ namespace DBQueueStr--DBQueueStr
      Log "Rear SnocList"
      Show retr
      Pure ()
+     
+namespace DBQueue
+    export
+    snoc :(ToJSON vty)=>DBQueueStr.FR -> vty->HCommand DBQueueStr.FR
+    snoc q item = DBQueueStr.snoc q (encode item)
+    export
+    head :(FromJSON vty)=>DBQueueStr.FR -> HCommand (Maybe (vty,TypePtr))
+    head q = do
+       Just (s_ret,p_ret)<-DBQueueStr.head q
+         | Nothing => Pure Nothing
+       case (decode s_ret) of
+         Left er => DecodeError Nothing
+         Right rs => Pure $ Just (rs,p_ret)
 {-
 namespace Observable
   export
