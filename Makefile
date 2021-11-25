@@ -5,7 +5,7 @@ all: mvect2 #libs
 libs: smallc.c sha256.c
 	#cc -shared sha256.c -o libsha256.so
 	#cc mongoose.c -o mongoose.o
-	cc -shared smallc.c mongoose.c -o libmongoose.so
+	cc -shared smallc.c wrap_libc.c mongoose.c -o libmongoose.so
 
 mvect2: mvect2.ipkg
 	idris2 --build mvect2.ipkg

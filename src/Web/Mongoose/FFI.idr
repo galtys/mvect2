@@ -3,6 +3,7 @@ module Web.Mongoose.FFI
 import Web.Mongoose.Types
 import Core.Context
 
+
 ||| Logging
 
 ||| Set Log level
@@ -130,6 +131,9 @@ prim__mg_mgr_init : (Ptr MG_MGR) -> PrimIO ()
 public export
 mg_mgr_init : HasIO io => (Ptr MG_MGR) -> io ()
 mg_mgr_init p_mgr = primIO $ prim__mg_mgr_init p_mgr
+
+
+
 
 %foreign "C:mg_mgr_free,libmongoose"
 prim__mg_mgr_free : (Ptr MG_MGR) -> PrimIO ()

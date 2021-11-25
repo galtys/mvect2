@@ -1,4 +1,8 @@
+#define _XOPEN_SOURCE
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
 #include "mongoose.h"
 
 typedef struct mg_mgr MG_MGR;
@@ -238,11 +242,6 @@ unsigned long get_conn_id(MG_CONNECTION *p_c) {
 void *get_pfn_data(MG_CONNECTION *p_c) {
   return (p_c -> pfn_data);
 }
-
-
-
-
-
 
 
 int test_gcd(int a, int b)

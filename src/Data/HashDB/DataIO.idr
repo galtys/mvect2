@@ -423,6 +423,24 @@ db_main = do
             | Left (err) => pure ()
     printLn ret 
     
+export
+db_test_queue2 : HCommand ()
+db_test_queue2 = do
+  qn <- fromName "test2"   
+  q1 <- DBQueueStr.new qn
+  q1 <- DBQueueStr.snoc q1 "t3ocas" 
+  q1 <- DBQueueStr.snoc q1 "8ssa" 
+  q1 <- DBQueueStr.snoc q1 "ts" 
+  q1 <- DBQueueStr.snoc q1 "qq" 
+  q1 <- DBQueueStr.tail q1
+  q1 <- DBQueueStr.tail q1
+    
+  ret <- DBQueueStr.show q1  
+  Show ret    
+  h <- DBQueueStr.head q1
+  Show  h
+
+
 
 {-
   export  
