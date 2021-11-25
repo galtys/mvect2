@@ -79,6 +79,10 @@ namespace OE
    %runElab derive "Field" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]  
    
    public export
+   data RelationType = Tm2o | To2m | Tm2m
+   %runElab derive "RelationType" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]            
+      
+   public export
    data Schema : Type where
      Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema
@@ -105,3 +109,10 @@ namespace OE
       Parent : (items:List Menu) -> Menu
      
    
+   public export
+   data SchemaTree : Type where
+     MkST : (tn:Maybe TableName) -> (links:List SchemaTree) -> SchemaTree
+  
+   %runElab derive "SchemaTree" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
+
+

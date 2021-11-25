@@ -162,6 +162,32 @@ getFields [] = []
 getFields (Nothing :: xs) = (getFields xs)
 getFields ((Just x) :: xs) = [x]++(getFields xs)
 
+public export
+schema_tables : Schema -> List TableName
+schema_tables (Pk name db_field table) = [table]
+schema_tables (Prim prim) = []
+schema_tables (M2O rel db_field table) = []
+schema_tables (O2M rec_field rel_f tn) = []
+schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
+schema_tables (Model tn []) = []
+schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+schema_tables (Sch n []) = []
+schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
+
+
+
+
+export
+genSchemaTree : (parent: String) -> OE.Schema -> List (String, RelationType,String,String) --List (TableName,TableName)
+genSchemaTree p (Pk name db_field table)= []
+genSchemaTree p (Prim prim) = []
+genSchemaTree p (M2O rel db_field table)= [(p, Tm2o, (name db_field), dbtable rel) ]
+genSchemaTree p (O2M rec_field rel_f tn)= [(p, To2m, rec_field,dbtable $table rel_f) ]
+genSchemaTree p (M2M rec_field f1 f2 m2m_table tn)= [(p, Tm2m, rec_field,dbtable $table f2) ]
+genSchemaTree p (Model table fields) = concat $ map (genSchemaTree (dbtable table) ) fields
+genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
+
+    
 
 public export
 getPrimSDoc : Schema -> SDoc
@@ -229,17 +255,6 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
 getPrimSDoc (Sch name models) = Sep
 
 
-public export
-schema_tables : Schema -> List TableName
-schema_tables (Pk name db_field table) = [table]
-schema_tables (Prim prim) = []
-schema_tables (M2O rel db_field table) = []
-schema_tables (O2M rec_field rel_f tn) = []
-schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
-schema_tables (Model tn []) = []
-schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
-schema_tables (Sch n []) = []
-schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
 
 export
 showPrim : Schema -> SDoc
@@ -480,3 +495,4 @@ getRelO2m (Sch name models) = Def (map getRelO2m models)
 export
 schema_show : Schema -> SDoc
 schema_show s = Def [showPrim s, getRelO2m s]
+

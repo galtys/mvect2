@@ -471,6 +471,11 @@ indentSDoc x (Line i t) = (Line (i+x) t)
 indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
 indentSDoc x Sep = Sep
 
+export
+printSchema_source : HasIO io => io ()
+printSchema_source = do
+  let xu = schema_show PJB--SaleOrder
+  printSDoc xu
 
 export
 test_main_x : HasIO io => io ()
@@ -478,8 +483,9 @@ test_main_x = do
   
   --let tbs = Def (map tn_show (schema_tables PJB))
 --  let xu = schema_show OrderLineCols
-  let xu = schema_show PJB--SaleOrder
-  printSDoc xu
+  let msa = genSchemaTree "root" PJB
+  traverse_ printLn msa --[ (reverse k,v) | (k,v) <- msa]
+  
   --printLn (length order_line_cols)
   --printSDoc $ schema_show DeliveryLine --tn_show OdooTaxTable
   --printSDoc $ schema_show Id_OLT --tn_show OdooTaxTable  
