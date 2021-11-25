@@ -36,8 +36,8 @@ namespace Libc
                               ("tm_isdst",Int)]
 
   public export
-  record Time where
-    constructor MkTime
+  record DateTime where
+    constructor MkDateTime
     tm_sec : Int
     tm_min : Int
     tm_hour : Int
@@ -49,12 +49,12 @@ namespace Libc
     tm_isdst : Int
   
   export
-  toTime : Libc.TmInfo -> Libc.Time
-  toTime x = (MkTime (getField x "tm_sec") (getField x "tm_min") (getField x "tm_hour")
+  toDateTime : Libc.TmInfo -> Libc.DateTime
+  toDateTime x = (MkDateTime (getField x "tm_sec") (getField x "tm_min") (getField x "tm_hour")
                       (getField x "tm_mday") (getField x "tm_mon") (getField x "tm_year")
                       (getField x "tm_wday") (getField x "tm_yday") (getField x "tm_isdst"))
   
-  %runElab derive "Libc.Time" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+  %runElab derive "Libc.DateTime" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
                               
   public export
   %foreign "C:new_tm_info,libmongoose"
@@ -110,12 +110,12 @@ namespace Libc
     x <- Libc.read_tm t
     free_tm_info p_ti
     
-    let u:Time
-        u=toTime x 
+    let u:DateTime
+        u=toDateTime x 
     ret <- strftime 30 "%Y-%m-%d %H:%M:%S" x
     printLn ret
     
     tx <- strptime ret "%Y-%m-%d %H:%M:%S"     
-    printLn $ toTime tx
+    printLn $ toDateTime tx
   
   
