@@ -54,6 +54,7 @@ namespace Libc
                       (getField x "tm_mday") (getField x "tm_mon") (getField x "tm_year")
                       (getField x "tm_wday") (getField x "tm_yday") (getField x "tm_isdst"))
   
+  
   %runElab derive "Libc.DateTime" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
                               
   public export
@@ -72,10 +73,10 @@ namespace Libc
   prim__read_time : PrimIO Int
   
   %foreign "C:wrap_strftime,libmongoose"
-  prim__wrap_strftime : Int -> String -> Libc.TmInfo -> PrimIO String
+  strftime : Int -> String -> Libc.TmInfo -> String
   
   %foreign "C:wrap_strptime,libmongoose"
-  prim__wrap_strptime : (buf:String) -> (format:String) -> PrimIO ( Libc.TmInfo)
+  wrap_strptime : (buf:String) -> (format:String) -> Libc.TmInfo
   
   public export
   new_tm_info : HasIO io=> io (Ptr Libc.TmInfo)
@@ -92,14 +93,19 @@ namespace Libc
   export
   time : HasIO io => io Int
   time = primIO Libc.prim__read_time
-
+  
+  export
+  strptime : (buf:String)->(format:String) -> Libc.DateTime
+  strptime x y = toDateTime $ wrap_strptime x y
+  
+  {-
   export
   strftime : HasIO io => Int -> String -> Libc.TmInfo -> io String
   strftime maxsize format tm = primIO $ Libc.prim__wrap_strftime maxsize format tm
   export
   strptime : HasIO io => (buf:String)->(format:String)-> io ( Libc.TmInfo)
   strptime buf format = primIO $Libc.prim__wrap_strptime buf format
-  
+  -}
   export
   test_libc_time : IO ()
   test_libc_time = do
@@ -112,10 +118,13 @@ namespace Libc
     
     let u:DateTime
         u=toDateTime x 
-    ret <- strftime 30 "%Y-%m-%d %H:%M:%S" x
+    
+    let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x
+    
     printLn ret
     
-    tx <- strptime ret "%Y-%m-%d %H:%M:%S"     
-    printLn $ toDateTime tx
+    let tx =strptime ret "%Y-%m-%d %H:%M:%S"     
+    
+    printLn tx
   
   
