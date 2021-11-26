@@ -234,23 +234,23 @@ showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{
    f = db_field 
 showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
 showPrimRecDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
-showPrimRecDef mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
-                                            np2Rec,  Sep] where --read_rec_c,Sep,read_rec,main_read
+showPrimRecDef mod@(Model table fields) = Def [Sep,ns,,Sep,rec,elabRec,
+                                               np2Rec] where --read_rec_c,Sep,read_rec,main_read
    fs : List String
    fs = getFieldRefs (getPrimFields mod)
    cols : String
    cols = fastConcat $ intersperse ", " fs
    
    ns : SDoc 
-   ns = Def [Line 0 #"namespace \#{primModelRef table}"#,
+   ns = Def [Line 0 #"namespace \#{primModelRef table}"#] {-,
              Line 2 "domain : Op",
              Line 2 "domain = (True)",
              Line 2 "PrimCols : List Column",
-             Line 2 #"PrimCols = [\#{cols}]"# ]
+             Line 2 #"PrimCols = [\#{cols}]"# ] 
    primTab : SDoc
    primTab = Def [Line 2 #"\#{tableRef table} : Table"#,
                   Line 2 #"\#{tableRef table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
-
+-}
    rec : SDoc
    rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map showPrimRecDef fields))
    elabRec : SDoc
@@ -532,6 +532,47 @@ showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s
            Line 0 "import Ledger.PG.Config",
            Line 0 "import Control.Monad.Either",Sep,
            Line 0 "%language ElabReflection"]
+
+export
+showSchemaRecDef : Schema -> SDoc
+showSchemaRecDef s = Def [showImports, showTableDef, showPrimRecDef s] where --showColumnDef s,,  showRelDef s
+    schema_tables : Schema -> List TableName
+    schema_tables (Pk name db_field table) = [table]
+    schema_tables (Prim prim) = []
+    schema_tables (M2O rel db_field table) = []
+    schema_tables (O2M rec_field rel_f tn) = []
+    schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
+    schema_tables (Model tn []) = []
+    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+    schema_tables (Sch n []) = []
+    schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
+
+    showTableDef:SDoc
+    showTableDef = Def (map tn_show (schema_tables s)) where 
+       tn_show : TableName -> SDoc
+       tn_show (MkTN ref dbtable m ism2m) = Def [(Line 0 #"\#{ref}:String"#),
+                                                 (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
+
+    get_name : Schema -> String
+    get_name (Sch n xs) = n
+    get_name _ = ""
+    s_n : String
+    s_n = get_name s
+    
+    showImports:SDoc
+    showImports=Def [Line 0 #"module \#{s_n}"#,
+           {-Line 0 "import PQ.CRUD",
+           Line 0 "import PQ.FFI",
+           Line 0 "import PQ.Schema",
+           Line 0 "import PQ.Types", Sep,-}
+           Line 0 "import Category.Transaction.Types",
+           Line 0 "import Data.Ratio",Sep,
+           Line 0 "import Generics.Derive",Sep,
+           Line 0 "import JSON",Sep,
+           Line 0 "import Ledger.PG.Config",
+           Line 0 "import Control.Monad.Either",Sep,
+           Line 0 "%language ElabReflection"]
+
 {-
 export
 schema_show : Schema -> SDoc

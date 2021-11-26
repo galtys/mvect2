@@ -484,10 +484,10 @@ indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
 indentSDoc x Sep = Sep
 
 export
-saveSchema_source : HasIO io => String -> Schema -> io (Either String ())
+saveSchema_source : HasIO io => String -> SDoc -> io (Either String ())
 saveSchema_source fn schema = do
   --let xu = --SaleOrder
-  let ret =strFromSDoc $ showSchemaDef schema
+  let ret =strFromSDoc  schema
   
   Right ret <- writeFile fn ret
      | Left err => pure $ Left $ show err
@@ -496,8 +496,11 @@ saveSchema_source fn schema = do
 export
 generate_pjb_schema : HasIO io => io ()
 generate_pjb_schema = do
+
+  ret <- saveSchema_source "src/Odoo/Schema/PJBRecDef.idr" (showSchemaRecDef PJB)  
+  printLn ret
   
-  ret <- saveSchema_source "src/Odoo/Schema/PJB.idr" PJB
+  ret <- saveSchema_source "src/Odoo/Schema/PJB.idr" (showSchemaDef PJB)  
   printLn ret
   
   let msa = genSchemaTree "" PJB
