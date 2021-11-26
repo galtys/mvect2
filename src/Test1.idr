@@ -137,6 +137,7 @@ mg_test = do
 main : IO ()
 main = do
   test_libc_time
+  pjb_test
   
   --test_main_x
   --db_main  

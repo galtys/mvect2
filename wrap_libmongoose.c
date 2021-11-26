@@ -244,28 +244,3 @@ void *get_pfn_data(MG_CONNECTION *p_c) {
 }
 
 
-int test_gcd(int a, int b)
-{
-    int temp;
-    while (b != 0)
-    {
-        temp = a % b;
-        a = b;
-        b = temp;
-    }
-    return a;
-}
-
-/*
-int gcd(int m, int n)
-{
-        int tmp;
-        while(m) { tmp = m; m = n % m; n = tmp; }       
-        return n;
-}
-*/
-
-int test_lcm(int m, int n)
-{
-  return (m / test_gcd(m, n) * n);
-}

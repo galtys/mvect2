@@ -2,7 +2,7 @@ module Ledger.Schema.Order
 
 import Ledger.Schema.Types
 import Ledger.Schema.GenPG
-
+import System.File.ReadWrite
 
 export
 IT : TableName
@@ -454,6 +454,8 @@ PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, Sale
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
+
+{-
 printSDoc : HasIO io => SDoc -> io ()
 printSDoc (Line i t) = do
      let sp = (ret_spaces i)
@@ -463,7 +465,33 @@ printSDoc (Def []) = pure ()
 printSDoc (Def (x :: xs)) = do
      printSDoc x
      printSDoc (Def xs)
+-}     
      
+strFromSDoc : HasIO io => SDoc -> io String
+strFromSDoc (Line i t) = do
+     let sp = (ret_spaces i)
+     pure (sp++t++"\n")
+strFromSDoc Sep = pure "\n"
+strFromSDoc (Def []) = pure ""
+strFromSDoc (Def (x :: xs)) = do
+     r_x<- strFromSDoc x
+     r_dx <- strFromSDoc (Def xs)
+     pure (r_x++r_dx)
+     
+
+{-
+printSDoc : HasIO io => SDoc -> io String
+printSDoc (Line i t) = do
+     let sp = (ret_spaces i)
+     pure (sp++t)
+printSDoc Sep = pure "\n" --putStrLn ""     
+printSDoc (Def []) = pure ""--()
+printSDoc (Def (x :: xs)) = do
+     r_x<- printSDoc x
+     r_dx <- printSDoc (Def xs)
+     pure (r_x++r_dx)
+ -}    
+               
 --schema2SDoc : HasIO io => Schema
 export
 indentSDoc : Bits32 -> SDoc -> SDoc
@@ -472,19 +500,26 @@ indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
 indentSDoc x Sep = Sep
 
 export
-printSchema_source : HasIO io => io ()
-printSchema_source = do
-  let xu = schema_show PJB--SaleOrder
-  printSDoc xu
+saveSchema_source : HasIO io => String -> Schema -> io (Either String ())
+saveSchema_source fn schema = do
+  --let xu = --SaleOrder
+  ret<-strFromSDoc $ schema_show schema --PJB
+  Right ret <- writeFile fn ret
+     | Left err => pure $ Left $ show err
+  pure $ Right ()
 
 export
-test_main_x : HasIO io => io ()
-test_main_x = do
+generate_pjb_schema : HasIO io => io ()
+generate_pjb_schema = do
   
-  --let tbs = Def (map tn_show (schema_tables PJB))
---  let xu = schema_show OrderLineCols
-  let msa = genSchemaTree "root" PJB
-  traverse_ printLn msa --[ (reverse k,v) | (k,v) <- msa]
+  ret <- saveSchema_source "src/Odoo/Schema/Pjb.idr" PJB
+  printLn ret
+  
+  let msa = genSchemaTree "" PJB
+  traverse_ printLn msa 
+  
+  --printSDoc $ schema_show PJB
+  
   
   --printLn (length order_line_cols)
   --printSDoc $ schema_show DeliveryLine --tn_show OdooTaxTable

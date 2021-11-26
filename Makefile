@@ -1,15 +1,19 @@
-all: mvect2 #libs
+all: pjbgen mvect2 #libs
 
 #mvect2: mvect2.ipkg 
 #	idris2 --codegen node --build mvect2.ipkg
-libs: smallc.c sha256.c
+libs: wrap_libmongoose.c wrap_libc.c sha256.c 
 	#cc -shared sha256.c -o libsha256.so
 	#cc mongoose.c -o mongoose.o
-	cc -shared smallc.c wrap_libc.c mongoose.c -o libmongoose.so
+	cc -shared wrap_libmongoose.c wrap_libc.c mongoose.c -o libmongoose.so
+	#cc -shared sha256.c -o libsha256.so
 
 mvect2: mvect2.ipkg
 	idris2 --build mvect2.ipkg
 	#idris2 --build ws_client.ipkg
+
+pjbgen: pjbgen.ipkg
+	idris2 --build pjbgen.ipkg
 
 sha:
 	cc -shared sha256.c -o libsha256.so
