@@ -487,7 +487,7 @@ export
 saveSchema_source : HasIO io => String -> Schema -> io (Either String ())
 saveSchema_source fn schema = do
   --let xu = --SaleOrder
-  let ret =strFromSDoc $ schema_show schema
+  let ret =strFromSDoc $ showSchemaDef schema
   
   Right ret <- writeFile fn ret
      | Left err => pure $ Left $ show err

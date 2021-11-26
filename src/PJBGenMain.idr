@@ -21,9 +21,9 @@ import public Language.Reflection.Types
 
 import Data.HashDB.Types
 import Data.HashDB.DataIO
-
+{-
 import PQ.Schema
---import System.FFI
+
 import JSON
 
 import PQ.CRUD
@@ -33,9 +33,10 @@ import PQ.Types
 
 import Ledger.PG.BoM
 import Ledger.PG.Order
-
+-}
 import Ledger.Schema.Types
 import Ledger.Schema.Order
+import Ledger.Schema.GenPG
 
 -- this is generated: import Odoo.Schema.PJB
 

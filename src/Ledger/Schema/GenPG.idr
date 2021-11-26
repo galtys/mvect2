@@ -58,8 +58,8 @@ db_field2Ref : String -> String
 db_field2Ref x =  concat (map capitalize (map unpack (split split_by x)))
 
 export
-fieldRef : Field -> String
-fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
+columnRef : Field -> String
+columnRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
 
 
 export
@@ -129,7 +129,7 @@ export
 getFieldRefs : List (Maybe Field) -> List String
 getFieldRefs [] = []
 getFieldRefs (Nothing :: xs) = []
-getFieldRefs ((Just x) :: xs) = [fieldRef x]++(getFieldRefs xs)
+getFieldRefs ((Just x) :: xs) = [columnRef x]++(getFieldRefs xs)
 
 export
 getFields : List (Maybe Field) -> List Field
@@ -149,11 +149,11 @@ genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
    
 public export
 showPrimDef : Schema -> SDoc
-showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
    f : Field
    f = (getPK_Field db_field table)      
-showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
-showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{fieldRef f})"# where
+showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
+showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{columnRef f})"# where
    f : Field
    f = db_field 
 showPrimDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
@@ -212,13 +212,80 @@ showPrimDef mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                     Line 4 "pure l1"]
 showPrimDef (Sch name models) = Def (map showPrimDef models) --Sep
 
+public export
+showPrimRecDef : Schema -> SDoc
+showPrimRecDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
+   f : Field
+   f = (getPK_Field db_field table)      
+showPrimRecDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
+showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{columnRef f})"# where
+   f : Field
+   f = db_field 
+showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
+showPrimRecDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
+showPrimRecDef mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
+                                            np2Rec,  Sep] where --read_rec_c,Sep,read_rec,main_read
+   fs : List String
+   fs = getFieldRefs (getPrimFields mod)
+   cols : String
+   cols = fastConcat $ intersperse ", " fs
+   
+   ns : SDoc 
+   ns = Def [Line 0 #"namespace \#{primModelRef table}"#,
+             Line 2 "domain : Op",
+             Line 2 "domain = (True)",
+             Line 2 "PrimCols : List Column",
+             Line 2 #"PrimCols = [\#{cols}]"# ]
+   primTab : SDoc
+   primTab = Def [Line 2 #"\#{tableRef table} : Table"#,
+                  Line 2 #"\#{tableRef table} = MkTable \#{add_quotes (dbtable table)} \#{primColsRef table}"#]
+
+   rec : SDoc
+   rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map showPrimRecDef fields))
+   elabRec : SDoc
+   elabRec = Line 2 #"%runElab derive \#{add_quotes (primRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+   np2Rec :SDoc
+   np2Rec = Def [Sep,
+                 Line 2 #"toRecord : GetRow \#{primModelRef table}.PrimCols -> \#{primRecRef table}"#,
+                 Line 2 "toRecord = to . (\\x => MkSOP $ Z x)"]
+   {-              
+   read_rec_c : SDoc
+   read_rec_c = Def [Line 2  "export",
+                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{primRecRef table} )"#,
+                     Line 2  "read_records_c c op = do",
+                     Line 4     #"rows <- get c \#{tableRef table} (columns \#{tableRef table}) (\#{primDomainRef table}&&op)"#,
+                     Line 4     #"let ret_s = [ \#{primModelRef table}.toRecord ox | ox <- rows]"#,
+                     Line 4      "pure ret_s"]
+   read_rec : SDoc
+   read_rec = Def [Line 2  "export",
+                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{primRecRef table} )"#,
+                   Line 2  "read_records op = do",
+                   Line 4     "c <- connect DB_URI",
+                   Line 4     #"ret <- \#{primModelRef table}.read_records_c c op"#,
+                   Line 4     "pure ret"]
+   main_read : SDoc
+   main_read = Def [Sep,Line 2 "export",
+                    Line 2 #"main_runET : (op:Op) -> IO (List \#{primRecRef table} )"#,
+                    Line 2 #"main_runET op = do "#,
+                    Line 4 #"Left err <- runEitherT (\#{primModelRef table}.read_records op {io = EitherT SQLError IO} )"#,
+                    Line 5     "| Right l1 => pure l1",
+                    Line 4 "printLn err",
+                    Line 4 "pure []",
+                    Sep,
+                    Line 2 "export",
+                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{primRecRef table} )"#,
+                    Line 2  "read op = do",
+                    Line 4 #"l1 <- (liftIO $ (\#{primModelRef table}.main_runET op))"#,
+                    Line 4 "pure l1"]
+   -}
+showPrimRecDef (Sch name models) = Def (map showPrimRecDef models) --Sep
 
 export
 showRelDef : Schema -> SDoc
-showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
+showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
    f : Field
    f = (getPK_Field db_field table)    
-showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
+showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
 showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
    f = db_field 
@@ -236,7 +303,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    isM2M_tab = (isM2M table) 
    
    pkRef : String
-   pkRef = (fieldRef (getPK_Field "pk" table) )
+   pkRef = (columnRef (getPK_Field "pk" table) )
    ns : SDoc
    ns = Def [Line 0 #"namespace \#{o2mModelRef table}"#,
               Line 2 "domain : Op",
@@ -273,7 +340,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
    read_o2m : (rec_field:String) -> (col:Field) -> TableName -> SDoc
-   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast pk)))"# 
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{columnRef col}==\#{showJust $ isNull col}(cast pk)))"# 
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
@@ -291,9 +358,9 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    read_m2m : (rec_field:String) -> TableName -> TableName -> Field -> Field -> SDoc
    read_m2m rec_field rel m2mt f1 f2= ret where
      pkRel : String
-     pkRel = fieldRef (getPK_Field "pk" rel)
+     pkRel = columnRef (getPK_Field "pk" rel)
      ret : SDoc
-     ret =Def [Line 5 #"let muf_m2m = ((JC \#{pkRel} \#{fieldRef f2})&&(\#{fieldRef f1}==(cast pk)))"#,
+     ret =Def [Line 5 #"let muf_m2m = ((JC \#{pkRel} \#{columnRef f2})&&(\#{columnRef f1}==(cast pk)))"#,
                Line 5 #"\#{rec_field}_np<-getJoin c \#{tableRef rel} \#{tableRef m2mt} (columns \#{tableRef rel}) muf_m2m"#,
                Line 5 #"let \#{rec_field}=[\#{primModelRef rel}.toRecord ox |ox <-\#{rec_field}_np]"#]
 
@@ -305,7 +372,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
       pkM2o : Field
       pkM2o = (getPK_Field "pk" rel)
       ret : SDoc
-      ret = Def [Line 5 #"let muf_m2o = ((\#{fieldRef pkM2o}==\#{showJust $ isNull col}(cast \#{rec_field}))) --&&op"#,
+      ret = Def [Line 5 #"let muf_m2o = ((\#{columnRef pkM2o}==\#{showJust $ isNull col}(cast \#{rec_field}))) --&&op"#,
                  Line 5 #"\#{rec_field} <- \#{primModelRef rel}.read_records_c c muf_m2o"#]
    read_m2o_SDoc : SDoc
    read_m2o_SDoc  = Def ([ (read_m2o db_f col rel) | (db_f,rel,col) <- rel_relRef m2o_fields ] )
@@ -393,8 +460,8 @@ showRelDef (Sch name models) = Def (map showRelDef models)
 
 export   
 toColumnSDoc : Field -> SDoc         
-toColumnSDoc f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
-                                                                                              (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
+toColumnSDoc f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{columnRef f}:Column"#),
+                                                                                              (Line 0 #"\#{columnRef f}=\#{df}"#)] where
       df:String
       df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
 
@@ -411,10 +478,13 @@ showColumnDef (Sch n []) = Def []
 showColumnDef (Sch n xs) = Def [modules] where       
     modules:SDoc
     modules = Def (map showColumnDef xs)
-
+{-
+showSchemaDef : Schema -> SDoc
+showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimRecDef s] where
+-}
 export
-schema_show : Schema -> SDoc
-schema_show s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s,  showRelDef s] where
+showSchemaDef : Schema -> SDoc
+showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s,  showRelDef s] where
     schema_tables : Schema -> List TableName
     schema_tables (Pk name db_field table) = [table]
     schema_tables (Prim prim) = []
@@ -451,3 +521,8 @@ schema_show s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s, 
            Line 0 "import Ledger.PG.Config",
            Line 0 "import Control.Monad.Either",Sep,
            Line 0 "%language ElabReflection"]
+{-
+export
+schema_show : Schema -> SDoc
+schema_show = showSchemaDef
+-}
