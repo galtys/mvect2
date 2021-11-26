@@ -55,7 +55,7 @@ capitalize [] = ""
 capitalize (x::xs) = pack ([(toUpper x)]++xs)
 
 db_field2Ref : String -> String
-db_field2Ref x =  concat (map capitalize (map unpack (split split_by x))) --pack (map toUpper (unpack x))
+db_field2Ref x =  concat (map capitalize (map unpack (split split_by x)))
 
 export
 fieldRef : Field -> String
@@ -138,7 +138,7 @@ getFields (Nothing :: xs) = (getFields xs)
 getFields ((Just x) :: xs) = [x]++(getFields xs)
 
 export
-genSchemaTree : (parent: String) -> OE.Schema -> List (String, RelationType,String,String) --List (TableName,TableName)
+genSchemaTree : (parent: String) -> OE.Schema -> List (String, RelationType,String,String) 
 genSchemaTree p (Pk name db_field table)= []
 genSchemaTree p (Prim prim) = []
 genSchemaTree p (M2O rel db_field table)= [(p, Tm2o, (name db_field), dbtable rel) ]
@@ -221,7 +221,7 @@ showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{f
 showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
 showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
-   f = db_field --(getPK_Field db_field table)    
+   f = db_field 
 showRelDef (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{o2mRecRef tn}"#
 showRelDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,ret_x,read_rec,main_read,
@@ -233,7 +233,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    m2o_fields : List Schema
    m2o_fields = (filter isM2O fields)
    isM2M_tab : Bool
-   isM2M_tab = (isM2M table)  --=="M2M_ST"  --isM2M_Table table mod
+   isM2M_tab = (isM2M table) 
    
    pkRef : String
    pkRef = (fieldRef (getPK_Field "pk" table) )
@@ -253,9 +253,9 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    rel_relRef [] = []
    rel_relRef ((Pk name db_field x) :: xs) = []
    rel_relRef ((Prim prim) :: xs) = []
-   rel_relRef ((M2O rel db_field x) :: xs) = [(name db_field,rel, db_field)]++(rel_relRef xs)   --getPK_Field "pk" rel
-   rel_relRef ((O2M rec_field rel_f tn) :: xs) = [(rec_field,tn, rel_f)]++(rel_relRef xs) --getPK_Field rel_f tn
-   rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = []-- (rec_field,tn,dbtable m2m_table )]++(rel_relRef xs)
+   rel_relRef ((M2O rel db_field x) :: xs) = [(name db_field,rel, db_field)]++(rel_relRef xs)
+   rel_relRef ((O2M rec_field rel_f tn) :: xs) = [(rec_field,tn, rel_f)]++(rel_relRef xs)
+   rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = []
    rel_relRef ((Model x ys) :: xs) = []
    rel_relRef ((Sch name models) :: xs) = []
    
@@ -273,7 +273,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
    read_o2m : (rec_field:String) -> (col:Field) -> TableName -> SDoc
-   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast pk)))"# --&&op)
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{o2mModelRef rel}.read_records_c c ((\#{fieldRef col}==\#{showJust $ isNull col}(cast pk)))"# 
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
@@ -402,7 +402,7 @@ export
 showColumnDef : Schema -> SDoc
 showColumnDef (Pk name db_field table) = toColumnSDoc $ getPK_Field db_field table
 showColumnDef (Prim prim) = toColumnSDoc $ prim
-showColumnDef (M2O rel db_field table) = toColumnSDoc db_field --$ getPK_Field db_field table
+showColumnDef (M2O rel db_field table) = toColumnSDoc db_field 
 showColumnDef (O2M rec_field rel_f tn) = Line 0 "--O2M"
 showColumnDef (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
 showColumnDef (Model tn []) = Def [] 
