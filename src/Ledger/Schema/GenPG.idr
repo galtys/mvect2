@@ -63,13 +63,6 @@ fieldRef : Field -> String
 fieldRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
 
 
-export   
-field_show : Field -> SDoc         
-field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
-                                                                                              (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
-      df:String
-      df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
-
 export
 getPK_Field : String -> TableName -> Field
 getPK_Field db_field table = (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "cast" table)
@@ -133,10 +126,6 @@ model2Fields ((M2M rec_field f1 f2 m2m_table tn)::xs) = []
 model2Fields ((Model table fields)::xs) = []
 model2Fields ((Sch name models)::xs) = []
 
-
---fromMaybeString : List (Maybe String) -> List String
-
-
 export
 getFieldRefs : List (Maybe Field) -> List String
 getFieldRefs [] = []
@@ -149,9 +138,6 @@ getFields [] = []
 getFields (Nothing :: xs) = (getFields xs)
 getFields ((Just x) :: xs) = [x]++(getFields xs)
 
-
-
-
 export
 genSchemaTree : (parent: String) -> OE.Schema -> List (String, RelationType,String,String) --List (TableName,TableName)
 genSchemaTree p (Pk name db_field table)= []
@@ -161,9 +147,7 @@ genSchemaTree p (O2M rec_field rel_f tn)= [(p, To2m, rec_field,dbtable $table re
 genSchemaTree p (M2M rec_field f1 f2 m2m_table tn)= [(p, Tm2m, rec_field,dbtable $table f2) ]
 genSchemaTree p (Model table fields) = concat $ map (genSchemaTree (dbtable table) ) fields
 genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
-
-    
-
+   
 public export
 getPrimSDoc : Schema -> SDoc
 getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{fieldRef f})"# where
@@ -229,42 +213,6 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                     Line 4 "pure l1"]
 getPrimSDoc (Sch name models) = Sep
 
-
-
-export
-showPrim : Schema -> SDoc
-showPrim (Pk name db_field table) = field_show $ getPK_Field db_field table
-showPrim (Prim prim) = field_show $ prim
-showPrim (M2O rel db_field table) = field_show db_field --$ getPK_Field db_field table
-showPrim (O2M rec_field rel_f tn) = Line 0 "--O2M"
-showPrim (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
-showPrim (Model tn []) = Def [] 
-showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
-showPrim (Sch n []) = Def []
-showPrim s@(Sch n xs) = Def [modules,prim] where       
-{-
-    schema_tables : Schema -> List TableName
-    schema_tables (Pk name db_field table) = [table]
-    schema_tables (Prim prim) = []
-    schema_tables (M2O rel db_field table) = []
-    schema_tables (O2M rec_field rel_f tn) = []
-    schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
-    schema_tables (Model tn []) = []
-    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
-    schema_tables (Sch n []) = []
-    schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
-
-
-    t_names:SDoc
-    t_names = Def (map tn_show (schema_tables s)) where 
-       tn_show : TableName -> SDoc
-       tn_show (MkTN ref dbtable m ism2m) = Def [(Line 0 #"\#{ref}:String"#),
-                                                 (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
--}    
-    modules:SDoc
-    modules = Def (map showPrim xs)
-    prim : SDoc
-    prim = Def (map getPrimSDoc xs)
 
 export
 getRelO2m : Schema -> SDoc
@@ -439,10 +387,34 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
                     Line 4 "pure l1"]
 
    ret_ids : SDoc
-   ret_ids = if (not isM2M_tab) then Def [read_rec_c_ids,read_rec_ids,main_read_ids] else Def []
-   
-             
+   ret_ids = if (not isM2M_tab) then Def [read_rec_c_ids,read_rec_ids,main_read_ids] else Def []                
 getRelO2m (Sch name models) = Def (map getRelO2m models)
+
+
+
+export   
+field_show : Field -> SDoc         
+field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
+                                                                                              (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
+      df:String
+      df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
+
+export
+showPrim : Schema -> SDoc
+showPrim (Pk name db_field table) = field_show $ getPK_Field db_field table
+showPrim (Prim prim) = field_show $ prim
+showPrim (M2O rel db_field table) = field_show db_field --$ getPK_Field db_field table
+showPrim (O2M rec_field rel_f tn) = Line 0 "--O2M"
+showPrim (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
+showPrim (Model tn []) = Def [] 
+showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
+showPrim (Sch n []) = Def []
+showPrim (Sch n xs) = Def [modules,prim] where       
+    modules:SDoc
+    modules = Def (map showPrim xs)
+    prim : SDoc
+    prim = Def (map getPrimSDoc xs)
+
 
 export
 schema_show : Schema -> SDoc
