@@ -24,6 +24,16 @@ struct tm {
 
 namespace Libc
   export
+  data ErrorCode = OK | ParsePartial | ParseError |OtherError
+  %runElab derive "Libc.ErrorCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
+
+  fromBits32 : Bits32 -> ErrorCode
+  fromBits32 0 = OK
+  fromBits32 1 = ParsePartial
+  fromBits32 2 = ParseError
+  fromBits32 _ = OtherError
+
+  export
   TmInfo : Type
   TmInfo = Struct "TmInfo" [("tm_sec", Int), 
                               ("tm_min", Int),
@@ -34,6 +44,10 @@ namespace Libc
                               ("tm_wday",Int),
                               ("tm_yday",Int),
                               ("tm_isdst",Int)]
+  export
+  TmInfoEC : Type
+  TmInfoEC = Struct "TmInfoEC" [("tm_info",TmInfo),
+                                ("e_code",Bits32)]
 
   public export
   record DateTime where
@@ -76,7 +90,7 @@ namespace Libc
   strftime : Int -> String -> Libc.TmInfo -> String
   
   %foreign "C:wrap_strptime,libmongoose"
-  wrap_strptime : (buf:String) -> (format:String) -> Libc.TmInfo
+  wrap_strptime : (buf:String) -> (format:String) -> Libc.TmInfoEC --TmInfo
   
   public export
   new_tm_info : HasIO io=> io (Ptr Libc.TmInfo)
@@ -95,9 +109,20 @@ namespace Libc
   time = primIO Libc.prim__read_time
   
   export
-  strptime : (buf:String)->(format:String) -> Libc.DateTime
-  strptime x y = toDateTime $ wrap_strptime x y
-  
+  strptime : (buf:String)->(format:String) -> Either Libc.ErrorCode Libc.DateTime
+  strptime x y = ret where
+       w_ret : Libc.TmInfoEC
+       w_ret = wrap_strptime x y
+       ec : Libc.ErrorCode
+       ec = fromBits32 $getField w_ret "e_code"
+       tm : Libc.DateTime
+       tm = toDateTime $ getField w_ret "tm_info" 
+       ret : Either Libc.ErrorCode Libc.DateTime
+       ret = case ec of
+          OK => Right tm
+          ParsePartial => Right tm
+          err => Left err
+          
   {-
   export
   strftime : HasIO io => Int -> String -> Libc.TmInfo -> io String
