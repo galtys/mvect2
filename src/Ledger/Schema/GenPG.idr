@@ -160,11 +160,11 @@ genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
    
 public export
 showPrimDef : Schema -> SDoc
-showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
+showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:\#{columnIdrisType f}"# where
    f : Field
    f = (getPK_Field db_field table)      
-showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
-showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(\#{columnIdrisType f})"# where
+showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:\#{columnIdrisType prim}"# 
+showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{columnIdrisType f}"# where
    f : Field
    f = db_field 
 showPrimDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
@@ -225,11 +225,11 @@ showPrimDef (Sch name models) = Def (map showPrimDef models) --Sep
 
 public export
 showPrimRecDef : Schema -> SDoc
-showPrimRecDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
+showPrimRecDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:\#{columnIdrisType f}"# where
    f : Field
    f = (getPK_Field db_field table)      
-showPrimRecDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
-showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(\#{columnIdrisType f})"# where
+showPrimRecDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:\#{columnIdrisType prim}"# 
+showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{columnIdrisType f}"# where
    f : Field
    f = db_field 
 showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
@@ -293,10 +293,10 @@ showPrimRecDef (Sch name models) = Def (map showPrimRecDef models) --Sep
 
 export
 showRelDef : Schema -> SDoc
-showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
+showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:\#{columnIdrisType f}"# where
    f : Field
    f = (getPK_Field db_field table)    
-showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
+showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:\#{columnIdrisType prim}"# 
 showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
    f = db_field 
