@@ -234,7 +234,7 @@ showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{
    f = db_field 
 showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
 showPrimRecDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
-showPrimRecDef mod@(Model table fields) = Def [Sep,ns,,Sep,rec,elabRec,
+showPrimRecDef mod@(Model table fields) = Def [Sep,ns,Sep,rec,elabRec,
                                                np2Rec] where --read_rec_c,Sep,read_rec,main_read
    fs : List String
    fs = getFieldRefs (getPrimFields mod)
