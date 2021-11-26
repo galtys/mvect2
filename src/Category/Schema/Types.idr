@@ -39,9 +39,13 @@ namespace OE
    public export
    record TableName where
      constructor MkTN
+     ||| Column name Suffix in generated idris2 source file
      ref : String     
+     ||| Database table name
      dbtable : String
+     ||| Model name, also used to create namespace in idris source file
      m : String
+     ||| Flag used to indicate m2m table
      isM2M : Bool
    %runElab derive "TableName" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
    
@@ -68,13 +72,20 @@ namespace OE
    public export
    record Field where
      constructor MkF
+     ||| Required or not (using Maybe)
      isNull : IsNull
+     ||| Used to generate idris type
      primType : PrimTypes          
+     ||| Name of the column in the database
      name : String
 --     db_field : String
+     ||| Used to generate pg type
      pg_type : PgTypes
+     ||| Name of the function to Cast from db type to idris type
      castTo : String --ToPG
+     ||| Name of the function to Cast from idris type to db type
      castFrom : String --FromPG
+     ||| TableName that the field belongs to.
      table : TableName
    %runElab derive "Field" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]  
    
@@ -84,7 +95,7 @@ namespace OE
       
    public export
    data Schema : Type where
-     Pk : (name:String) -> (db_field:String) -> (table:TableName) -> Schema
+     Pk : (ref:String) -> (db_field:String) -> (table:TableName) -> Schema
      Prim : (prim:OE.Field) -> Schema
      M2O : (rel: TableName) -> (db_field:Field) ->(table:TableName) -> Schema
      O2M : (rec_field:String) -> (rel_f:Field) -> (tn: TableName) -> Schema
@@ -95,19 +106,22 @@ namespace OE
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
    public export
    data View : Type where
-     ListView : View -> View --Should be one Group of fields
-     FormView :  List View -> View
-     
+     ListView :  View -> View --Should be one Group of fields
+     Form :  List View -> View
+     ||| To be able to compare. For example Orders with Invoices
+     Compare : (left:View) -> (right:View) -> View
+     ||| 
      Notebook : List View -> View -- for form view
      Page : View -> View     -- for Notebook (or paginated document)
-     FieldGroup : List Schema -> View -- List of fields in a group
+     Group : List OE.Field -> View -- List of fields in a group
      Separator : View -- separator
           
    %runElab derive "View" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]              
    public export
    data Menu : Type where
-      MenuItem : (view:View) -> Menu
-      MenuSub : (items:List Menu) -> Menu
+      Submenu : (items:List Menu) -> Menu   
+      This : (view:View) -> Menu
+
      
    
    public export
