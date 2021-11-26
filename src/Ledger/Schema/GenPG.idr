@@ -54,14 +54,6 @@ capitalize : List Char -> String
 capitalize [] = ""
 capitalize (x::xs) = pack ([(toUpper x)]++xs)
 
-db_field2Ref : String -> String
-db_field2Ref x =  concat (map capitalize (map unpack (split split_by x)))
-
-export
-columnRef : Field -> String
-columnRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
-
-
 export
 getPK_Field : String -> TableName -> Field
 getPK_Field db_field table = (MkF NotNull I_Bits32 db_field BigInt "(Just . cast)" "cast" table)
@@ -125,6 +117,25 @@ model2Fields ((M2M rec_field f1 f2 m2m_table tn)::xs) = []
 model2Fields ((Model table fields)::xs) = []
 model2Fields ((Sch name models)::xs) = []
 
+db_field2Ref : String -> String
+db_field2Ref x =  concat (map capitalize (map unpack (split split_by x)))
+
+export
+columnRef : Field -> String
+columnRef (MkF isNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = (db_field2Ref (id2pk name))++(ref)
+
+export
+columnIdrisType : Field -> String
+columnIdrisType (MkF NotNull primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = ret where
+    ret : String
+    ret = #"\#{show primType}"#
+columnIdrisType (MkF Nullable primType name pg_type castTo castFrom (MkTN ref dbtable m ism2m)) = ret where
+    ret : String
+    ret = #"(Maybe \#{show primType})"#
+
+--(db_field2Ref (id2pk name))++(ref)
+
+
 export
 getFieldRefs : List (Maybe Field) -> List String
 getFieldRefs [] = []
@@ -149,11 +160,11 @@ genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
    
 public export
 showPrimDef : Schema -> SDoc
-showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
+showPrimDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
    f : Field
    f = (getPK_Field db_field table)      
-showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
-showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{columnRef f})"# where
+showPrimDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
+showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(\#{columnIdrisType f})"# where
    f : Field
    f = db_field 
 showPrimDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
@@ -214,11 +225,11 @@ showPrimDef (Sch name models) = Def (map showPrimDef models) --Sep
 
 public export
 showPrimRecDef : Schema -> SDoc
-showPrimRecDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
+showPrimRecDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
    f : Field
    f = (getPK_Field db_field table)      
-showPrimRecDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
-showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{columnRef f})"# where
+showPrimRecDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
+showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(\#{columnIdrisType f})"# where
    f : Field
    f = db_field 
 showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
@@ -282,10 +293,10 @@ showPrimRecDef (Sch name models) = Def (map showPrimRecDef models) --Sep
 
 export
 showRelDef : Schema -> SDoc
-showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{columnRef f})"# where
+showRelDef (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(\#{columnIdrisType f})"# where
    f : Field
    f = (getPK_Field db_field table)    
-showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{columnRef prim})"# 
+showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(\#{columnIdrisType prim})"# 
 showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
    f = db_field 
