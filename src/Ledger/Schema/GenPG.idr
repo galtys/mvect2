@@ -1,7 +1,7 @@
 module Ledger.Schema.GenPG
 
 import Generics.Derive
-import Data.SortedMap
+--import Data.SortedMap
 import Data.String
 
 import Ledger.Schema.Types
@@ -96,19 +96,6 @@ getRelRecFields (M2M rec_field f1 f2 m2m_table tn)  = [(id2pk rec_field)]
 getRelRecFields (Model table fields) = concat (map getRelRecFields fields)
 getRelRecFields (Sch name models) = []
 
-
-{-
-export
-getO2MFields : Schema -> List Schema
-getO2MFields (Pk name db_field table) = []
-getO2MFields (Prim prim) = [] 
-getO2MFields (M2O rel db_field table) = [] 
-getO2MFields o2m@(O2M db_field tn) = [o2m] 
-getO2MFields (M2M f1 f2 tn) = []
-getO2MFields (Model table fields) = concat (map getO2MFields fields)
-getO2MFields (Sch name models) = []
--}
-
 isO2M : Schema -> Bool
 isO2M (Pk name db_field table) = False
 isO2M (Prim prim) = False
@@ -162,18 +149,6 @@ getFields [] = []
 getFields (Nothing :: xs) = (getFields xs)
 getFields ((Just x) :: xs) = [x]++(getFields xs)
 
-public export
-schema_tables : Schema -> List TableName
-schema_tables (Pk name db_field table) = [table]
-schema_tables (Prim prim) = []
-schema_tables (M2O rel db_field table) = []
-schema_tables (O2M rec_field rel_f tn) = []
-schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
-schema_tables (Model tn []) = []
-schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
-schema_tables (Sch n []) = []
-schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
-
 
 
 
@@ -197,7 +172,7 @@ getPrimSDoc (Pk name db_field table) = Line 4 #"\#{id2pk db_field}:(idrisTpe \#{
 getPrimSDoc (Prim prim) = Line 4 #"\#{id2pk (name prim)}:(idrisTpe \#{fieldRef prim})"# 
 getPrimSDoc (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:(idrisTpe \#{fieldRef f})"# where
    f : Field
-   f = db_field --(getPK_Field db_field table)    
+   f = db_field 
 getPrimSDoc (O2M rec_field rel_f tn) = Line 4 "--O2M"
 getPrimSDoc (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
 getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
@@ -266,53 +241,30 @@ showPrim (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
 showPrim (Model tn []) = Def [] 
 showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
 showPrim (Sch n []) = Def []
-showPrim s@(Sch n xs) = Def [s_imp,t_names,modules,prim] where       
-    s_imp:SDoc
-    s_imp=Def [Line 0 #"module \#{n}"#, Sep,
-           Line 0 "import PQ.CRUD",
-           Line 0 "import PQ.FFI",
-           Line 0 "import PQ.Schema",
-           Line 0 "import PQ.Types", Sep,
-           Line 0 "import Category.Transaction.Types",
-           Line 0 "import Data.Ratio",Sep,
-           Line 0 "import Generics.Derive",Sep,
-           Line 0 "import JSON",Sep,
-           Line 0 "import Ledger.PG.Config",
-           Line 0 "import Control.Monad.Either",Sep,
-           Line 0 "%language ElabReflection"]
+showPrim s@(Sch n xs) = Def [modules,prim] where       
+{-
+    schema_tables : Schema -> List TableName
+    schema_tables (Pk name db_field table) = [table]
+    schema_tables (Prim prim) = []
+    schema_tables (M2O rel db_field table) = []
+    schema_tables (O2M rec_field rel_f tn) = []
+    schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
+    schema_tables (Model tn []) = []
+    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+    schema_tables (Sch n []) = []
+    schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
+
 
     t_names:SDoc
     t_names = Def (map tn_show (schema_tables s)) where 
        tn_show : TableName -> SDoc
        tn_show (MkTN ref dbtable m ism2m) = Def [(Line 0 #"\#{ref}:String"#),
                                                  (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
-    
+-}    
     modules:SDoc
     modules = Def (map showPrim xs)
     prim : SDoc
     prim = Def (map getPrimSDoc xs)
-
-{-
-getM2M : Schema -> List TableName
-getM2M (Pk name db_field table) = []
-getM2M (Prim prim) = []
-getM2M (M2O rel db_field table) = []
-getM2M (O2M rec_field rel_f tn) = []
-getM2M (M2M rec_field f1 f2 m2m_table tn)= [tn]
-getM2M (Model tn []) = []
-getM2M (Model tn (x :: xs)) = (getM2M x) ++ (getM2M (Model tn xs))
-getM2M (Sch n []) = []
-getM2M (Sch n (x::xs) ) = (getM2M x) ++ (getM2M (Sch n xs))
-
-isM2M_Table : TableName -> Schema -> Bool
-isM2M_Table x y = ret where
-    tst : TableName -> TableName -> Bool
-    tst t1 t2 = (t1==t2)
-    lstM2M : List TableName
-    lstM2M = getM2M y
-    ret : Bool
-    ret = elemBy tst x lstM2M --if (length (filter tst lstM2M)) >=0 then True else False
--}
 
 export
 getRelO2m : Schema -> SDoc
@@ -494,5 +446,43 @@ getRelO2m (Sch name models) = Def (map getRelO2m models)
 
 export
 schema_show : Schema -> SDoc
-schema_show s = Def [showPrim s, getRelO2m s]
+schema_show s = Def [s_imp, t_names, showPrim s, getRelO2m s] where
+    schema_tables : Schema -> List TableName
+    schema_tables (Pk name db_field table) = [table]
+    schema_tables (Prim prim) = []
+    schema_tables (M2O rel db_field table) = []
+    schema_tables (O2M rec_field rel_f tn) = []
+    schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
+    schema_tables (Model tn []) = []
+    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+    schema_tables (Sch n []) = []
+    schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
+
+
+    t_names:SDoc
+    t_names = Def (map tn_show (schema_tables s)) where 
+       tn_show : TableName -> SDoc
+       tn_show (MkTN ref dbtable m ism2m) = Def [(Line 0 #"\#{ref}:String"#),
+                                                 (Line 0 #"\#{ref} = \#{add_quotes dbtable}"#)]   
+
+    get_name : Schema -> String
+    get_name (Sch n xs) = n
+    get_name _ = ""
+    s_n : String
+    s_n = get_name s
+    
+    s_imp:SDoc
+    s_imp=Def [Line 0 #"module \#{s_n}"#, Sep,
+           Line 0 "import PQ.CRUD",
+           Line 0 "import PQ.FFI",
+           Line 0 "import PQ.Schema",
+           Line 0 "import PQ.Types", Sep,
+           Line 0 "import Category.Transaction.Types",
+           Line 0 "import Data.Ratio",Sep,
+           Line 0 "import Generics.Derive",Sep,
+           Line 0 "import JSON",Sep,
+           Line 0 "import Ledger.PG.Config",
+           Line 0 "import Control.Monad.Either",Sep,
+           Line 0 "%language ElabReflection"]
+
 
