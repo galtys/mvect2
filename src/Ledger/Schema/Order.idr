@@ -454,19 +454,7 @@ PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, Sale
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
-
-{-
-printSDoc : HasIO io => SDoc -> io ()
-printSDoc (Line i t) = do
-     let sp = (ret_spaces i)
-     putStrLn (sp++t)
-printSDoc Sep = putStrLn ""     
-printSDoc (Def []) = pure ()
-printSDoc (Def (x :: xs)) = do
-     printSDoc x
-     printSDoc (Def xs)
--}     
-     
+{-     
 strFromSDoc : HasIO io => SDoc -> io String
 strFromSDoc (Line i t) = do
      let sp = (ret_spaces i)
@@ -477,22 +465,18 @@ strFromSDoc (Def (x :: xs)) = do
      r_x<- strFromSDoc x
      r_dx <- strFromSDoc (Def xs)
      pure (r_x++r_dx)
-     
+  -}   
+strFromSDoc : SDoc -> String
+strFromSDoc (Line i t) =
+     let sp = (ret_spaces i) in (sp++t++"\n")
 
-{-
-printSDoc : HasIO io => SDoc -> io String
-printSDoc (Line i t) = do
-     let sp = (ret_spaces i)
-     pure (sp++t)
-printSDoc Sep = pure "\n" --putStrLn ""     
-printSDoc (Def []) = pure ""--()
-printSDoc (Def (x :: xs)) = do
-     r_x<- printSDoc x
-     r_dx <- printSDoc (Def xs)
-     pure (r_x++r_dx)
- -}    
-               
---schema2SDoc : HasIO io => Schema
+strFromSDoc Sep = "\n"
+strFromSDoc (Def []) = ""
+strFromSDoc (Def (x :: xs)) =
+  let r_x = strFromSDoc x
+      r_dx = strFromSDoc (Def xs) in (r_x++r_dx)
+
+
 export
 indentSDoc : Bits32 -> SDoc -> SDoc
 indentSDoc x (Line i t) = (Line (i+x) t)
@@ -503,7 +487,8 @@ export
 saveSchema_source : HasIO io => String -> Schema -> io (Either String ())
 saveSchema_source fn schema = do
   --let xu = --SaleOrder
-  ret<-strFromSDoc $ schema_show schema --PJB
+  let ret =strFromSDoc $ schema_show schema
+  
   Right ret <- writeFile fn ret
      | Left err => pure $ Left $ show err
   pure $ Right ()
@@ -512,7 +497,7 @@ export
 generate_pjb_schema : HasIO io => io ()
 generate_pjb_schema = do
   
-  ret <- saveSchema_source "src/Odoo/Schema/Pjb.idr" PJB
+  ret <- saveSchema_source "src/Odoo/Schema/PJB.idr" PJB
   printLn ret
   
   let msa = genSchemaTree "" PJB
