@@ -111,7 +111,7 @@ pjb_test = do
   inv <- O2MAccountInvoice.read (True)
   sp <- O2MStockPicking.read (True)
   av <- O2MAccountVoucher.read (True)  
-  --traverse_ printLn so
+  traverse_ printLn so
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av

@@ -15,6 +15,8 @@ import JSON
 import Ledger.PG.Config
 import Control.Monad.Either
 
+import Odoo.Schema.PJBRecDef
+
 %language ElabReflection
 RPT:String
 RPT = "res_partner"
@@ -227,36 +229,21 @@ AmountUntaxedIT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20)
 AmountTotalIT:Column
 AmountTotalIT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast IT
 --O2M
-
 namespace PrimResPartner
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkRPT, NameRPT, UseParentAddressRPT, ActiveRPT, StreetRPT, ContractRPT, CityRPT, ZipRPT, CountryIdRPT, ParentIdRPT, EmailRPT, Street2RPT]
 
+      public export
       RPT_NP : Table
       RPT_NP = MkTable "res_partner" PrimResPartner.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          name:String
-          use_parent_address:(Maybe Bool)
-          active:(Maybe Bool)
-          street:(Maybe String)
-          contract:(Maybe Bool)
-          city:(Maybe String)
-          zip:(Maybe String)
-          country_id:(Maybe Bits32)
-          parent_id:(Maybe Bits32)
-          --O2M
-          email:String
-          street2:(Maybe String)
-      %runElab derive "PrimResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimResPartner.PrimCols -> PrimResPartner.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimResPartner.RecordModel )
       read_records_c c op = do
@@ -269,6 +256,7 @@ namespace PrimResPartner
       read_records op = do
           c <- connect DB_URI
           ret <- PrimResPartner.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -284,25 +272,21 @@ namespace PrimResPartner
       read op = do
           l1 <- (liftIO $ (PrimResPartner.main_runET op))
           pure l1
-
 namespace PrimM2M_OrderTax
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [OrderLineIdM2M_ST, TaxIdM2M_ST]
 
+      public export
       M2M_ST_NP : Table
       M2M_ST_NP = MkTable "sale_order_tax" PrimM2M_OrderTax.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          order_line_id:Bits32
-          tax_id:Bits32
-      %runElab derive "PrimM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimM2M_OrderTax.PrimCols -> PrimM2M_OrderTax.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimM2M_OrderTax.RecordModel )
       read_records_c c op = do
@@ -315,6 +299,7 @@ namespace PrimM2M_OrderTax
       read_records op = do
           c <- connect DB_URI
           ret <- PrimM2M_OrderTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -330,29 +315,21 @@ namespace PrimM2M_OrderTax
       read op = do
           l1 <- (liftIO $ (PrimM2M_OrderTax.main_runET op))
           pure l1
-
 namespace PrimOrderTax
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkOTax, NameOTax, DescriptionOTax, AmountOTax, TypeOTax, PriceIncludeOTax]
 
+      public export
       OTax_NP : Table
       OTax_NP = MkTable "account_tax" PrimOrderTax.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          name:String
-          description:(Maybe String)
-          amount:EQty
-          type:(Maybe String)
-          price_include:(Maybe Bool)
-      %runElab derive "PrimOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimOrderTax.PrimCols -> PrimOrderTax.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderTax.RecordModel )
       read_records_c c op = do
@@ -365,6 +342,7 @@ namespace PrimOrderTax
       read_records op = do
           c <- connect DB_URI
           ret <- PrimOrderTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -380,31 +358,21 @@ namespace PrimOrderTax
       read op = do
           l1 <- (liftIO $ (PrimOrderTax.main_runET op))
           pure l1
-
 namespace PrimOrderLine
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkOLT, PriceUnitOLT, ProductUomQtyOLT, DiscountOLT, DeliveryLineOLT, OrderIdOLT, ProductIdOLT]
 
+      public export
       OLT_NP : Table
       OLT_NP = MkTable "sale_order_line" PrimOrderLine.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          price_unit:EQty
-          product_uom_qty:EQty
-          discount:(Maybe EQty)
-          delivery_line:(Maybe Bool)
-          order_id:Bits32
-          product_id:(Maybe Bits32)
-          --M2M
-      %runElab derive "PrimOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimOrderLine.PrimCols -> PrimOrderLine.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrderLine.RecordModel )
       read_records_c c op = do
@@ -417,6 +385,7 @@ namespace PrimOrderLine
       read_records op = do
           c <- connect DB_URI
           ret <- PrimOrderLine.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -432,39 +401,21 @@ namespace PrimOrderLine
       read op = do
           l1 <- (liftIO $ (PrimOrderLine.main_runET op))
           pure l1
-
 namespace PrimOrder
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkOT, OriginOT, OrderPolicyOT, DateOrderOT, PartnerIdOT, AmountTaxOT, StateOT, PartnerInvoiceIdOT, AmountUntaxedOT, AmountTotalOT, NameOT, PartnerShippingIdOT, PickingPolicyOT, CarrierIdOT, RequestedDateOT]
 
+      public export
       OT_NP : Table
       OT_NP = MkTable "sale_order" PrimOrder.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          origin:(Maybe String)
-          order_policy:String
-          date_order:Date
-          partner_id:Bits32
-          amount_tax:Price
-          state:String
-          partner_invoice_id:Bits32
-          amount_untaxed:Price
-          amount_total:Price
-          name:String
-          partner_shipping_id:Bits32
-          picking_policy:String
-          carrier_id:(Maybe Bits32)
-          --O2M
-          requested_date:(Maybe Date)
-      %runElab derive "PrimOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimOrder.PrimCols -> PrimOrder.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimOrder.RecordModel )
       read_records_c c op = do
@@ -477,6 +428,7 @@ namespace PrimOrder
       read_records op = do
           c <- connect DB_URI
           ret <- PrimOrder.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -492,28 +444,21 @@ namespace PrimOrder
       read op = do
           l1 <- (liftIO $ (PrimOrder.main_runET op))
           pure l1
-
 namespace PrimAccountVoucher
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkACVT, NumberACVT, PartnerIdACVT, JournalIdACVT, AmountACVT]
 
+      public export
       ACVT_NP : Table
       ACVT_NP = MkTable "account_voucher" PrimAccountVoucher.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          number:String
-          partner_id:(Maybe Bits32)
-          journal_id:(Maybe Bits32)
-          amount:EQty
-      %runElab derive "PrimAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimAccountVoucher.PrimCols -> PrimAccountVoucher.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountVoucher.RecordModel )
       read_records_c c op = do
@@ -526,6 +471,7 @@ namespace PrimAccountVoucher
       read_records op = do
           c <- connect DB_URI
           ret <- PrimAccountVoucher.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -541,32 +487,21 @@ namespace PrimAccountVoucher
       read op = do
           l1 <- (liftIO $ (PrimAccountVoucher.main_runET op))
           pure l1
-
 namespace PrimStockMove
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkSMT, OriginSMT, PriceUnitSMT, ProductQtySMT, ProductIdSMT, LocationIdSMT, LocationDestIdSMT, PickingIdSMT, StateSMT]
 
+      public export
       SMT_NP : Table
       SMT_NP = MkTable "stock_move" PrimStockMove.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          origin:(Maybe String)
-          price_unit:EQty
-          product_qty:EQty
-          product_id:(Maybe Bits32)
-          location_id:(Maybe Bits32)
-          location_dest_id:(Maybe Bits32)
-          picking_id:(Maybe Bits32)
-          state:String
-      %runElab derive "PrimStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimStockMove.PrimCols -> PrimStockMove.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimStockMove.RecordModel )
       read_records_c c op = do
@@ -579,6 +514,7 @@ namespace PrimStockMove
       read_records op = do
           c <- connect DB_URI
           ret <- PrimStockMove.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -594,32 +530,21 @@ namespace PrimStockMove
       read op = do
           l1 <- (liftIO $ (PrimStockMove.main_runET op))
           pure l1
-
 namespace PrimStockPicking
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkSPT, OriginSPT, BackorderIdSPT, DateDoneSPT, PartnerIdSPT, MinDateSPT, NameSPT, StateSPT]
 
+      public export
       SPT_NP : Table
       SPT_NP = MkTable "stock_picking" PrimStockPicking.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          origin:(Maybe String)
-          backorder_id:(Maybe Bits32)
-          date_done:Date
-          partner_id:(Maybe Bits32)
-          min_date:Date
-          name:String
-          state:String
-          --O2M
-      %runElab derive "PrimStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimStockPicking.PrimCols -> PrimStockPicking.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimStockPicking.RecordModel )
       read_records_c c op = do
@@ -632,6 +557,7 @@ namespace PrimStockPicking
       read_records op = do
           c <- connect DB_URI
           ret <- PrimStockPicking.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -647,25 +573,21 @@ namespace PrimStockPicking
       read op = do
           l1 <- (liftIO $ (PrimStockPicking.main_runET op))
           pure l1
-
 namespace PrimM2M_InvoiceTax
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [InvoiceLineIdM2M_IT, TaxIdM2M_IT]
 
+      public export
       M2M_IT_NP : Table
       M2M_IT_NP = MkTable "account_invoice_line_tax" PrimM2M_InvoiceTax.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          invoice_line_id:Bits32
-          tax_id:Bits32
-      %runElab derive "PrimM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimM2M_InvoiceTax.PrimCols -> PrimM2M_InvoiceTax.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimM2M_InvoiceTax.RecordModel )
       read_records_c c op = do
@@ -678,6 +600,7 @@ namespace PrimM2M_InvoiceTax
       read_records op = do
           c <- connect DB_URI
           ret <- PrimM2M_InvoiceTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -693,31 +616,21 @@ namespace PrimM2M_InvoiceTax
       read op = do
           l1 <- (liftIO $ (PrimM2M_InvoiceTax.main_runET op))
           pure l1
-
 namespace PrimAccountInvoiceLine
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkILT, InvoiceIdILT, PriceUnitILT, QuantityILT, NameILT, ProductIdILT, DiscountILT]
 
+      public export
       ILT_NP : Table
       ILT_NP = MkTable "account_invoice_line" PrimAccountInvoiceLine.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          invoice_id:Bits32
-          price_unit:EQty
-          quantity:EQty
-          name:String
-          product_id:(Maybe Bits32)
-          --M2M
-          discount:(Maybe EQty)
-      %runElab derive "PrimAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimAccountInvoiceLine.PrimCols -> PrimAccountInvoiceLine.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountInvoiceLine.RecordModel )
       read_records_c c op = do
@@ -730,6 +643,7 @@ namespace PrimAccountInvoiceLine
       read_records op = do
           c <- connect DB_URI
           ret <- PrimAccountInvoiceLine.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -745,37 +659,21 @@ namespace PrimAccountInvoiceLine
       read op = do
           l1 <- (liftIO $ (PrimAccountInvoiceLine.main_runET op))
           pure l1
-
 namespace PrimAccountInvoice
       domain : Op
       domain = (True)
+      export
       PrimCols : List Column
       PrimCols = [PkIT, OriginIT, DateDueIT, NumberIT, AccountIdIT, PartnerIdIT, JournalIdIT, AmountTaxIT, StateIT, TypeIT, DateInvoiceIT, AmountUntaxedIT, AmountTotalIT]
 
+      public export
       IT_NP : Table
       IT_NP = MkTable "account_invoice" PrimAccountInvoice.PrimCols
 
-      record RecordModel where
-          constructor MkRecordModel
-          pk:Bits32
-          origin:(Maybe String)
-          date_due:Date
-          number:String
-          account_id:(Maybe Bits32)
-          partner_id:(Maybe Bits32)
-          journal_id:(Maybe Bits32)
-          amount_tax:Price
-          state:String
-          type:(Maybe String)
-          date_invoice:Date
-          amount_untaxed:Price
-          amount_total:Price
-          --O2M
-      %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
+      export
       toRecord : GetRow PrimAccountInvoice.PrimCols -> PrimAccountInvoice.RecordModel
       toRecord = to . (\x => MkSOP $ Z x)
-
       export
       read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List PrimAccountInvoice.RecordModel )
       read_records_c c op = do
@@ -788,6 +686,7 @@ namespace PrimAccountInvoice
       read_records op = do
           c <- connect DB_URI
           ret <- PrimAccountInvoice.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -847,6 +746,7 @@ namespace O2MResPartner
       read_records op = do
           c <- connect DB_URI
           ret <- O2MResPartner.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -874,6 +774,7 @@ namespace O2MResPartner
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MResPartner.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -921,6 +822,7 @@ namespace O2MM2M_OrderTax
       read_records op = do
           c <- connect DB_URI
           ret <- O2MM2M_OrderTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -972,6 +874,7 @@ namespace O2MOrderTax
       read_records op = do
           c <- connect DB_URI
           ret <- O2MOrderTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -999,6 +902,7 @@ namespace O2MOrderTax
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MOrderTax.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1057,6 +961,7 @@ namespace O2MOrderLine
       read_records op = do
           c <- connect DB_URI
           ret <- O2MOrderLine.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1084,6 +989,7 @@ namespace O2MOrderLine
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MOrderLine.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1146,6 +1052,7 @@ namespace O2MOrder
       read_records op = do
           c <- connect DB_URI
           ret <- O2MOrder.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1173,6 +1080,7 @@ namespace O2MOrder
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MOrder.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1223,6 +1131,7 @@ namespace O2MAccountVoucher
       read_records op = do
           c <- connect DB_URI
           ret <- O2MAccountVoucher.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1250,6 +1159,7 @@ namespace O2MAccountVoucher
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MAccountVoucher.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1304,6 +1214,7 @@ namespace O2MStockMove
       read_records op = do
           c <- connect DB_URI
           ret <- O2MStockMove.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1331,6 +1242,7 @@ namespace O2MStockMove
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MStockMove.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1386,6 +1298,7 @@ namespace O2MStockPicking
       read_records op = do
           c <- connect DB_URI
           ret <- O2MStockPicking.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1413,6 +1326,7 @@ namespace O2MStockPicking
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MStockPicking.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1460,6 +1374,7 @@ namespace O2MM2M_InvoiceTax
       read_records op = do
           c <- connect DB_URI
           ret <- O2MM2M_InvoiceTax.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1518,6 +1433,7 @@ namespace O2MAccountInvoiceLine
       read_records op = do
           c <- connect DB_URI
           ret <- O2MAccountInvoiceLine.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1545,6 +1461,7 @@ namespace O2MAccountInvoiceLine
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MAccountInvoiceLine.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
@@ -1605,6 +1522,7 @@ namespace O2MAccountInvoice
       read_records op = do
           c <- connect DB_URI
           ret <- O2MAccountInvoice.read_records_c c op
+          finish c
           pure ret
 
       export
@@ -1632,6 +1550,7 @@ namespace O2MAccountInvoice
       read_records_ids xs op = do
           c <- connect DB_URI
           ret <- O2MAccountInvoice.read_records_c_ids c xs op
+          finish c
           pure ret
 
       export
