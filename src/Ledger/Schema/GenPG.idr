@@ -40,7 +40,6 @@ primColsRef tn = (primModelRef tn)++".PrimCols"
 tableRef : TableName -> String
 tableRef tn = (ref tn)++"_NP"
 
-
 --Field
 
 export
@@ -211,7 +210,7 @@ getPrimSDoc mod@(Model table fields) = Def [Sep,ns,Sep,primTab,Sep,rec,elabRec,
                     Line 2  "read op = do",
                     Line 4 #"l1 <- (liftIO $ (\#{primModelRef table}.main_runET op))"#,
                     Line 4 "pure l1"]
-getPrimSDoc (Sch name models) = Sep
+getPrimSDoc (Sch name models) = Def (map getPrimSDoc models) --Sep
 
 
 export
@@ -390,35 +389,32 @@ getRelO2m mod@(Model table fields) = Def [Sep,ns,rec,elabRec,read_rec_c,add_muf,
    ret_ids = if (not isM2M_tab) then Def [read_rec_c_ids,read_rec_ids,main_read_ids] else Def []                
 getRelO2m (Sch name models) = Def (map getRelO2m models)
 
-
+||| Genereate Column definitions
 
 export   
-field_show : Field -> SDoc         
-field_show f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
+toColumnSDoc : Field -> SDoc         
+toColumnSDoc f@(MkF isNull primType name pg_type castTo castFrom t@(MkTN ref dbtable m ism2m)) = Def [(Line 0 #"\#{fieldRef f}:Column"#),
                                                                                               (Line 0 #"\#{fieldRef f}=\#{df}"#)] where
       df:String
       df=(show isNull)++" "++(show primType)++" "++(add_quotes name)++" ("++(show pg_type)++") "++castTo++" "++castFrom++" "++(ref)
 
 export
-showPrim : Schema -> SDoc
-showPrim (Pk name db_field table) = field_show $ getPK_Field db_field table
-showPrim (Prim prim) = field_show $ prim
-showPrim (M2O rel db_field table) = field_show db_field --$ getPK_Field db_field table
-showPrim (O2M rec_field rel_f tn) = Line 0 "--O2M"
-showPrim (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
-showPrim (Model tn []) = Def [] 
-showPrim (Model tn xs) = Def ([Sep]++(map showPrim xs))
-showPrim (Sch n []) = Def []
-showPrim (Sch n xs) = Def [modules,prim] where       
+showColumnDef : Schema -> SDoc
+showColumnDef (Pk name db_field table) = toColumnSDoc $ getPK_Field db_field table
+showColumnDef (Prim prim) = toColumnSDoc $ prim
+showColumnDef (M2O rel db_field table) = toColumnSDoc db_field --$ getPK_Field db_field table
+showColumnDef (O2M rec_field rel_f tn) = Line 0 "--O2M"
+showColumnDef (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
+showColumnDef (Model tn []) = Def [] 
+showColumnDef (Model tn xs) = Def ([Sep]++(map showColumnDef xs))
+showColumnDef (Sch n []) = Def []
+showColumnDef (Sch n xs) = Def [modules] where       
     modules:SDoc
-    modules = Def (map showPrim xs)
-    prim : SDoc
-    prim = Def (map getPrimSDoc xs)
-
+    modules = Def (map showColumnDef xs)
 
 export
 schema_show : Schema -> SDoc
-schema_show s = Def [s_imp, t_names, showPrim s, getRelO2m s] where
+schema_show s = Def [s_imp, t_names, showColumnDef s, getPrimSDoc s,  getRelO2m s] where
     schema_tables : Schema -> List TableName
     schema_tables (Pk name db_field table) = [table]
     schema_tables (Prim prim) = []
@@ -429,7 +425,6 @@ schema_show s = Def [s_imp, t_names, showPrim s, getRelO2m s] where
     schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
     schema_tables (Sch n []) = []
     schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
-
 
     t_names:SDoc
     t_names = Def (map tn_show (schema_tables s)) where 
@@ -456,5 +451,3 @@ schema_show s = Def [s_imp, t_names, showPrim s, getRelO2m s] where
            Line 0 "import Ledger.PG.Config",
            Line 0 "import Control.Monad.Either",Sep,
            Line 0 "%language ElabReflection"]
-
-
