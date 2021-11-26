@@ -1,4 +1,4 @@
-module Ledger.PG.Config
+module Category.PG.Config
 
 export
 DB_URI : String

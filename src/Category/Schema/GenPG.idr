@@ -1,10 +1,10 @@
-module Ledger.Schema.GenPG
+module Category.Schema.GenPG
 
 import Generics.Derive
 --import Data.SortedMap
 import Data.String
 
-import Ledger.Schema.Types
+import Category.Schema.Types
 
 add_quotes : String -> String
 add_quotes x = "\"" ++ x ++ "\""
@@ -509,7 +509,7 @@ showSchemaRecDef s = Def [showImports, showPrimRecDef s, showRelDefRec s] where
                      Line 0 "import Data.Ratio",Sep,
                      Line 0 "import Generics.Derive",Sep,
                      Line 0 "import JSON",Sep,
-                     Line 0 "import Ledger.PG.Config",
+                     Line 0 "import Category.PG.Config",
                      Line 0 "import Control.Monad.Either",Sep,
                      Line 0 "%language ElabReflection"]
 
@@ -549,7 +549,7 @@ showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s
            Line 0 "import Data.Ratio",Sep,
            Line 0 "import Generics.Derive",Sep,
            Line 0 "import JSON",Sep,
-           Line 0 "import Ledger.PG.Config",
+           Line 0 "import Category.PG.Config",
            Line 0 "import Control.Monad.Either",Sep,
            Line 0 "import Odoo.Schema.PJBRecDef",Sep,
            Line 0 "%language ElabReflection"]

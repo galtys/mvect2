@@ -1,17 +1,14 @@
 module Category.Transaction.Types
 
-import Generics.Derive
-import Data.SortedMap
-import Control.Monad.State
 import Category.Transaction.Qty
+import Data.SortedMap
+--import Control.Monad.State
 import Crypto.Hash.SHA256
 import Data.Ratio
-
+import Generics.Derive
 import JSON
 
 %language ElabReflection
-
-
 
 public export
 record Location where

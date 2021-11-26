@@ -1,4 +1,4 @@
-module Ledger.PG.BoM
+module Category.PG.BoM
 
 import Data.SortedMap
 

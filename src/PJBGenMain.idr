@@ -31,12 +31,12 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-import Ledger.PG.BoM
-import Ledger.PG.Order
+import Category.PG.BoM
+import Category.PG.Order
 -}
-import Ledger.Schema.Types
-import Ledger.Schema.Order
-import Ledger.Schema.GenPG
+import Category.Schema.Types
+import Category.Schema.PJB
+import Category.Schema.GenPG
 
 -- this is generated: import Odoo.Schema.PJB
 

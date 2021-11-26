@@ -32,11 +32,11 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-import Ledger.PG.BoM
-import Ledger.PG.Order
+import Category.PG.BoM
+import Category.PG.Order
 
-import Ledger.Schema.Types
-import Ledger.Schema.Order
+import Category.Schema.Types
+import Category.Schema.PJB
 
 import Odoo.Schema.PJBRecDef
 import Odoo.Schema.PJB

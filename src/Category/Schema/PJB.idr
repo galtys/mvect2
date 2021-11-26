@@ -1,7 +1,7 @@
-module Ledger.Schema.Order
+module Category.Schema.PJB
 
-import Ledger.Schema.Types
-import Ledger.Schema.GenPG
+import Category.Schema.Types
+import Category.Schema.GenPG
 import System.File.ReadWrite
 
 export

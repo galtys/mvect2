@@ -28,9 +28,9 @@ modules = Web.Mongoose.Types
 	  , Category.Transaction.Types
 	  , Category.Transaction.Hom	  
 	  , Category.Transaction.Journal
-          , Ledger.Schema.Types
-          , Ledger.Schema.Order	  
-	  , Ledger.Schema.GenPG
+          , Category.Schema.Types
+          , Category.Schema.PJB
+	  , Category.Schema.GenPG
 	  , PJBGenMain
 		    
 -- main file (i.e. file to load at REPL)

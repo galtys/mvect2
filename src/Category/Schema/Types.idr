@@ -1,4 +1,4 @@
-module Ledger.Schema.Types
+module Category.Schema.Types
 
 import Generics.Derive
 import Data.SortedMap
@@ -95,18 +95,19 @@ namespace OE
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            
    public export
    data View : Type where
-     FieldGroup : List Schema -> View -- List of fields in a group
      ListView : View -> View --Should be one Group of fields
-     Separator : View -> View -- separator
      FormView :  List View -> View
-     Notebook : View -> View -- for form view
-     Page : View -> View     -- for Notebook (or paginated document)
      
+     Notebook : List View -> View -- for form view
+     Page : View -> View     -- for Notebook (or paginated document)
+     FieldGroup : List Schema -> View -- List of fields in a group
+     Separator : View -- separator
+          
    %runElab derive "View" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]              
    public export
    data Menu : Type where
       MenuItem : (view:View) -> Menu
-      Parent : (items:List Menu) -> Menu
+      MenuSub : (items:List Menu) -> Menu
      
    
    public export

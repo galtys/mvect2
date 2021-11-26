@@ -1,6 +1,6 @@
-module Ledger.PG.Order
+module Category.PG.Order
 
-import Ledger.PG.Types
+--import Category.PG.Types
 
 
 import Category.Transaction.Qty
@@ -18,7 +18,7 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-import Ledger.PG.Config
+import Category.PG.Config
 
 %language ElabReflection
 
