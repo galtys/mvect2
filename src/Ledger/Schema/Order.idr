@@ -454,18 +454,7 @@ PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, Sale
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
-{-     
-strFromSDoc : HasIO io => SDoc -> io String
-strFromSDoc (Line i t) = do
-     let sp = (ret_spaces i)
-     pure (sp++t++"\n")
-strFromSDoc Sep = pure "\n"
-strFromSDoc (Def []) = pure ""
-strFromSDoc (Def (x :: xs)) = do
-     r_x<- strFromSDoc x
-     r_dx <- strFromSDoc (Def xs)
-     pure (r_x++r_dx)
-  -}   
+export
 strFromSDoc : SDoc -> String
 strFromSDoc (Line i t) =
      let sp = (ret_spaces i) in (sp++t++"\n")
@@ -475,20 +464,10 @@ strFromSDoc (Def []) = ""
 strFromSDoc (Def (x :: xs)) =
   let r_x = strFromSDoc x
       r_dx = strFromSDoc (Def xs) in (r_x++r_dx)
-
-
-export
-indentSDoc : Bits32 -> SDoc -> SDoc
-indentSDoc x (Line i t) = (Line (i+x) t)
-indentSDoc x (Def lines) = Def [ indentSDoc x l | l <- lines]
-indentSDoc x Sep = Sep
-
 export
 saveSchema_source : HasIO io => String -> SDoc -> io (Either String ())
 saveSchema_source fn schema = do
-  --let xu = --SaleOrder
   let ret =strFromSDoc  schema
-  
   Right ret <- writeFile fn ret
      | Left err => pure $ Left $ show err
   pure $ Right ()
@@ -496,7 +475,6 @@ saveSchema_source fn schema = do
 export
 generate_pjb_schema : HasIO io => io ()
 generate_pjb_schema = do
-
   ret <- saveSchema_source "src/Odoo/Schema/PJBRecDef.idr" (showSchemaRecDef PJB)  
   printLn ret
   
@@ -507,8 +485,6 @@ generate_pjb_schema = do
   traverse_ printLn msa 
   
   --printSDoc $ schema_show PJB
-  
-  
   --printLn (length order_line_cols)
   --printSDoc $ schema_show DeliveryLine --tn_show OdooTaxTable
   --printSDoc $ schema_show Id_OLT --tn_show OdooTaxTable  

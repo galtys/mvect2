@@ -38,6 +38,7 @@ import Ledger.PG.Order
 import Ledger.Schema.Types
 import Ledger.Schema.Order
 
+import Odoo.Schema.PJBRecDef
 import Odoo.Schema.PJB
 
 import Core.Context
