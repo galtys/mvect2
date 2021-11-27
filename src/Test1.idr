@@ -54,6 +54,13 @@ json_result = "{\"result\": 332}"
 WEB_ROOT : String
 WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
 
+{-
+ptrToString : Ptr String -> Maybe String
+ptrToString ptr =
+  if prim__nullPtr ptr == 1
+     then Nothing
+     else Just (believe_me ptr)
+-}
 
 
 
