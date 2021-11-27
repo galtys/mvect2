@@ -58,8 +58,7 @@ Cast Price Double where
 public export
 record Address where
   constructor MkA
-  street : String
-  street2 : String
+  street : String  street2 : String
   city : String
   zip : String
   country_id : Country
