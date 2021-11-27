@@ -44,6 +44,7 @@ import Odoo.Schema.PJB
 import Core.Context
 import System.FFI
 import Libc.Time
+--import System
 
 %ambiguity_depth 10
 
@@ -107,6 +108,22 @@ so_id_44575 = 44575
 
 pjb_test : IO ()
 pjb_test = do
+  t0 <- time
+  p <- O2MResPartner.read (True)
+  let toPair : String -> (String,Int)
+      toPair x = (x,1)
+      pmap : SortedMap String Int
+      pmap = fromList (map (toPair . name) p)
+  t1 <- time
+  traverse_ printLn (Data.SortedMap.toList pmap)
+  
+  printLn (t1-t0)
+  t2 <- time
+  printLn (lookup "Zaki3" pmap)
+  t3 <- time
+  printLn (t3-t2)
+  
+  {-
   so <- O2MOrder.read_ids [21833] (True)
   printLn so
   inv <- O2MAccountInvoice.read (True)
@@ -116,7 +133,8 @@ pjb_test = do
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av
-
+  -}
+  
 mg_test : IO ()
 mg_test = do
   --ignore $ run forever greet
