@@ -89,7 +89,10 @@ toTaxA x = MkPrice TAXAMOUNT (cast x)
 public export
 Cast Price Double where
   cast = fromPrice
-
+public export
+Cast Price EQty where
+  cast (MkPrice tax x) = x
+  
 public export
 data ProdKey = PKUser String | PK32 Bits32 | PKTax String
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
@@ -162,10 +165,10 @@ data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 
 public export
 data LineTerm : Type where
-     LEHom1 : (qty:TQty) -> LineTerm
+     LEHom1 : (qty:EQty) -> LineTerm
      LETaxCode : (taxcode:TaxCode) -> LineTerm -> LineTerm
      LEAdd : (l1:LineTerm) -> (l2:LineTerm) -> LineTerm
-     LEMul : (u:TQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
+     LEMul : (u:EQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
 
@@ -184,7 +187,7 @@ record ProdKey2 where
 
 public export
 Product : Type
-Product = (ProdKey, TQty)
+Product = (ProdKey, EQty)
 public export
 Hom1 : Type
 Hom1 = List Product
@@ -200,7 +203,7 @@ record Hom3 where
    constructor MkH
    from:Product
    price_unit:Price
-   to:Maybe Product
+   to:Product
 %runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
 public export
 record Location where

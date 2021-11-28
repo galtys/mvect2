@@ -25,26 +25,28 @@ get_hom1 (Co j1 t1 t2) = (get_hom1 t1) ++ (get_hom1 t2)
 
 ||| Hom1
 
-
-unTQty : TQty -> TQty -> TQty 
-unTQty (Debit a) (Debit b) = Debit (min a b)
-unTQty (Credit a) (Credit b) = Credit (min a b)
-unTQty (Debit a) (Credit b) = Debit 0
-unTQty (Credit a) (Debit b) = Debit 0
-
+{-
+unEQty : EQty -> EQty -> EQty 
+unEQty (Debit a) (Debit b) = Debit (min a b)
+unEQty (Credit a) (Credit b) = Credit (min a b)
+unEQty (Debit a) (Credit b) = Debit 0
+unEQty (Credit a) (Debit b) = Debit 0
+-}
+unEQty : EQty -> EQty -> EQty
+unEQty x y = (min x y)
 partial
 public export
-merge_as_union : (SortedMap ProdKey TQty) -> Product -> (SortedMap ProdKey TQty)
+merge_as_union : (SortedMap ProdKey EQty) -> Product -> (SortedMap ProdKey EQty)
 merge_as_union acc x = case (lookup (fst x) acc) of
                              Nothing => acc
-                             Just v => case (unTQty v (snd x) ) of 
+                             Just v => case (unEQty v (snd x) ) of 
                                            0 => (delete (fst x) acc)
                                            nv => (insert (fst x) nv acc)                                           
 
-merge_item_into : (SortedMap ProdKey TQty) -> (ProdKey, TQty) -> (SortedMap ProdKey TQty)
+merge_item_into : (SortedMap ProdKey EQty) -> (ProdKey, EQty) -> (SortedMap ProdKey EQty)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
-fromProductList : Hom1 -> SortedMap ProdKey TQty
+fromProductList : Hom1 -> SortedMap ProdKey EQty
 fromProductList xs = foldl merge_item_into empty xs
 
 public export
@@ -52,7 +54,7 @@ evalProductList : Hom1 -> Hom1
 evalProductList xs = toList $ fromProductList xs 
 
 public export 
-unionHom1' : Hom1 -> Hom1 -> SortedMap ProdKey TQty
+unionHom1' : Hom1 -> Hom1 -> SortedMap ProdKey EQty
 unionHom1' a b = foldl merge_as_union (fromProductList a) b
 
 public export
@@ -92,25 +94,25 @@ eqHom1 x y = (evDiffHom1 x y) == id_hom1
 
 ||| Tax
 public export
-PC20 : TQty
+PC20 : EQty
 PC20 = (percent 20)
 
 public export
-one5 : TQty
+one5 : EQty
 one5 = 1 - PC20
 
 public export
-inc20_const : TQty
+inc20_const : EQty
 inc20_const = (  1/(1+one5) ) * one5
 
 public export
-taxRatio : TaxCode -> TQty
+taxRatio : TaxCode -> EQty
 taxRatio ZeroVAT = 0
 taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
 taxRatio TAXAMOUNT = 0
 
-||| Hom2
+{-
 public export
 get_line : Line -> Product2
 get_line l =
@@ -119,34 +121,34 @@ get_line l =
        p = LEMul (price_unit l) UnitPrice h1
        d = LEMul (discount l) Discount p 
        t = LETaxCode (tax_code l) d in (pk2,t)
-
-
-public export
-get_hom1_TQty : LineTerm -> TQty
-get_hom1_TQty (LEHom1 qty) = qty
-get_hom1_TQty (LETaxCode tc l) = (get_hom1_TQty l)
-get_hom1_TQty (LEAdd l1 l2) = (get_hom1_TQty l1) + (get_hom1_TQty l2)
-get_hom1_TQty (LEMul u mu l) = get_hom1_TQty l
-
-{-
-public export
-get_hom2_TQty : LineTerm -> TQty 
-get_hom2_TQty (LEHom1 qty) = 1
-get_hom2_TQty (LETaxCode tc l) = (get_hom2_TQty l)
-get_hom2_TQty (LEAdd l1 l2) = (get_hom2_TQty l1) + (get_hom2_TQty l2)
-get_hom2_TQty (LEMul u mu l) = (get_hom2_TQty l) * u
 -}
 
 public export
-get_hom2_Mul : LineTerm -> List (LineTermMultType,TQty)
+get_hom1_EQty : LineTerm -> EQty
+get_hom1_EQty (LEHom1 qty) = qty
+get_hom1_EQty (LETaxCode tc l) = (get_hom1_EQty l)
+get_hom1_EQty (LEAdd l1 l2) = (get_hom1_EQty l1) + (get_hom1_EQty l2)
+get_hom1_EQty (LEMul u mu l) = get_hom1_EQty l
+
+{-
+public export
+get_hom2_EQty : LineTerm -> EQty 
+get_hom2_EQty (LEHom1 qty) = 1
+get_hom2_EQty (LETaxCode tc l) = (get_hom2_EQty l)
+get_hom2_EQty (LEAdd l1 l2) = (get_hom2_EQty l1) + (get_hom2_EQty l2)
+get_hom2_EQty (LEMul u mu l) = (get_hom2_EQty l) * u
+-}
+
+public export
+get_hom2_Mul : LineTerm -> List (LineTermMultType,EQty)
 get_hom2_Mul (LEHom1 qty) = []
 get_hom2_Mul (LETaxCode taxcode x) = get_hom2_Mul x
 get_hom2_Mul (LEAdd l1 l2) = (get_hom2_Mul l1) ++ (get_hom2_Mul l2)
 get_hom2_Mul (LEMul u mu l)= [(mu,u)] ++ (get_hom2_Mul l)
 
 public export
-get_hom2_TQty : LineTerm -> TQty 
-get_hom2_TQty l = foldl (*) 1 [ v | (k,v) <- get_hom2_Mul l]
+get_hom2_EQty : LineTerm -> EQty 
+get_hom2_EQty l = foldl (*) 1 [ v | (k,v) <- get_hom2_Mul l]
 
 --public export
 --get_hom2
@@ -166,29 +168,29 @@ eqLineTerm_TaxMult l1 l2 =
               l1_h2 = sort $ get_hom2_Mul l1
               l2_h2 = sort $ get_hom2_Mul l2 in ( (l1_tc==l2_tc) && (l1_h2==l2_h2) )
 
-eqLineTerm_TaxTQty : LineTerm -> LineTerm -> Bool
-eqLineTerm_TaxTQty l1 l2 = 
+eqLineTerm_TaxEQty : LineTerm -> LineTerm -> Bool
+eqLineTerm_TaxEQty l1 l2 = 
           let l1_tc = sort $ get_tax_codes l1
               l2_tc = sort $ get_tax_codes l2
-              l1_h2 = get_hom2_TQty l1
-              l2_h2 = get_hom2_TQty l2 in ( (l1_tc==l2_tc) && (l1_h2==l2_h2) )
+              l1_h2 = get_hom2_EQty l1
+              l2_h2 = get_hom2_EQty l2 in ( (l1_tc==l2_tc) && (l1_h2==l2_h2) )
 
-fromMaybeTQty : Maybe TQty -> TQty
-fromMaybeTQty Nothing = 0
-fromMaybeTQty (Just x) = x
-
+fromMaybeEQty : Maybe EQty -> EQty
+fromMaybeEQty Nothing = 0
+fromMaybeEQty (Just x) = x
+{-
 public export
 fromProduct2 : Product2 -> LineExt
 fromProduct2 (p2,lt) =
           let lt_tc = get_tax_codes lt
               lt_h2 = get_hom2_Mul lt
-              lt_map = Data.SortedMap.fromList lt_h2 --TBD: Merge TQty by LineTermMultType
-              p_u = fromMaybeTQty $ Data.SortedMap.lookup UnitPrice lt_map
-              disc = fromMaybeTQty $ Data.SortedMap.lookup Discount lt_map
-              qty = get_hom1_TQty lt
+              lt_map = Data.SortedMap.fromList lt_h2 --TBD: Merge EQty by LineTermMultType
+              p_u = fromMaybeEQty $ Data.SortedMap.lookup UnitPrice lt_map
+              disc = fromMaybeEQty $ Data.SortedMap.lookup Discount lt_map
+              qty = get_hom1_EQty lt
               l = MkLineExt (keyfrom p2) qty (keyto p2) p_u disc lt_tc in l
 
-replaceHom1 : LineTerm -> TQty -> LineTerm
+replaceHom1 : LineTerm -> EQty -> LineTerm
 replaceHom1 (LEHom1 qty) y = (LEHom1 y)
 replaceHom1 (LETaxCode taxcode x) y = (LETaxCode taxcode (replaceHom1 x y) )
 replaceHom1 (LEAdd l1 l2) y = (LEAdd (replaceHom1 l2 y) (replaceHom1 l2 y))
@@ -199,12 +201,12 @@ replaceHom1 (LEMul u mu l) y = (LEMul u mu (replaceHom1 l y) )
 public export
 addLineTerm : LineTerm -> LineTerm -> LineTerm
 addLineTerm x y = 
-       let q1 = get_hom1_TQty x
-           q2 = get_hom1_TQty y
+       let q1 = get_hom1_EQty x
+           q2 = get_hom1_EQty y
            q = q1+q2
            l1 = LEMul (q1/q) MultQty x
            l2 = LEMul (q2/q) MultQty y
-           l = if (eqLineTerm_TaxTQty x y) then replaceHom1 x q else LEAdd l1 l2 in l
+           l = if (eqLineTerm_TaxEQty x y) then replaceHom1 x q else LEAdd l1 l2 in l
 
 
 merge_item_into2 : (SortedMap ProdKey2 LineTerm) -> (ProdKey2, LineTerm) -> (SortedMap ProdKey2 LineTerm)
@@ -217,14 +219,14 @@ public export
 evalProduct2List : Hom2 -> Hom2
 evalProduct2List xs = toList $ fromProduct2List xs 
 
-
+-}
 
 
 {-
     let xs_map = fromList [(x,0) | x<- xs]
         ret = [ k | (k,v) <- xs_map ] in concat ret       
-
 -}
+
 public export
 ev_tax : LineTerm -> LineTerm
 ev_tax (LEHom1 qty) = (LEHom1 qty) --terminating

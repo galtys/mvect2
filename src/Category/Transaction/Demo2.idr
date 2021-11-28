@@ -36,12 +36,15 @@ export
 confirm_so : OrderEvent ()
 confirm_so = do
  let date = "2021-11-01"
-     line1 = MkFx date hilton (MkH p1 (toEX20 31.73) Nothing)
-     line2 = MkFx date hilton (MkH p2 (toEX20 15.03) Nothing)
-     line3 = MkFx date hilton (MkH p3 (toEX20 25.00) Nothing)  
+     up1 = (toEX20 31.73)
+     sub1 = (snd p1) * (cast up1)
+     line1 = MkFx date hilton (MkH p1 up1 ("GBP",sub1) )
+     
+--     line2 = MkFx date hilton (MkH p2 (toEX20 15.03) Nothing)
+--     line3 = MkFx date hilton (MkH p3 (toEX20 25.00) Nothing)  
  Confirm (MkO Sale line1)
- Confirm (MkO Sale line2)
- Confirm (MkO Sale line3) 
+-- Confirm (MkO Sale line2)
+-- Confirm (MkO Sale line3) 
  Pure ()
 
 export
