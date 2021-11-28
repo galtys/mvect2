@@ -35,15 +35,16 @@ record Address where
   contact: Contact
 %runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
-
+public export
 data ControlTag =  Self | Control Address |Partner Address 
 %runElab derive "ControlTag" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
+public export
 data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
 
 public export
-data Order a = MkOD DirectionTag a
+data Order a = MkO DirectionTag a
 %runElab derive "Order" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]     
 
 public export
@@ -199,7 +200,7 @@ record Hom3 where
    constructor MkH
    from:Product
    price_unit:Price
-   to:Product
+   to:Maybe Product
 %runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
 public export
 record Location where
@@ -213,7 +214,7 @@ record Location where
 %runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 public export
 record FxData where
-   constructor MkFxData
+   constructor MkFx
    date:Date
    l:Address
    h3:Hom3
