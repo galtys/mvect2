@@ -196,7 +196,7 @@ Hom2 = List Product2 --was (Hom1->Hom1)
 
 public export
 record Hom3 where
-   constructor MkHom3
+   constructor MkH
    from:Product
    price_unit:Price
    to:Product
@@ -204,7 +204,7 @@ record Hom3 where
 public export
 record Location where
   constructor MkL
-  name : String
+  --name : String
   directionTag: DirectionTag -- Sale | Purchase
   controlTag:   ControlTag   -- Self | Control |Partner
   ledger:       Ledger       -- OnHand | Forecast
@@ -215,7 +215,7 @@ public export
 record FxData where
    constructor MkFxData
    date:Date
-   l:Location
+   l:Address
    h3:Hom3
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
      
@@ -224,9 +224,7 @@ FxRef = String --where --order reference used in warehouse
 
 public export
 data OrderEvent : Type -> Type where
-     Init : FxData -> OrderEvent () --asset spring into existence, does not verify
-     --MoveTo : (h:Hom3)->(dst:Location)-> OrderEvent ()
-     --MoveFrom : (h:Hom3)->(src:Location)-> OrderEvent ()
+     --New : Order FxData -> OrderEvent ()
      Move : (date:Date)->(h:Hom3)->(from:Location)->(to:Location)->OrderEvent ()     
        
      Confirm : Order FxData -> OrderEvent ()
@@ -234,9 +232,6 @@ data OrderEvent : Type -> Type where
      
      Log : String -> OrderEvent ()
      Show : (Show ty) => ty -> OrderEvent ()
-     --Invoice : FxRef -> OrderEvent FxData --query whs what can be invoiced
-     --Deliver :
-     --Pay : wq1 
      Pure : ty -> OrderEvent ty
      Bind : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
 

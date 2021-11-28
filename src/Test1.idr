@@ -11,8 +11,9 @@ import Category.Transaction.Qty
 import Category.Transaction.Types
 import Category.Transaction.Hom
 import Category.Transaction.Journal
-import Category.Transaction.Demo
 import Category.Transaction.Types
+import Category.Transaction.Demo
+import Category.Transaction.Demo2
 import Data.Ratio
 --import Data.Zippable
 
@@ -163,8 +164,8 @@ mg_test = do
 main : IO ()
 main = do
   test_libc_time
-  pjb_test
-  
+  --pjb_test
+  test_demo2
   --test_main_x
   --db_main  
   pure ()
