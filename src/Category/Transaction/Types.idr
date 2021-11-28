@@ -219,14 +219,15 @@ record FxData where
    h3:Hom3
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
      
---data FxRef : Type where --order reference used in warehouse
+FxRef : Type 
+FxRef = String --where --order reference used in warehouse
 
 public export
 data OrderEvent : Type -> Type where
-     Init : FxData -> OrderEvent FxData --asset spring into existence, does not verify
+     Init : FxData -> OrderEvent () --asset spring into existence, does not verify
      --MoveTo : (h:Hom3)->(dst:Location)-> OrderEvent ()
      --MoveFrom : (h:Hom3)->(src:Location)-> OrderEvent ()
-     Move : (h:Hom3)->(from:Location)->(to:Location) -> OrderEvent ()     
+     Move : (date:Date)->(h:Hom3)->(from:Location)->(to:Location)->OrderEvent ()     
        
      Confirm : Order FxData -> OrderEvent ()
      Invoice : FxData -> OrderEvent (Order FxData)
