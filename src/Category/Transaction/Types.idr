@@ -138,7 +138,7 @@ record Lx where
    l2 : Account
 %runElab derive "Lx" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
 
-data Wtype = Order | Invoice
+data Wtype = EnumOrder | EnumInvoice
 
 %runElab derive "Wtype" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
 
@@ -271,6 +271,34 @@ public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
+data FxData : Type where
+data FxRef : Type where --order reference used in warehouse
+
+public export
+data OrderEvent : Type -> Type where
+     Init : FxData -> OrderEvent FxRef --asset spring into existence, does not verify
+     Purchase : FxData -> OrderEvent FxRef --verify you have money to pay
+     Sale : FxData -> OrderEvent FxRef --verify you hva goods to ship
+     Log : String -> OrderEvent ()
+     Show : (Show ty) => ty -> OrderEvent ()
+     Invoice : FxRef -> OrderEvent FxData --query whs what can be invoiced
+     --Deliver :
+     --Pay : wq1 
+     Pure : ty -> OrderEvent ty
+     Bind : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
+
+namespace OrderEventDo
+  public export
+  (>>=) : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
+  (>>=) = Bind
+
+  public export
+  (>>) : OrderEvent () -> OrderEvent b -> OrderEvent b
+  ma >> mb = Bind ma (\ _ => mb)
+
+
+
+{-
 public export
 record STD where
   constructor MkSTD
@@ -279,7 +307,8 @@ record STD where
   dline : Hom2
 
 %runElab derive "STD" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]
-
+-}
+{-
 public export
 data OrderEvent : Type where
      WHom2 : (date:Date) -> (std:STD) -> OrderEvent
@@ -294,14 +323,6 @@ data OrderEvent : Type where
           
 --     WDeliveryLine : (delivery:LineTerm) -> (subtotal:OrderEvent) -> OrderEvent  --delivery line is calculated, merging is not needed
 --     WSub : Journal -> OrderEvent -> OrderEvent
-{-          
-     WDeliveryLine : Journal -> LineTerm -> OrderEvent -> OrderEvent
-     WTax : Journal -> OrderEvent -> OrderEvent
-     LMove : Journal -> OrderEvent -> OrderEvent
-     LCo : Journal -> OrderEvent -> OrderEvent -> OrderEvent
-     LPro : Journal -> OrderEvent -> OrderEvent -> OrderEvent
-     Adj : OrderEvent -> OrderEvent -> OrderEvent
--}
 
 %runElab derive "OrderEvent" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 
@@ -314,12 +335,14 @@ record OrderState where
    backorder : Hom1
    due : Hom1
    
-   
 %runElab derive "OrderState" [Generic, Meta, Eq, Show, RecordToJSON,RecordFromJSON]   
 
 public export
 JournalOrderState : Type
 JournalOrderState = (Journal, OrderState)
+   
+  -} 
+   
 
 {-
 data RunIO : Type -> Type where

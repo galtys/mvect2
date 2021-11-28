@@ -32,8 +32,8 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-import Category.PG.BoM
-import Category.PG.Order
+import Odoo.PG.BoM
+import Odoo.PG.Order
 
 import Category.Schema.Types
 import Category.Schema.PJB

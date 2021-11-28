@@ -1,4 +1,4 @@
-module Category.PG.BoM
+module Odoo.PG.BoM
 
 import Data.SortedMap
 
@@ -23,7 +23,7 @@ import PQ.Schema
 import PQ.Types
 
 %language ElabReflection
-
+%ambiguity_depth 10
 --------------------------------------------------------------------------------
 --          Product and Bom
 --------------------------------------------------------------------------------
@@ -291,9 +291,9 @@ main_read_bom  = do
   let r_vr =  variants_BoM32 m32_r
   let r_vr_qty = [ (fst x) | x<-r_vr ]
   let vr2_qty = [ x*r_sum_vr | x <- vr_qty]
-  printLn vr_qty  
-  printLn vr2_qty
-  printLn $ sum vr2_qty
+  --printLn vr_qty  
+  --printLn vr2_qty
+  --printLn $ sum vr2_qty
   finish c
   pure l1
   

@@ -39,6 +39,7 @@ import Category.Schema.PJB
 import Category.Schema.GenPG
 
 -- this is generated: import Odoo.Schema.PJB
+%ambiguity_depth 10
 
 main : IO ()
 main = do

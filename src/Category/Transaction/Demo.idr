@@ -148,7 +148,7 @@ public export
 so1_j : Journal
 so1_j = jref (JDate 0 (JOrder pjb_loc pjb_r pjb_loc hilton_loc) SaleOrder) 
 -}
-
+{-
 public export
 so1_j : Journal
 so1_j = 
@@ -160,6 +160,7 @@ so1_j =
         
         j_w = (JProAcc WOrder "" j_hilton j_pjb Jstart )     
         j_l = (JProAcc LRes  "" j_hilton_loc j_pjb_loc j_w) in jref j_l
+
 
 public export
 so1_l1 : Line
@@ -193,6 +194,7 @@ so1_std = MkSTD [so1_l1_prod2] [] []
 public export
 so1 : OrderEvent
 so1 = (WHom2 "" so1_std)
+-}
 
 --public export
 --so1_jt : JournalOrderState
@@ -205,12 +207,17 @@ test_demo = do
   
 --  putStrLn (show eval_qtyratio (r1*r2) )
   --printLn $ show $ eval_qtyratio (r1*r2)
+  
+  pure ()
+  
+  {-
   printLn PC20
   printLn one5
   printLn inc20_const
   
   printLn so1_l1
   printLn so1_l1_ext
+  -}
   
   {-
   printLn l1_t

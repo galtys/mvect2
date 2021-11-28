@@ -1,4 +1,4 @@
-module Category.PG.Order
+module Odoo.PG.Order
 
 --import Category.PG.Types
 
