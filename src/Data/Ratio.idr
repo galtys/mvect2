@@ -174,6 +174,17 @@ namespace TQty
   public export
   TQty : Type
   TQty = T QtyRatio
+--  %runElab derive "TQty.TQty" [Generic, Meta, ToJSON,FromJSON]     
+    
+  
+  public export
+  ToJSON TQty where
+    toJSON = genToJSON' id toLower TwoElemArray
+
+  public export
+  FromJSON TQty where
+    fromJSON = genFromJSON' id toLower TwoElemArray
+  
 
   public export
   Cast TQty Double where

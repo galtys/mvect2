@@ -13,12 +13,12 @@ import Crypto.Hash.SHA256
 import Data.Ratio
 
 %language ElabReflection
-
+{-
 public export
 jref : Journal -> Journal
 jref x = JRef $ sha256 $ encode x
 
-{-
+
 
 public export
 getHomW : OrderEvent ->  List (Date,Hom2)

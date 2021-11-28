@@ -117,7 +117,7 @@ public export
 th12 : Hom1
 th12 = [ ("GBP",38) ]
 
-
+{-
 public export
 th3 : Hom1
 th3 = diffHom1 th11 th12
@@ -142,6 +142,9 @@ pjb_r = L (MkL "Reservation")
 public export
 hilton_loc : Account
 hilton_loc = L (MkL "Bristol")
+-}
+
+
 
 {-
 public export
