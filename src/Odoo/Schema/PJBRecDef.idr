@@ -180,7 +180,7 @@ namespace PrimAccountInvoice
           --O2M
       %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MResPartner
+namespace RelResPartner
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -194,20 +194,20 @@ namespace O2MResPartner
           zip:(Maybe String)
           country_id:(Maybe Bits32)
           parent_id:(Maybe Bits32)
-          child_ids:List O2MResPartner.RecordModel
+          child_ids:List RelResPartner.RecordModel
           email:String
           street2:(Maybe String)
-      %runElab derive "O2MResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MM2M_OrderTax
+namespace RelM2M_OrderTax
       public export
       record RecordModel where
           constructor MkRecordModel
           order_line_id:Bits32
           tax_id:Bits32
-      %runElab derive "O2MM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MOrderTax
+namespace RelOrderTax
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -217,9 +217,9 @@ namespace O2MOrderTax
           amount:EQty
           type:(Maybe String)
           price_include:(Maybe Bool)
-      %runElab derive "O2MOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MOrderLine
+namespace RelOrderLine
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -231,9 +231,9 @@ namespace O2MOrderLine
           order_id:List PrimOrder.RecordModel
           product_id:(Maybe Bits32)
           tax_ids:List PrimOrderTax.RecordModel
-      %runElab derive "O2MOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MOrder
+namespace RelOrder
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -251,11 +251,11 @@ namespace O2MOrder
           partner_shipping_id:Bits32
           picking_policy:String
           carrier_id:(Maybe Bits32)
-          order_line:List O2MOrderLine.RecordModel
+          order_line:List RelOrderLine.RecordModel
           requested_date:(Maybe Date)
-      %runElab derive "O2MOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MAccountVoucher
+namespace RelAccountVoucher
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -264,9 +264,9 @@ namespace O2MAccountVoucher
           partner_id:(Maybe Bits32)
           journal_id:(Maybe Bits32)
           amount:EQty
-      %runElab derive "O2MAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MStockMove
+namespace RelStockMove
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -279,9 +279,9 @@ namespace O2MStockMove
           location_dest_id:(Maybe Bits32)
           picking_id:(Maybe Bits32)
           state:String
-      %runElab derive "O2MStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MStockPicking
+namespace RelStockPicking
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -293,18 +293,18 @@ namespace O2MStockPicking
           min_date:Date
           name:String
           state:String
-          move_ids:List O2MStockMove.RecordModel
-      %runElab derive "O2MStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+          move_ids:List RelStockMove.RecordModel
+      %runElab derive "RelStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MM2M_InvoiceTax
+namespace RelM2M_InvoiceTax
       public export
       record RecordModel where
           constructor MkRecordModel
           invoice_line_id:Bits32
           tax_id:Bits32
-      %runElab derive "O2MM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MAccountInvoiceLine
+namespace RelAccountInvoiceLine
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -316,9 +316,9 @@ namespace O2MAccountInvoiceLine
           product_id:(Maybe Bits32)
           tax_ids:List PrimOrderTax.RecordModel
           discount:(Maybe EQty)
-      %runElab derive "O2MAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "RelAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace O2MAccountInvoice
+namespace RelAccountInvoice
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -335,5 +335,5 @@ namespace O2MAccountInvoice
           date_invoice:Date
           amount_untaxed:Price
           amount_total:Price
-          invoice_line:List O2MAccountInvoiceLine.RecordModel
-      %runElab derive "O2MAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+          invoice_line:List RelAccountInvoiceLine.RecordModel
+      %runElab derive "RelAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
