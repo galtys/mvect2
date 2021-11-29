@@ -12,7 +12,7 @@ import Generics.Derive
 
 import JSON
 
-import Category.PG.Config
+import Odoo.PG.Config
 import Control.Monad.Either
 
 import Odoo.Schema.PJBRecDef

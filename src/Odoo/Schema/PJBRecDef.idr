@@ -6,7 +6,7 @@ import Generics.Derive
 
 import JSON
 
-import Category.PG.Config
+import Odoo.PG.Config
 import Control.Monad.Either
 
 %language ElabReflection
