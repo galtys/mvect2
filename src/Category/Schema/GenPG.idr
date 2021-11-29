@@ -16,23 +16,23 @@ primModelRef : TableName -> String
 primModelRef (MkTN ref dbtable m ism2m) = ("Prim"++m)
 
 export
-RelModelRef : TableName -> String
-RelModelRef (MkTN ref dbtable m ism2m) = ("Rel"++m)
+BrowseModelRef : TableName -> String
+BrowseModelRef (MkTN ref dbtable m ism2m) = ("Browse"++m)
 
 export
 primRecRef : TableName -> String
 primRecRef tn = (primModelRef tn)++".RecordModel"
 
 export
-RelRecRef : TableName -> String
-RelRecRef tn = (RelModelRef tn)++".RecordModel"
+BrowseRecRef : TableName -> String
+BrowseRecRef tn = (BrowseModelRef tn)++".RecordModel"
 
 primDomainRef : TableName -> String
 primDomainRef tn = (primModelRef tn)++".domain"
 
 
 o2mDomainRef : TableName -> String
-o2mDomainRef tn = (RelModelRef tn)++".domain"
+o2mDomainRef tn = (BrowseModelRef tn)++".domain"
 
 primColsRef : TableName -> String
 primColsRef tn = (primModelRef tn)++".PrimCols"
@@ -259,7 +259,7 @@ showRelDefRec (Prim prim) = Line 4 #"\#{id2pk (name prim)}:\#{columnIdrisType pr
 showRelDefRec (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
    f = db_field 
-showRelDefRec (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{RelRecRef tn}"#
+showRelDefRec (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{BrowseRecRef tn}"#
 showRelDefRec (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 showRelDefRec mod@(Model table fields) = Def [Sep,ns,rec,elabRec] where
    o2m_fields : List Schema
@@ -274,11 +274,11 @@ showRelDefRec mod@(Model table fields) = Def [Sep,ns,rec,elabRec] where
    pkRef : String
    pkRef = (columnRef (getPK_Field "pk" table) )
    ns : SDoc
-   ns = Def [Line 0 #"namespace \#{RelModelRef table}"#]
+   ns = Def [Line 0 #"namespace \#{BrowseModelRef table}"#]
    rec : SDoc
    rec = Def ([Line 2 "public export",Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map showRelDefRec fields))
    elabRec : SDoc
-   elabRec = Line 2 #"%runElab derive \#{add_quotes (RelRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#
+   elabRec = Line 2 #"%runElab derive \#{add_quotes (BrowseRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#
 showRelDefRec (Sch name models) = Def (map showRelDefRec models) --Sep
 
 export
@@ -290,7 +290,7 @@ showRelDef (Prim prim) = Line 4 #"\#{id2pk (name prim)}:\#{columnIdrisType prim}
 showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#{primRecRef rel}"# where
    f : Field
    f = db_field 
-showRelDef (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{RelRecRef tn}"#
+showRelDef (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{BrowseRecRef tn}"#
 showRelDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
 showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_rec,main_read,
                                                              ret_ids] where
@@ -306,7 +306,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    pkRef : String
    pkRef = (columnRef (getPK_Field "pk" table) )
    ns : SDoc
-   ns = Def [Line 0 #"namespace \#{RelModelRef table}"#,
+   ns = Def [Line 0 #"namespace \#{BrowseModelRef table}"#,
               Line 2 "domain : Op",
               Line 2 "domain = (True)",
               Line 2  "isM2M_tab : Bool",
@@ -314,7 +314,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    rec : SDoc
    rec = Def ([Line 2 "record RecordModel where",Line 4 "constructor MkRecordModel"]++(map showRelDef fields))
    elabRec : SDoc
-   elabRec = Line 2 #"%runElab derive \#{add_quotes (RelRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
+   elabRec = Line 2 #"%runElab derive \#{add_quotes (BrowseRecRef table)} [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]"#      
 
       
    rel_relRef : List Schema -> List (String,TableName,Field)
@@ -341,7 +341,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    relFields = fastConcat $ intersperse " " (getRelRecFields mod)
    
    read_o2m : (rec_field:String) -> (col:Field) -> TableName -> SDoc
-   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{RelModelRef rel}.read_records_c c ((\#{columnRef col}==\#{showJust $ isNull col}(cast pk)))"# 
+   read_o2m rec_field col rel = Line 5 #"\#{rec_field} <- \#{BrowseModelRef rel}.read_records_c c ((\#{columnRef col}==\#{showJust $ isNull col}(cast pk)))"# 
    read_o2m_SDoc : SDoc
    read_o2m_SDoc  = Def ([ (read_o2m db_f col rel) | (db_f,rel,col) <- rel_relRef o2m_fields ] )
 
@@ -380,52 +380,52 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    
    read_rec_c : SDoc
    read_rec_c = Def [Line 2  "export",
-                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{RelRecRef table} )"#,
+                     Line 2 #"read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List \#{BrowseRecRef table} )"#,
                      Line 2  "read_records_c c op = ret_x where"]      
    add_muf : SDoc
-   add_muf = Def [Sep,Line 4 #"add_lines : (List \#{primRecRef table}) ->io (List  \#{RelRecRef table})"#,
+   add_muf = Def [Sep,Line 4 #"add_lines : (List \#{primRecRef table}) ->io (List  \#{BrowseRecRef table})"#,
                       Line 4  "add_lines [] = pure []",
                       Line 4 #"add_lines ((\#{primModelRef table}.MkRecordModel \#{dbFields})::xs) = do"#,
                       read_o2m_SDoc,           
                       read_m2m_SDoc,
                       read_m2o_SDoc,
-                      Line 5      #"let ret =(\#{RelModelRef table}.MkRecordModel \#{relFields})"#,
+                      Line 5      #"let ret =(\#{BrowseModelRef table}.MkRecordModel \#{relFields})"#,
                       Line 5      "ret_xs <- add_lines xs",
                       Line 5      "pure ([ret]++ret_xs)"]
 
    ret_x : SDoc
-   ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{RelRecRef table})"#,
+   ret_x = Def [Sep, Line 4 #"ret_x : io (List \#{BrowseRecRef table})"#,
                      Line 4 "ret_x = do",
                        Line 5 #"rows <- \#{primModelRef table}.read_records_c c op"#,
                        Line 5 "ret1 <- add_lines rows",
                        Line 5 "pure ret1"]      
    read_rec : SDoc
    read_rec = Def [Line 2  "export",
-                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{RelRecRef table} )"#,
+                   Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{BrowseRecRef table} )"#,
                    Line 2  "read_records op = do",
                    Line 4     "c <- connect DB_URI",
-                   Line 4     #"ret <- \#{RelModelRef table}.read_records_c c op"#,
+                   Line 4     #"ret <- \#{BrowseModelRef table}.read_records_c c op"#,
                    Line 4     "finish c",                   
                    Line 4     "pure ret"]
    main_read : SDoc
    main_read = Def [Sep,Line 2 "export",
-                    Line 2 #"main_runET : (op:Op) -> IO (List \#{RelRecRef table} )"#,
+                    Line 2 #"main_runET : (op:Op) -> IO (List \#{BrowseRecRef table} )"#,
                     Line 2 #"main_runET op = do "#,
-                    Line 4 #"Left err <- runEitherT (\#{RelModelRef table}.read_records op {io = EitherT SQLError IO} )"#,
+                    Line 4 #"Left err <- runEitherT (\#{BrowseModelRef table}.read_records op {io = EitherT SQLError IO} )"#,
                     Line 5     "| Right l1 => pure l1",
                     Line 4 "printLn err",
                     Line 4 "pure []",
                     Sep,
                     Line 2 "export",
-                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{RelRecRef table} )"#,
+                    Line 2 #"read : HasIO io => (op:Op) -> io (List \#{BrowseRecRef table} )"#,
                     Line 2  "read op = do",
-                    Line 4 #"l1 <- (liftIO $ (\#{RelModelRef table}.main_runET op))"#,
+                    Line 4 #"l1 <- (liftIO $ (\#{BrowseModelRef table}.main_runET op))"#,
                     Line 4 "pure l1"]
                     
    
    read_rec_c_ids : SDoc
    read_rec_c_ids = Def [Line 2  "export",
-                         Line 2 #"read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List \#{RelRecRef table} )"#,
+                         Line 2 #"read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List \#{BrowseRecRef table} )"#,
                          Line 2  "read_records_c_ids c [] op  = pure []",
                          Line 2  "read_records_c_ids c (x::xs) op = do",
                          Line 4      #"r <- read_records_c c (( \#{pkRef}==(cast x))&&op) "#,
@@ -434,25 +434,25 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
                     
    read_rec_ids : SDoc
    read_rec_ids = Def [Line 2  "export",
-                   Line 2 #"read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List \#{RelRecRef table} )"#,
+                   Line 2 #"read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List \#{BrowseRecRef table} )"#,
                    Line 2  "read_records_ids xs op = do",
                    Line 4     "c <- connect DB_URI",
-                   Line 4     #"ret <- \#{RelModelRef table}.read_records_c_ids c xs op"#,
+                   Line 4     #"ret <- \#{BrowseModelRef table}.read_records_c_ids c xs op"#,
                    Line 4     "finish c",                   
                    Line 4     "pure ret"]
    main_read_ids : SDoc
    main_read_ids = Def [Sep,Line 2 "export",
-                    Line 2 #"main_runET_ids : List Bits32 -> (op:Op) -> IO (List \#{RelRecRef table} )"#,
+                    Line 2 #"main_runET_ids : List Bits32 -> (op:Op) -> IO (List \#{BrowseRecRef table} )"#,
                     Line 2 #"main_runET_ids xs op = do "#,
-                    Line 4 #"Left err <- runEitherT (\#{RelModelRef table}.read_records_ids xs op {io = EitherT SQLError IO} )"#,
+                    Line 4 #"Left err <- runEitherT (\#{BrowseModelRef table}.read_records_ids xs op {io = EitherT SQLError IO} )"#,
                     Line 5     "| Right l1 => pure l1",
                     Line 4 "printLn err",
                     Line 4 "pure []",
                     Sep,
                     Line 2 "export",
-                    Line 2 #"read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List \#{RelRecRef table} )"#,
+                    Line 2 #"read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List \#{BrowseRecRef table} )"#,
                     Line 2  "read_ids xs op = do",
-                    Line 4 #"l1 <- (liftIO $ (\#{RelModelRef table}.main_runET_ids xs op))"#,
+                    Line 4 #"l1 <- (liftIO $ (\#{BrowseModelRef table}.main_runET_ids xs op))"#,
                     Line 4 "pure l1"]
 
    ret_ids : SDoc

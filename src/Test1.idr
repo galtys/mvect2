@@ -117,7 +117,7 @@ so_id_44575 = 44575
 pjb_test : IO ()
 pjb_test = do
   t0 <- time
-  p <- RelResPartner.read (True)
+  p <- BrowseResPartner.read (True)
   let toPair : String -> (String,Int)
       toPair x = (x,1)
       pmap : SortedMap String Int
@@ -132,11 +132,11 @@ pjb_test = do
   printLn (t3-t2)
   
   {-
-  so <- RELOrder.read_ids [21833] (True)
+  so <- BrowseOrder.read_ids [21833] (True)
   printLn so
-  inv <- RELAccountInvoice.read (True)
-  sp <- RELStockPicking.read (True)
-  av <- RELAccountVoucher.read (True)  
+  inv <- BrowseAccountInvoice.read (True)
+  sp <- BrowseStockPicking.read (True)
+  av <- BrowseAccountVoucher.read (True)  
   traverse_ printLn so
   traverse_ printLn inv
   traverse_ printLn sp  

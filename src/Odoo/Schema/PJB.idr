@@ -703,202 +703,202 @@ namespace PrimAccountInvoice
           l1 <- (liftIO $ (PrimAccountInvoice.main_runET op))
           pure l1
 
-namespace RelResPartner
+namespace BrowseResPartner
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelResPartner.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseResPartner.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimResPartner.RecordModel) ->io (List  RelResPartner.RecordModel)
+          add_lines : (List PrimResPartner.RecordModel) ->io (List  BrowseResPartner.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id email street2)::xs) = do
-            child_ids <- RelResPartner.read_records_c c ((ParentIdRPT==Just(cast pk)))
-            let ret =(RelResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)
+            child_ids <- BrowseResPartner.read_records_c c ((ParentIdRPT==Just(cast pk)))
+            let ret =(BrowseResPartner.MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelResPartner.RecordModel)
+          ret_x : io (List BrowseResPartner.RecordModel)
           ret_x = do
             rows <- PrimResPartner.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelResPartner.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseResPartner.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelResPartner.read_records_c c op
+          ret <- BrowseResPartner.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelResPartner.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseResPartner.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelResPartner.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseResPartner.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelResPartner.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseResPartner.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelResPartner.main_runET op))
+          l1 <- (liftIO $ (BrowseResPartner.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelResPartner.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseResPartner.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkRPT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelResPartner.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseResPartner.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelResPartner.read_records_c_ids c xs op
+          ret <- BrowseResPartner.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelResPartner.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseResPartner.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelResPartner.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseResPartner.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelResPartner.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseResPartner.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelResPartner.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseResPartner.main_runET_ids xs op))
           pure l1
 
-namespace RelM2M_OrderTax
+namespace BrowseM2M_OrderTax
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = True
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelM2M_OrderTax.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseM2M_OrderTax.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimM2M_OrderTax.RecordModel) ->io (List  RelM2M_OrderTax.RecordModel)
+          add_lines : (List PrimM2M_OrderTax.RecordModel) ->io (List  BrowseM2M_OrderTax.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimM2M_OrderTax.MkRecordModel order_line_id tax_id)::xs) = do
-            let ret =(RelM2M_OrderTax.MkRecordModel order_line_id tax_id)
+            let ret =(BrowseM2M_OrderTax.MkRecordModel order_line_id tax_id)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelM2M_OrderTax.RecordModel)
+          ret_x : io (List BrowseM2M_OrderTax.RecordModel)
           ret_x = do
             rows <- PrimM2M_OrderTax.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelM2M_OrderTax.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseM2M_OrderTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelM2M_OrderTax.read_records_c c op
+          ret <- BrowseM2M_OrderTax.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelM2M_OrderTax.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseM2M_OrderTax.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelM2M_OrderTax.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseM2M_OrderTax.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelM2M_OrderTax.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseM2M_OrderTax.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelM2M_OrderTax.main_runET op))
+          l1 <- (liftIO $ (BrowseM2M_OrderTax.main_runET op))
           pure l1
 
-namespace RelOrderTax
+namespace BrowseOrderTax
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelOrderTax.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseOrderTax.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimOrderTax.RecordModel) ->io (List  RelOrderTax.RecordModel)
+          add_lines : (List PrimOrderTax.RecordModel) ->io (List  BrowseOrderTax.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderTax.MkRecordModel pk name description amount type price_include)::xs) = do
-            let ret =(RelOrderTax.MkRecordModel pk name description amount type price_include)
+            let ret =(BrowseOrderTax.MkRecordModel pk name description amount type price_include)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelOrderTax.RecordModel)
+          ret_x : io (List BrowseOrderTax.RecordModel)
           ret_x = do
             rows <- PrimOrderTax.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelOrderTax.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrderTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelOrderTax.read_records_c c op
+          ret <- BrowseOrderTax.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelOrderTax.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseOrderTax.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelOrderTax.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrderTax.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelOrderTax.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseOrderTax.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelOrderTax.main_runET op))
+          l1 <- (liftIO $ (BrowseOrderTax.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelOrderTax.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseOrderTax.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkOTax==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelOrderTax.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseOrderTax.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelOrderTax.read_records_c_ids c xs op
+          ret <- BrowseOrderTax.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelOrderTax.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseOrderTax.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelOrderTax.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrderTax.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelOrderTax.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseOrderTax.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelOrderTax.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseOrderTax.main_runET_ids xs op))
           pure l1
 
-namespace RelOrderLine
+namespace BrowseOrderLine
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelOrderLine.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseOrderLine.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimOrderLine.RecordModel) ->io (List  RelOrderLine.RecordModel)
+          add_lines : (List PrimOrderLine.RecordModel) ->io (List  BrowseOrderLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id)::xs) = do
             let muf_m2m = ((JC PkOTax TaxIdM2M_ST)&&(OrderLineIdM2M_ST==(cast pk)))
@@ -906,404 +906,404 @@ namespace RelOrderLine
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
             let muf_m2o = ((PkOT==(cast order_id))) --&&op
             order_id <- PrimOrder.read_records_c c muf_m2o
-            let ret =(RelOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
+            let ret =(BrowseOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelOrderLine.RecordModel)
+          ret_x : io (List BrowseOrderLine.RecordModel)
           ret_x = do
             rows <- PrimOrderLine.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelOrderLine.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrderLine.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelOrderLine.read_records_c c op
+          ret <- BrowseOrderLine.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelOrderLine.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseOrderLine.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelOrderLine.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrderLine.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelOrderLine.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseOrderLine.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelOrderLine.main_runET op))
+          l1 <- (liftIO $ (BrowseOrderLine.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelOrderLine.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseOrderLine.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkOLT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelOrderLine.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseOrderLine.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelOrderLine.read_records_c_ids c xs op
+          ret <- BrowseOrderLine.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelOrderLine.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseOrderLine.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelOrderLine.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrderLine.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelOrderLine.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseOrderLine.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelOrderLine.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseOrderLine.main_runET_ids xs op))
           pure l1
 
-namespace RelOrder
+namespace BrowseOrder
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelOrder.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseOrder.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimOrder.RecordModel) ->io (List  RelOrder.RecordModel)
+          add_lines : (List PrimOrder.RecordModel) ->io (List  BrowseOrder.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id requested_date)::xs) = do
-            order_line <- RelOrderLine.read_records_c c ((OrderIdOLT==(cast pk)))
-            let ret =(RelOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
+            order_line <- BrowseOrderLine.read_records_c c ((OrderIdOLT==(cast pk)))
+            let ret =(BrowseOrder.MkRecordModel pk origin order_policy date_order partner_id amount_tax state partner_invoice_id amount_untaxed amount_total name partner_shipping_id picking_policy carrier_id order_line requested_date)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelOrder.RecordModel)
+          ret_x : io (List BrowseOrder.RecordModel)
           ret_x = do
             rows <- PrimOrder.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelOrder.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrder.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelOrder.read_records_c c op
+          ret <- BrowseOrder.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelOrder.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseOrder.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelOrder.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrder.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelOrder.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseOrder.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelOrder.main_runET op))
+          l1 <- (liftIO $ (BrowseOrder.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelOrder.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseOrder.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkOT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelOrder.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseOrder.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelOrder.read_records_c_ids c xs op
+          ret <- BrowseOrder.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelOrder.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseOrder.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelOrder.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseOrder.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelOrder.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseOrder.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelOrder.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseOrder.main_runET_ids xs op))
           pure l1
 
-namespace RelAccountVoucher
+namespace BrowseAccountVoucher
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelAccountVoucher.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseAccountVoucher.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimAccountVoucher.RecordModel) ->io (List  RelAccountVoucher.RecordModel)
+          add_lines : (List PrimAccountVoucher.RecordModel) ->io (List  BrowseAccountVoucher.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimAccountVoucher.MkRecordModel pk number partner_id journal_id amount)::xs) = do
-            let ret =(RelAccountVoucher.MkRecordModel pk number partner_id journal_id amount)
+            let ret =(BrowseAccountVoucher.MkRecordModel pk number partner_id journal_id amount)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelAccountVoucher.RecordModel)
+          ret_x : io (List BrowseAccountVoucher.RecordModel)
           ret_x = do
             rows <- PrimAccountVoucher.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelAccountVoucher.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountVoucher.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelAccountVoucher.read_records_c c op
+          ret <- BrowseAccountVoucher.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelAccountVoucher.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseAccountVoucher.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelAccountVoucher.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountVoucher.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelAccountVoucher.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseAccountVoucher.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelAccountVoucher.main_runET op))
+          l1 <- (liftIO $ (BrowseAccountVoucher.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelAccountVoucher.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseAccountVoucher.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkACVT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelAccountVoucher.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseAccountVoucher.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelAccountVoucher.read_records_c_ids c xs op
+          ret <- BrowseAccountVoucher.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelAccountVoucher.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseAccountVoucher.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelAccountVoucher.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountVoucher.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelAccountVoucher.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseAccountVoucher.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelAccountVoucher.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseAccountVoucher.main_runET_ids xs op))
           pure l1
 
-namespace RelStockMove
+namespace BrowseStockMove
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelStockMove.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseStockMove.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimStockMove.RecordModel) ->io (List  RelStockMove.RecordModel)
+          add_lines : (List PrimStockMove.RecordModel) ->io (List  BrowseStockMove.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)::xs) = do
-            let ret =(RelStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)
+            let ret =(BrowseStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelStockMove.RecordModel)
+          ret_x : io (List BrowseStockMove.RecordModel)
           ret_x = do
             rows <- PrimStockMove.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelStockMove.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseStockMove.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelStockMove.read_records_c c op
+          ret <- BrowseStockMove.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelStockMove.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseStockMove.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelStockMove.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseStockMove.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelStockMove.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseStockMove.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelStockMove.main_runET op))
+          l1 <- (liftIO $ (BrowseStockMove.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelStockMove.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseStockMove.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkSMT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelStockMove.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseStockMove.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelStockMove.read_records_c_ids c xs op
+          ret <- BrowseStockMove.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelStockMove.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseStockMove.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelStockMove.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseStockMove.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelStockMove.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseStockMove.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelStockMove.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseStockMove.main_runET_ids xs op))
           pure l1
 
-namespace RelStockPicking
+namespace BrowseStockPicking
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelStockPicking.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseStockPicking.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimStockPicking.RecordModel) ->io (List  RelStockPicking.RecordModel)
+          add_lines : (List PrimStockPicking.RecordModel) ->io (List  BrowseStockPicking.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimStockPicking.MkRecordModel pk origin backorder_id date_done partner_id min_date name state)::xs) = do
-            move_ids <- RelStockMove.read_records_c c ((PickingIdSMT==Just(cast pk)))
-            let ret =(RelStockPicking.MkRecordModel pk origin backorder_id date_done partner_id min_date name state move_ids)
+            move_ids <- BrowseStockMove.read_records_c c ((PickingIdSMT==Just(cast pk)))
+            let ret =(BrowseStockPicking.MkRecordModel pk origin backorder_id date_done partner_id min_date name state move_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelStockPicking.RecordModel)
+          ret_x : io (List BrowseStockPicking.RecordModel)
           ret_x = do
             rows <- PrimStockPicking.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelStockPicking.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseStockPicking.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelStockPicking.read_records_c c op
+          ret <- BrowseStockPicking.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelStockPicking.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseStockPicking.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelStockPicking.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseStockPicking.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelStockPicking.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseStockPicking.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelStockPicking.main_runET op))
+          l1 <- (liftIO $ (BrowseStockPicking.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelStockPicking.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseStockPicking.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkSPT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelStockPicking.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseStockPicking.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelStockPicking.read_records_c_ids c xs op
+          ret <- BrowseStockPicking.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelStockPicking.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseStockPicking.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelStockPicking.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseStockPicking.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelStockPicking.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseStockPicking.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelStockPicking.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseStockPicking.main_runET_ids xs op))
           pure l1
 
-namespace RelM2M_InvoiceTax
+namespace BrowseM2M_InvoiceTax
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = True
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelM2M_InvoiceTax.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseM2M_InvoiceTax.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimM2M_InvoiceTax.RecordModel) ->io (List  RelM2M_InvoiceTax.RecordModel)
+          add_lines : (List PrimM2M_InvoiceTax.RecordModel) ->io (List  BrowseM2M_InvoiceTax.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimM2M_InvoiceTax.MkRecordModel invoice_line_id tax_id)::xs) = do
-            let ret =(RelM2M_InvoiceTax.MkRecordModel invoice_line_id tax_id)
+            let ret =(BrowseM2M_InvoiceTax.MkRecordModel invoice_line_id tax_id)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelM2M_InvoiceTax.RecordModel)
+          ret_x : io (List BrowseM2M_InvoiceTax.RecordModel)
           ret_x = do
             rows <- PrimM2M_InvoiceTax.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelM2M_InvoiceTax.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseM2M_InvoiceTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelM2M_InvoiceTax.read_records_c c op
+          ret <- BrowseM2M_InvoiceTax.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelM2M_InvoiceTax.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseM2M_InvoiceTax.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelM2M_InvoiceTax.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseM2M_InvoiceTax.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelM2M_InvoiceTax.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseM2M_InvoiceTax.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelM2M_InvoiceTax.main_runET op))
+          l1 <- (liftIO $ (BrowseM2M_InvoiceTax.main_runET op))
           pure l1
 
-namespace RelAccountInvoiceLine
+namespace BrowseAccountInvoiceLine
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelAccountInvoiceLine.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseAccountInvoiceLine.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimAccountInvoiceLine.RecordModel) ->io (List  RelAccountInvoiceLine.RecordModel)
+          add_lines : (List PrimAccountInvoiceLine.RecordModel) ->io (List  BrowseAccountInvoiceLine.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id discount)::xs) = do
             let muf_m2m = ((JC PkOTax TaxIdM2M_IT)&&(InvoiceLineIdM2M_IT==(cast pk)))
@@ -1311,133 +1311,133 @@ namespace RelAccountInvoiceLine
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
             let muf_m2o = ((PkIT==(cast invoice_id))) --&&op
             invoice_id <- PrimAccountInvoice.read_records_c c muf_m2o
-            let ret =(RelAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id tax_ids discount)
+            let ret =(BrowseAccountInvoiceLine.MkRecordModel pk invoice_id price_unit quantity name product_id tax_ids discount)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelAccountInvoiceLine.RecordModel)
+          ret_x : io (List BrowseAccountInvoiceLine.RecordModel)
           ret_x = do
             rows <- PrimAccountInvoiceLine.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelAccountInvoiceLine.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountInvoiceLine.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelAccountInvoiceLine.read_records_c c op
+          ret <- BrowseAccountInvoiceLine.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelAccountInvoiceLine.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseAccountInvoiceLine.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelAccountInvoiceLine.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountInvoiceLine.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelAccountInvoiceLine.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseAccountInvoiceLine.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelAccountInvoiceLine.main_runET op))
+          l1 <- (liftIO $ (BrowseAccountInvoiceLine.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelAccountInvoiceLine.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseAccountInvoiceLine.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkILT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelAccountInvoiceLine.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseAccountInvoiceLine.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelAccountInvoiceLine.read_records_c_ids c xs op
+          ret <- BrowseAccountInvoiceLine.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelAccountInvoiceLine.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseAccountInvoiceLine.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelAccountInvoiceLine.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountInvoiceLine.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelAccountInvoiceLine.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseAccountInvoiceLine.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelAccountInvoiceLine.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseAccountInvoiceLine.main_runET_ids xs op))
           pure l1
 
-namespace RelAccountInvoice
+namespace BrowseAccountInvoice
       domain : Op
       domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
-      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RelAccountInvoice.RecordModel )
+      read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List BrowseAccountInvoice.RecordModel )
       read_records_c c op = ret_x where
 
-          add_lines : (List PrimAccountInvoice.RecordModel) ->io (List  RelAccountInvoice.RecordModel)
+          add_lines : (List PrimAccountInvoice.RecordModel) ->io (List  BrowseAccountInvoice.RecordModel)
           add_lines [] = pure []
           add_lines ((PrimAccountInvoice.MkRecordModel pk origin date_due number account_id partner_id journal_id amount_tax state type date_invoice amount_untaxed amount_total)::xs) = do
-            invoice_line <- RelAccountInvoiceLine.read_records_c c ((InvoiceIdILT==(cast pk)))
-            let ret =(RelAccountInvoice.MkRecordModel pk origin date_due number account_id partner_id journal_id amount_tax state type date_invoice amount_untaxed amount_total invoice_line)
+            invoice_line <- BrowseAccountInvoiceLine.read_records_c c ((InvoiceIdILT==(cast pk)))
+            let ret =(BrowseAccountInvoice.MkRecordModel pk origin date_due number account_id partner_id journal_id amount_tax state type date_invoice amount_untaxed amount_total invoice_line)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 
-          ret_x : io (List RelAccountInvoice.RecordModel)
+          ret_x : io (List BrowseAccountInvoice.RecordModel)
           ret_x = do
             rows <- PrimAccountInvoice.read_records_c c op
             ret1 <- add_lines rows
             pure ret1
       export
-      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RelAccountInvoice.RecordModel )
+      read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountInvoice.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- RelAccountInvoice.read_records_c c op
+          ret <- BrowseAccountInvoice.read_records_c c op
           finish c
           pure ret
 
       export
-      main_runET : (op:Op) -> IO (List RelAccountInvoice.RecordModel )
+      main_runET : (op:Op) -> IO (List BrowseAccountInvoice.RecordModel )
       main_runET op = do 
-          Left err <- runEitherT (RelAccountInvoice.read_records op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountInvoice.read_records op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read : HasIO io => (op:Op) -> io (List RelAccountInvoice.RecordModel )
+      read : HasIO io => (op:Op) -> io (List BrowseAccountInvoice.RecordModel )
       read op = do
-          l1 <- (liftIO $ (RelAccountInvoice.main_runET op))
+          l1 <- (liftIO $ (BrowseAccountInvoice.main_runET op))
           pure l1
       export
-      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List RelAccountInvoice.RecordModel )
+      read_records_c_ids : HasIO io => MonadError SQLError io => Connection -> List Bits32 -> (op:Op)->io (List BrowseAccountInvoice.RecordModel )
       read_records_c_ids c [] op  = pure []
       read_records_c_ids c (x::xs) op = do
           r <- read_records_c c (( PkIT==(cast x))&&op) 
           r_xs <- read_records_c_ids c xs op
           pure (r++r_xs)
       export
-      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List RelAccountInvoice.RecordModel )
+      read_records_ids : HasIO io => MonadError SQLError io => List Bits32 -> (op:Op)->io (List BrowseAccountInvoice.RecordModel )
       read_records_ids xs op = do
           c <- connect DB_URI
-          ret <- RelAccountInvoice.read_records_c_ids c xs op
+          ret <- BrowseAccountInvoice.read_records_c_ids c xs op
           finish c
           pure ret
 
       export
-      main_runET_ids : List Bits32 -> (op:Op) -> IO (List RelAccountInvoice.RecordModel )
+      main_runET_ids : List Bits32 -> (op:Op) -> IO (List BrowseAccountInvoice.RecordModel )
       main_runET_ids xs op = do 
-          Left err <- runEitherT (RelAccountInvoice.read_records_ids xs op {io = EitherT SQLError IO} )
+          Left err <- runEitherT (BrowseAccountInvoice.read_records_ids xs op {io = EitherT SQLError IO} )
             | Right l1 => pure l1
           printLn err
           pure []
 
       export
-      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List RelAccountInvoice.RecordModel )
+      read_ids : HasIO io => List Bits32 -> (op:Op) -> io (List BrowseAccountInvoice.RecordModel )
       read_ids xs op = do
-          l1 <- (liftIO $ (RelAccountInvoice.main_runET_ids xs op))
+          l1 <- (liftIO $ (BrowseAccountInvoice.main_runET_ids xs op))
           pure l1

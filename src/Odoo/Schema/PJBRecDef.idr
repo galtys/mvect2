@@ -180,7 +180,7 @@ namespace PrimAccountInvoice
           --O2M
       %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelResPartner
+namespace BrowseResPartner
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -194,20 +194,20 @@ namespace RelResPartner
           zip:(Maybe String)
           country_id:(Maybe Bits32)
           parent_id:(Maybe Bits32)
-          child_ids:List RelResPartner.RecordModel
+          child_ids:List BrowseResPartner.RecordModel
           email:String
           street2:(Maybe String)
-      %runElab derive "RelResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseResPartner.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelM2M_OrderTax
+namespace BrowseM2M_OrderTax
       public export
       record RecordModel where
           constructor MkRecordModel
           order_line_id:Bits32
           tax_id:Bits32
-      %runElab derive "RelM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseM2M_OrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelOrderTax
+namespace BrowseOrderTax
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -217,9 +217,9 @@ namespace RelOrderTax
           amount:EQty
           type:(Maybe String)
           price_include:(Maybe Bool)
-      %runElab derive "RelOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseOrderTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelOrderLine
+namespace BrowseOrderLine
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -231,9 +231,9 @@ namespace RelOrderLine
           order_id:List PrimOrder.RecordModel
           product_id:(Maybe Bits32)
           tax_ids:List PrimOrderTax.RecordModel
-      %runElab derive "RelOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelOrder
+namespace BrowseOrder
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -251,11 +251,11 @@ namespace RelOrder
           partner_shipping_id:Bits32
           picking_policy:String
           carrier_id:(Maybe Bits32)
-          order_line:List RelOrderLine.RecordModel
+          order_line:List BrowseOrderLine.RecordModel
           requested_date:(Maybe Date)
-      %runElab derive "RelOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseOrder.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelAccountVoucher
+namespace BrowseAccountVoucher
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -264,9 +264,9 @@ namespace RelAccountVoucher
           partner_id:(Maybe Bits32)
           journal_id:(Maybe Bits32)
           amount:EQty
-      %runElab derive "RelAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseAccountVoucher.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelStockMove
+namespace BrowseStockMove
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -279,9 +279,9 @@ namespace RelStockMove
           location_dest_id:(Maybe Bits32)
           picking_id:(Maybe Bits32)
           state:String
-      %runElab derive "RelStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelStockPicking
+namespace BrowseStockPicking
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -293,18 +293,18 @@ namespace RelStockPicking
           min_date:Date
           name:String
           state:String
-          move_ids:List RelStockMove.RecordModel
-      %runElab derive "RelStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+          move_ids:List BrowseStockMove.RecordModel
+      %runElab derive "BrowseStockPicking.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelM2M_InvoiceTax
+namespace BrowseM2M_InvoiceTax
       public export
       record RecordModel where
           constructor MkRecordModel
           invoice_line_id:Bits32
           tax_id:Bits32
-      %runElab derive "RelM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseM2M_InvoiceTax.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelAccountInvoiceLine
+namespace BrowseAccountInvoiceLine
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -316,9 +316,9 @@ namespace RelAccountInvoiceLine
           product_id:(Maybe Bits32)
           tax_ids:List PrimOrderTax.RecordModel
           discount:(Maybe EQty)
-      %runElab derive "RelAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseAccountInvoiceLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace RelAccountInvoice
+namespace BrowseAccountInvoice
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -335,5 +335,5 @@ namespace RelAccountInvoice
           date_invoice:Date
           amount_untaxed:Price
           amount_total:Price
-          invoice_line:List RelAccountInvoiceLine.RecordModel
-      %runElab derive "RelAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+          invoice_line:List BrowseAccountInvoiceLine.RecordModel
+      %runElab derive "BrowseAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
