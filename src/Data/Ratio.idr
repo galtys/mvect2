@@ -73,6 +73,7 @@ namespace QtyRatio
   test_gcd : Int -> Int -> Int
 
   public export
+  partial 
   gcd : Qty -> Qty -> Qty
   gcd a b = if (b==0) then a else gcd b (a `mod` b)
 
@@ -98,6 +99,7 @@ namespace QtyRatio
                       yret = (div y g) in MkQr xret yret
 
   public export
+  partial
   Show QtyRatio where
       show q@(MkQr n d) = 
                     let eq = eval_qtyratio q
@@ -204,6 +206,7 @@ namespace TQty
   show_TQty (Credit x) = "M"++(show x)++"M"
 
   public export
+  partial
   Show TQty where
      show = show_TQty
 
@@ -353,6 +356,7 @@ namespace EQty
        compare x y = compare (eval x) (eval y)
 
   public export
+  partial
   Show EQty where
        show = show . eval
 

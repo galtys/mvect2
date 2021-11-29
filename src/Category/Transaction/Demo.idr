@@ -13,7 +13,7 @@ import Category.Transaction.Journal
 import Crypto.Hash.SHA256
 import Data.Ratio
 
-import Ledger.PG.Order
+--import Category.PG.Order
 
 %language ElabReflection
 
@@ -38,11 +38,11 @@ listInfo = getInfo "List"
 export
 aInfo : TypeInfo
 aInfo = getInfo "Address"
-
+{-
 export
 lineInfo : TypeInfo
-lineInfo = getInfo "Ledger.PG.Order.Line"
-
+lineInfo = getInfo "Category.PG.Order.Line"
+-}
 
 public export
 record TestInfo where

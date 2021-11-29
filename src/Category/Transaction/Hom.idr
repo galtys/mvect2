@@ -10,7 +10,7 @@ import Category.Transaction.Qty
 import Category.Transaction.Types
 import Data.Ratio
 
-import Ledger.PG.Order
+--import Category.PG.Order
 
 %language ElabReflection
 
