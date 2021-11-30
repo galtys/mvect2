@@ -113,7 +113,7 @@ gen_adder x = (\a => a+x)
 
 so_id_44575 : Bits32
 so_id_44575 = 44575
-
+{-
 pjb_test : IO ()
 pjb_test = do
   t0 <- time
@@ -130,8 +130,9 @@ pjb_test = do
   printLn (lookup "Zaki3" pmap)
   t3 <- time
   printLn (t3-t2)
-  
-  {-
+  -}
+pjb_test : IO ()
+pjb_test = do
   so <- BrowseOrder.read_ids [21833] (True)
   printLn so
   inv <- BrowseAccountInvoice.read (True)
@@ -141,7 +142,7 @@ pjb_test = do
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av
-  -}
+  
   
 mg_test : IO ()
 mg_test = do
@@ -163,9 +164,10 @@ mg_test = do
 
 main : IO ()
 main = do
-  test_libc_time
+--  test_libc_time
   --pjb_test
   test_demo2
   --test_main_x
   --db_main  
+  mg_test
   pure ()

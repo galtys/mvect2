@@ -21,7 +21,7 @@ struct tm {
    int tm_yday;        /* day in the year, range 0 to 365  */
    int tm_isdst;       /* daylight saving time             */	
 };  -}                            
-
+{-
 namespace Libc
   export
   data ErrorCode = OK | ParsePartial | ParseError |OtherError
@@ -153,3 +153,4 @@ namespace Libc
     printLn tx
   
   
+-}
