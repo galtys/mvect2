@@ -12,7 +12,7 @@ stdenv.mkDerivation {
   name = "idris-env";
   LD_LIBRARY_PATH="${pkgs.postgresql_10.lib}/lib";
   buildInputs = [
-
+    postgresql_10
     gmp
     yarn
     sass

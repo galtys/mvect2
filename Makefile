@@ -1,4 +1,4 @@
-all: pjbgen mvect2 #libs
+all: pjbgen mvect2 testpjb #libs
 
 #mvect2: mvect2.ipkg 
 #	idris2 --codegen node --build mvect2.ipkg
@@ -14,6 +14,9 @@ mvect2: mvect2.ipkg
 
 pjbgen: pjbgen.ipkg
 	idris2 --build pjbgen.ipkg
+
+testpjb: pjbgen.ipkg
+	idris2 --codegen refc --build testpjb.ipkg
 
 sha:
 	cc -shared sha256.c -o libsha256.so
