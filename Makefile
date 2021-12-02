@@ -16,7 +16,7 @@ pjbgen: pjbgen.ipkg
 	idris2 --build pjbgen.ipkg
 
 testpjb: pjbgen.ipkg
-	idris2 --codegen refc --build testpjb.ipkg
+	idris2 --codegen chez --build testpjb.ipkg
 
 sha:
 	cc -shared sha256.c -o libsha256.so

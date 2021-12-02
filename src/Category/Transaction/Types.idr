@@ -15,6 +15,10 @@ Date : Type
 Date = String
 
 public export
+data TreeB = Leaf String | Node TreeB String TreeB
+%runElab derive "TreeB" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
+
+public export
 data Country = UK | CZ | US | DE | FR
 %runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
@@ -57,11 +61,30 @@ data Ledger = OnHand | Forecast
 -- For Control Sales, Purchasae
 
 -- For Destination sales, Source Purchase
-
-
 public export
 data TaxCode = ZeroVAT | INC20 | EX20 | TAXAMOUNT
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
+
+public export
+data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
+%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
+
+
+public export
+data LineTerm : Type where
+     LEHom1 : (qty:EQty) -> LineTerm
+     LETaxCode : (taxcode:TaxCode) -> LineTerm -> LineTerm
+     LEAdd : (l1:LineTerm) -> (l2:LineTerm) -> LineTerm
+     LEMul : (u:EQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
+%runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+
+
+public export
+data BoM32 : Type where  
+  --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
+   Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
+
 
 public export
 record Price where
@@ -100,6 +123,36 @@ data ProdKey = PKUser String | PK32 Bits32 | PKTax String
 public export
 FromString ProdKey where
    fromString s = PKUser s
+
+public export
+record ProdKey2 where
+    constructor MkProdK2
+    keyfrom : ProdKey
+    keyto : ProdKey
+%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+public export
+Product : Type
+Product = (ProdKey, EQty)
+public export
+Hom1 : Type
+Hom1 = List Product
+public export
+Product2 : Type
+Product2 = (ProdKey2, LineTerm)
+public export
+Hom2 : Type
+Hom2 = List Product2 --was (Hom1->Hom1)
+
+public export
+record Hom3 where
+   constructor MkH
+   from:Product
+   price_unit:Price
+   to:Product
+%runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
+
+
 
 --CalcSource : Type
 --CalcSource = String --sha256 of the source journal, and calc method?
@@ -158,96 +211,3 @@ data Journal : Type where
 
 
 -}
-
-public export
-data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
-%runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
-
-public export
-data LineTerm : Type where
-     LEHom1 : (qty:EQty) -> LineTerm
-     LETaxCode : (taxcode:TaxCode) -> LineTerm -> LineTerm
-     LEAdd : (l1:LineTerm) -> (l2:LineTerm) -> LineTerm
-     LEMul : (u:EQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
-%runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
-
-
-public export
-data BoM32 : Type where  
-   --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
-   Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
-%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
-
-public export
-record ProdKey2 where
-    constructor MkProdK2
-    keyfrom : ProdKey
-    keyto : ProdKey
-%runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
-public export
-Product : Type
-Product = (ProdKey, EQty)
-public export
-Hom1 : Type
-Hom1 = List Product
-public export
-Product2 : Type
-Product2 = (ProdKey2, LineTerm)
-public export
-Hom2 : Type
-Hom2 = List Product2 --was (Hom1->Hom1)
-
-public export
-record Hom3 where
-   constructor MkH
-   from:Product
-   price_unit:Price
-   to:Product
-%runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
-public export
-record Location where
-  constructor MkL
-  --name : String
-  directionTag: DirectionTag -- Sale | Purchase
-  controlTag:   ControlTag   -- Self | Control |Partner
-  ledger:       Ledger       -- OnHand | Forecast
-  --address : Address
-  
-%runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-public export
-record FxData where
-   constructor MkFx
-   date:Date
-   l:Address
-   h3:Hom3
-%runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
-     
-FxRef : Type 
-FxRef = String --where --order reference used in warehouse
-
-public export
-data OrderEvent : Type -> Type where
-     --New : Order FxData -> OrderEvent ()
-     Move : (date:Date)->(h:Hom3)->(from:Location)->(to:Location)->OrderEvent ()     
-       
-     Confirm : Order FxData -> OrderEvent ()
-     Invoice : FxData -> OrderEvent (Order FxData)
-     
-     Log : String -> OrderEvent ()
-     Show : (Show ty) => ty -> OrderEvent ()
-     Pure : ty -> OrderEvent ty
-     Bind : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
-
---%runElab derive "OrderEvent" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
-
-namespace OrderEventDo
-  public export
-  (>>=) : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
-  (>>=) = Bind
-
-  public export
-  (>>) : OrderEvent () -> OrderEvent b -> OrderEvent b
-  ma >> mb = Bind ma (\ _ => mb)
-
-

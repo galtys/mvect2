@@ -175,15 +175,23 @@ namespace SO_Simple
 
   %runElab derive "RecordCols" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
    
+  
   toRecord : GetRow PrimCols -> RecordCols
   toRecord =  to . (\x => MkSOP $ Z x)
-  
-  read_records_c : HasIO io => MonadError SQLError io => Connection -> (op:Op)->io (List RecordCols )
+
+  read_records_c : HasIO io => MonadError SQLError io =>Connection->(op:Op)->io (List RecordCols )
   read_records_c c op = do
     rows <- get c SO_NP (columns SO_NP) (domain&&op)
     let so_s= [ toRecord ox | ox <- rows ]
     pure so_s
-            
+{-    
+  --     -> {auto 0 _ : Elems cs (columns t)}    
+  read_records_c_np : HasIO io => MonadError SQLError io => Connection->{0 t:Table} ->(op:Op)->io (List RecordCols )
+  read_records_c_np c {t} op = do
+    rows <- get c t (columns t) (domain&&op)
+    let so_s= [ toRecord ox | ox <- rows ]
+    pure so_s
+-}
   read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List RecordCols )
   read_records op= do
     c <- connect DB_URI

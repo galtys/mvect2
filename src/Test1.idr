@@ -65,6 +65,8 @@ ptrToString ptr =
 
 
 
+
+
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    
@@ -169,5 +171,5 @@ main = do
   test_demo2
   --test_main_x
   --db_main  
-  mg_test
+  --mg_test
   pure ()
