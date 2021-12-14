@@ -336,6 +336,10 @@ namespace EQty
        (+) = EQAdd
        (*) = EQMul
        fromInteger x = (EQVal EValue (fromInteger x))
+       
+  public export
+  FromDouble EQty where
+       fromDouble x = (cast x)
 
   public export
   Neg EQty where

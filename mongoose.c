@@ -3621,7 +3621,7 @@ struct mg_str mg_strstrip(struct mg_str s) {
 
 
 struct mg_timer *g_timers;
-
+/*
 void mg_timer_init(struct mg_timer *t, unsigned long ms, unsigned flags,
                    void (*fn)(void *), void *arg) {
   struct mg_timer tmp = {ms, flags, fn, arg, 0UL, g_timers};
@@ -3629,7 +3629,7 @@ void mg_timer_init(struct mg_timer *t, unsigned long ms, unsigned flags,
   g_timers = t;
   if (flags & MG_TIMER_RUN_NOW) fn(arg);
 }
-
+*/
 void mg_timer_free(struct mg_timer *t) {
   struct mg_timer **head = &g_timers;
   while (*head && *head != t) head = &(*head)->next;

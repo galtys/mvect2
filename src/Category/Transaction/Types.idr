@@ -60,7 +60,7 @@ data Ledger = OnHand | Forecast
 
 
 public export
-data TaxCode = ZeroVAT | INC20 | EX20 | TAXAMOUNT
+data TaxCode =  INC20 | EX20 | TAXAMOUNT |ERROR
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
 public export
@@ -69,6 +69,10 @@ record Price where
   tax : TaxCode
   price : EQty
 %runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+price_mult : Price -> Price -> Price
+
+
 
 export  
 toINC20 : Double -> Price
@@ -178,33 +182,55 @@ data BoM32 : Type where
    Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
 
+{-
 public export
 record ProdKey2 where
     constructor MkProdK2
-    keyfrom : ProdKey
-    keyto : ProdKey
+    key : ProdKey
+    val : Price --keyfrom : ProdKey    
 %runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+-}
 
 public export
 Product : Type
 Product = (ProdKey, EQty)
+
+public export
+Currency : Type
+Currency = (ProdKey, Price)
+
 public export
 Hom1 : Type
 Hom1 = List Product
+
 public export
 Product2 : Type
-Product2 = (ProdKey2, LineTerm)
+Product2 = (ProdKey, Currency)
+
 public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
+
+
 public export
-record Hom3 where
-   constructor MkH
-   from:Product
-   price_unit:Price
-   to:Product
-%runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
+record Hom121 where
+   constructor MkH121
+   from:Hom1
+   appl:Hom2
+   to : Hom1
+
+public export
+record Hom11 where
+   constructor MkH11
+   from:Hom1
+   to : Hom1
+   
+   --from:Product
+   --price_unit:Price
+   --to:Product
+   
+%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
 public export
 record Location where
   constructor MkL
@@ -220,7 +246,7 @@ record FxData where
    constructor MkFx
    date:Date
    l:Address
-   h3:Hom3
+   h3:Hom121
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
      
 FxRef : Type 
@@ -229,10 +255,10 @@ FxRef = String --where --order reference used in warehouse
 public export
 data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
-     Move : (date:Date)->(h:Hom3)->(from:Location)->(to:Location)->OrderEvent ()     
+     --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
        
      Confirm : Order FxData -> OrderEvent ()
-     Invoice : FxData -> OrderEvent (Order FxData)
+     --Invoice : FxData -> OrderEvent (Order FxData)
      
      Log : String -> OrderEvent ()
      Show : (Show ty) => ty -> OrderEvent ()

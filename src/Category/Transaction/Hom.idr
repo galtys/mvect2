@@ -107,10 +107,11 @@ inc20_const = (  1/(1+one5) ) * one5
 
 public export
 taxRatio : TaxCode -> EQty
-taxRatio ZeroVAT = 0
+--taxRatio ZeroVAT = 0
 taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
 taxRatio TAXAMOUNT = 0
+taxRatio ERROR = 0
 
 {-
 public export
@@ -232,10 +233,50 @@ ev_tax : LineTerm -> LineTerm
 ev_tax (LEHom1 qty) = (LEHom1 qty) --terminating
 ev_tax (LETaxCode taxcode x) = LEMul (taxRatio taxcode) TaxMul x
 ev_tax x = ev_tax x
-
+{-
 public export
 tax_line : Product2 -> Product2
 tax_line ((MkProdK2 keyfrom keyto), y) = --?tax_line_rhs_2
    let t_c = get_tax_codes y
        pk2 = MkProdK2 (get_tc_prodkey t_c) keyto
        t_l = (ev_tax y) in (pk2,t_l)
+
+-}
+
+{-
+export
+confirm_so : OrderEvent ()
+confirm_so = do
+ let date = "2021-11-01"
+     h1 = [p1,p2,p3]
+     h2 = [ (fst p1, ("GBP",31.73)), 
+            (fst p2, ("GBP",15.03)),
+            (fst p3, ("GBP",25.00))]
+            
+     fx = (MkFx date hilton (MkH121 h1 h2 (apply2' h2 h1) ))
+ Confirm (MkO Sale fx)
+ Pure ()
+-}
+
+
+
+public export
+apply2' : Hom2 -> Hom1 -> Hom1
+apply2' h2 p = ret where
+  h2map : SortedMap ProdKey Currency --Product
+  h2map = fromList h2
+  
+  ret1 : List (Maybe Currency,EQty)
+  ret1 = [ (lookup (fst x) h2map,(snd x)) | x<-p ]
+  
+  ret2 : List (Maybe Currency,EQty) -> Hom1
+  ret2 [] = []
+  ret2 ((Nothing,q) ::xs) = (ret2 xs)
+  ret2 ((Just x,q) ::xs) = [(fst x, (price (snd x))*q)]++ (ret2 xs)
+  
+  
+  ret : Hom1
+  ret = (ret2 ret1)
+  
+  
+
