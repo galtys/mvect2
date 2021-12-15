@@ -193,6 +193,9 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
 
+validateDirection : (from:Location) -> (to:Location) -> Bool
+
+
 export
 interpret : OrderEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
 interpret (Open fx) = do
@@ -244,7 +247,7 @@ interpret (Put11 f t ledger h11) = do
                 Just h11_list => do
                    let lh' = insert key (h11::h11_list) lh
                    put (so,po,led2'',lh',journal)
-
+             pure () 
 
              
 

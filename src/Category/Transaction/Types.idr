@@ -308,6 +308,9 @@ data JournalEvent = Fx FxData
 %runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
 
 public export
+data OrderEventError = Put11Error
+
+public export
 data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
      --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
