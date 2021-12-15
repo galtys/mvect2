@@ -174,18 +174,18 @@ record Muf where
   
 public export
 LedgerMap  : Type
-LedgerMap = SortedMap (ControlTag, Ledger, ProdKey) EQty
+LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
 
 public export
 LedgerH11  : Type
-LedgerH11 = SortedMap (ControlTag, ControlTag,  Ledger) (List Hom11)
+LedgerH11 = SortedMap (Location, Location,  Ledger) (List Hom11)
 
 
 public export
-update_ledger : (ControlTag, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
+update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
 update_ledger k [] m = m
 update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
-          key : (ControlTag, Ledger,ProdKey)
+          key : (Location, Ledger,ProdKey)
           key = (ct,l,pk)
           
           ret : LedgerMap
@@ -220,9 +220,9 @@ interpret (Put11 f t ledger h11) = do
  
              (so,po,led,lh,journal)<-get
              let key = (f,t,ledger) 
-                 k1 : (ControlTag, Ledger)
+                 k1 : (Location, Ledger)
                  k1 = (f,ledger)
-                 k2 : (ControlTag, Ledger)
+                 k2 : (Location, Ledger)
                  k2 = (t,ledger)
                                   
                  led1' : LedgerMap
