@@ -125,12 +125,6 @@ confirm_po = do
  Pure ()
 
 export
-init_self : OrderEvent ()
-init_self = do
-     let h11 = MkH11 [("company_shares",100)] [("GBP", (10000))]
-     Put11 Init Self OnHand h11
-
-export
 confirm_so : OrderEvent ()
 confirm_so = do
  let date = "2021-11-01"
@@ -193,13 +187,20 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
 
+export
 validateDirection : (from:Location) -> (to:Location) -> Bool
+validateDirection (Partner Sale y) (Control Sale x) = True
+validateDirection (Control Sale y) Self = True
+validateDirection Self (Control Purchase y) = True
+validateDirection (Control Purchase y) (Partner Purchase x) = True
 validateDirection Init Self = True
-validateDirection (Partner Purchase x) (Control Purchase y) = True
-validateDirection (Control Purchase y) Self = True
-validateDirection Self (Control Sale y) = True
-validateDirection (Control Sale x) (Partner Sale y) = True
 validateDirection _ _ = False
+
+export
+init_self : OrderEvent ()
+init_self = do
+     let h11 = MkH11 [("company_shares",100)] [("GBP", (10000))]
+     Put11 Init Self OnHand h11
 
 export
 interpret : OrderEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
@@ -234,14 +235,14 @@ interpret (Put11 f t ledger h11) = do
                  k2 = (t,ledger)
                                   
                  led1' : LedgerMap
-                 led1' = update_ledger k1 ( from h11) led                 
+                 led1' = update_ledger k1 ( dx h11) led                 
                  led1'' : LedgerMap
-                 led1'' = update_ledger k1 (invHom1 $ to h11) led1'
+                 led1'' = update_ledger k1 (invHom1 $ cx h11) led1'
                  
                  led2' : LedgerMap
-                 led2' = update_ledger k2 (from h11) led1''
+                 led2' = update_ledger k2 (dx h11) led1''
                  led2'' : LedgerMap
-                 led2'' = update_ledger k2 (to h11) led2'
+                 led2'' = update_ledger k2 (cx h11) led2'
                  
                  
              

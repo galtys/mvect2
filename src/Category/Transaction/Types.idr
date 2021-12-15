@@ -263,16 +263,16 @@ Hom2 = List Product2 --was (Hom1->Hom1)
 public export
 record Hom121 where
    constructor MkH121
-   from:Hom1
+   dx:Hom1
    appl:Hom2
-   to : Hom1
+   cx : Hom1
 %runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 public export
 record Hom11 where
    constructor MkH11
-   from:Hom1
-   to : Hom1
+   dx:Hom1
+   cx:Hom1
 %runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 {-
