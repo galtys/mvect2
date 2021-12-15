@@ -42,11 +42,11 @@ data ControlTag =  Self | Control Address |Partner Address
 public export
 data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
-
+{-
 public export
 data Order a = MkO DirectionTag a
 %runElab derive "Order" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]     
-
+-}
 public export
 data Ledger = OnHand | Forecast
 %runElab derive "Ledger" [Generic, Meta, Eq, Ord, Show,EnumToJSON,EnumFromJSON]
@@ -251,6 +251,7 @@ public export
 record FxData where
    constructor MkFx
    date:Date
+   direction: DirectionTag
    delivery:Address -- Delivery
    invoice:Address -- Invoice
    h3: Hom121
@@ -262,11 +263,11 @@ public export
 data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
      --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
-     Open : (fx:FxData) -> OrderEvent ()
+     Open : (fx:FxData) -> OrderEvent FxRef
      Close : (fx:FxData) -> OrderEvent ()
      
      
-     Confirm : Order FxData -> OrderEvent ()
+     Confirm : (fx:FxData) -> OrderEvent ()
      --Invoice : FxData -> OrderEvent (Order FxData)
      
      Log : String -> OrderEvent ()

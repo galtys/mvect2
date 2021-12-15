@@ -46,8 +46,8 @@ confirm_po = do
             (fst p2, ("GBP",up2)),
             (fst p3, ("GBP",up3))]
             
-     fx = MkFx date factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- Confirm (MkO Purchase fx)
+     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
+ Confirm fx
  
  Pure ()
 
@@ -64,8 +64,8 @@ confirm_so = do
             (fst p2, ("GBP",up2)),
             (fst p3, ("GBP",up3))]
             
-     fx = MkFx date hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- Confirm (MkO Sale fx)
+     fx = MkFx date Sale hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
+ Confirm fx
  
      {-
      sub1 = (snd p1) * (cast up1)
@@ -86,7 +86,7 @@ confirm_so = do
 public export
 record Muf where
   constructor MkMuf 
-  order : SortedMap (Date,Address) Hom121
+  order : SortedMap FxRef FxData --Hom121
   forecast : SortedMap (Date,Address) Hom121
   reservation : SortedMap (Date,Address) Hom11
   actual : SortedMap (Date,Address) Hom11
@@ -112,9 +112,29 @@ update_ledger k@(ct,d,l) ( (pk,eq)::xs) m = ret where
 
 export
 interpret : OrderEvent a -> State (Muf,Muf,LedgerMap) a
-interpret (Open fx) = pure ()
+interpret (Open fx) = do
+      let cnt = encode fx
+          ref = sha256 cnt
+      (so,po,led)<-get
+      case (direction fx) of
+         Purchase => do
+             let o = order po
+                 o' : SortedMap FxRef FxData
+                 o' = insert ref fx o                 
+                 po' : Muf
+                 po' = record {order = o'} po
+             put (so,po',led)
+         Sale => do
+             let o = order so
+                 o' : SortedMap FxRef FxData             
+                 o' = insert ref fx o
+                 so' : Muf
+                 so' = record {order = o'} so
+             put (so',po,led)
+      pure ref
+
 interpret (Close fx) = pure ()
-interpret (Confirm (MkO Sale fx)) = do 
+interpret (Confirm fx ) = do 
              (so,po,led)<-get
              
              let f = forecast so
@@ -130,7 +150,7 @@ interpret (Confirm (MkO Sale fx)) = do
                  so' : Muf
                  so' = record {forecast = f'} so
              put (so',po,led)
-
+{-
 interpret (Confirm (MkO Purchase fx)) = do 
              (so,po,led)<-get
              
@@ -162,7 +182,7 @@ interpret (Confirm (MkO Purchase fx)) = do
                  po' : Muf
                  po' = record {forecast = f', reservation = r'} po
              put (so,po',led')
-
+-}
              
 interpret (Log x) = pure () --?interpret_rhs_1
 interpret (Show x) = pure () --?interpret_rhs_2
