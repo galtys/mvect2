@@ -275,18 +275,16 @@ record Hom121 where
    from:Hom1
    appl:Hom2
    to : Hom1
+%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 public export
 record Hom11 where
    constructor MkH11
    from:Hom1
    to : Hom1
-   
-   --from:Product
-   --price_unit:Price
-   --to:Product
-   
-%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
+%runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
+
+{-
 public export
 record Location where
   constructor MkL
@@ -294,10 +292,9 @@ record Location where
   directionTag: DirectionTag -- Sale | Purchase
   controlTag:   ControlTag   -- Self | Control |Partner
   ledger:       Ledger       -- OnHand | Forecast
-  --address : Address
-  
+  --address : Address  
 %runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
+-}
 
 public export     
 FxRef : Type 
@@ -314,6 +311,9 @@ record FxData where
    origin : Maybe FxRef
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
 
+data JournalEvent = Fx FxData 
+
+%runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
 
 public export
 data OrderEvent : Type -> Type where
