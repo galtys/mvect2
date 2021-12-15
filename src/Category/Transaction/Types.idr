@@ -40,7 +40,7 @@ record Address where
 %runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
 public export
-data ControlTag =  Self | Control Address |Partner Address 
+data ControlTag =  Self | Control Address |Partner Address | Init
 %runElab derive "ControlTag" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 public export
@@ -311,6 +311,7 @@ record FxData where
    origin : Maybe FxRef
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
 
+public export
 data JournalEvent = Fx FxData 
 
 %runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
@@ -319,6 +320,9 @@ public export
 data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
      --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
+     --Put121 : (from:ControlTag)->(to:ControlTag)->DirectionTag->Ledger->Hom121 -> OrderEvent ()
+     Put11 : (from:ControlTag)->(to:ControlTag)->DirectionTag->Ledger->Hom11 -> OrderEvent ()
+     
      Open : (fx:FxData) -> OrderEvent FxRef
      Close : (fx:FxData) -> OrderEvent ()
      

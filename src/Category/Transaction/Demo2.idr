@@ -105,24 +105,30 @@ p2 = ("p2",7)
 export
 p3:Product
 p3 = ("p1",10)
+export
+mult_p : EQty -> Product -> Product
+mult_p x (k,q) = (k,x*q)
 
 export
 confirm_po : OrderEvent ()
 confirm_po = do
  let date = "2021-10-01"
-     h1 = [p1,p2,p3]
+     h1 = map (mult_p 10) [p1,p2,p3]     
      up1 = (toEX20 21.73)
      up2 = (toEX20 11.03)
-     up3 = (toEX20 17.00)
-     
+     up3 = (toEX20 17.00)     
      h2 = [ (fst p1, ("GBP",up1)), 
             (fst p2, ("GBP",up2)),
-            (fst p3, ("GBP",up3))]
-            
+            (fst p3, ("GBP",up3))]            
      fx = MkFx date Purchase factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- Confirm fx
- 
+ Confirm fx 
  Pure ()
+
+export
+init_self : OrderEvent ()
+init_self = do
+     let h11 = MkH11 [("company_shares",100)] [("GBP", (10000))]
+     Put11 Init Self Sale OnHand h11
 
 export
 confirm_so : OrderEvent ()
@@ -170,6 +176,10 @@ public export
 LedgerMap  : Type
 LedgerMap = SortedMap (ControlTag, DirectionTag, Ledger, ProdKey) EQty
 
+public export
+LedgerH11  : Type
+LedgerH11 = SortedMap (ControlTag, ControlTag, DirectionTag, Ledger) (List Hom11)
+
 
 public export
 update_ledger : (ControlTag, DirectionTag, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
@@ -184,11 +194,11 @@ update_ledger k@(ct,d,l) ( (pk,eq)::xs) m = ret where
                   Nothing => (update_ledger k xs  (insert key eq m)     )
 
 export
-interpret : OrderEvent a -> State (Muf,Muf,LedgerMap) a
+interpret : OrderEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
 interpret (Open fx) = do
       let cnt = encode fx
           ref = sha256 cnt
-      (so,po,led)<-get
+      (so,po,led,lh,journal)<-get
       case (direction fx) of
          Purchase => do
              let o = order po
@@ -196,19 +206,34 @@ interpret (Open fx) = do
                  o' = insert ref fx o                 
                  po' : Muf
                  po' = record {order = o'} po
-             put (so,po',led)
+             put (so,po',led,lh,(Fx fx)::journal)
          Sale => do
              let o = order so
                  o' : SortedMap FxRef FxData             
                  o' = insert ref fx o
                  so' : Muf
                  so' = record {order = o'} so
-             put (so',po,led)
+             put (so',po,led,lh,(Fx fx)::journal)
       pure ref
+      
+interpret (Put11 from to dir ledger h11) = do
+ 
+             (so,po,led,lh,journal)<-get
+             let key = (from,to,dir,ledger) 
+             case (lookup key lh) of
+                Nothing => do
+                   let lh' = insert key [h11] lh
+                   put (so,po,led,lh',journal)
+                Just h11_list => do
+                   let lh' = insert key (h11::h11_list) lh
+                   put (so,po,led,lh',journal)
+
+
+             
 
 interpret (Close fx) = pure ()
 interpret (Confirm fx ) = do 
-             (so,po,led)<-get
+             (so,po,led,lh,journal)<-get
              
              let f = forecast so
                  key : (Date,Address)
@@ -222,7 +247,7 @@ interpret (Confirm fx ) = do
                  
                  so' : Muf
                  so' = record {forecast = f'} so
-             put (so',po,led)
+             put (so',po,led,lh,journal)
 {-
 interpret (Confirm (MkO Purchase fx)) = do 
              (so,po,led)<-get
