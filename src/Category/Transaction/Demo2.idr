@@ -216,17 +216,34 @@ interpret (Open fx) = do
              put (so',po,led,lh,(Fx fx)::journal)
       pure ref
       
-interpret (Put11 from to dir ledger h11) = do
+interpret (Put11 f t dir ledger h11) = do
  
              (so,po,led,lh,journal)<-get
-             let key = (from,to,dir,ledger) 
+             let key = (f,t,dir,ledger) 
+                 k1 : (ControlTag, DirectionTag, Ledger)
+                 k1 = (f,dir,ledger)
+                 k2 : (ControlTag, DirectionTag, Ledger)
+                 k2 = (t,dir,ledger)
+                                  
+                 led1' : LedgerMap
+                 led1' = update_ledger k1 (from h11) led                 
+                 led1'' : LedgerMap
+                 led1'' = update_ledger k1 (to h11) led1'
+                 
+                 led2' : LedgerMap
+                 led2' = update_ledger k2 (from h11) led1''
+                 led2'' : LedgerMap
+                 led2'' = update_ledger k2 (to h11) led2'
+                 
+                 
+             
              case (lookup key lh) of
                 Nothing => do
                    let lh' = insert key [h11] lh
-                   put (so,po,led,lh',journal)
+                   put (so,po,led2'',lh',journal)
                 Just h11_list => do
                    let lh' = insert key (h11::h11_list) lh
-                   put (so,po,led,lh',journal)
+                   put (so,po,led2'',lh',journal)
 
 
              
@@ -268,14 +285,6 @@ interpret (Confirm (MkO Purchase fx)) = do
                  r' : SortedMap (Date,Address) Hom11
                  r' = insert key (MkH11 (from x) (to x)) r
                  
-                 k1 : (ControlTag, DirectionTag, Ledger)
-                 k1 = (Control (delivery fx), Purchase, OnHand)
-                 {-
-                 m1: LedgerMap --(insert k1 (from x) empty)
-                 m1 = (insert k1 (from x) empty)
-                 -}                 
-                 led' : LedgerMap
-                 led' = update_ledger k1 (from x) led
                  
                  po' : Muf
                  po' = record {forecast = f', reservation = r'} po
