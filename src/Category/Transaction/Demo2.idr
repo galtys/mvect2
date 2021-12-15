@@ -110,7 +110,7 @@ mult_p : EQty -> Product -> Product
 mult_p x (k,q) = (k,x*q)
 
 export
-confirm_po : OrderEvent ()
+confirm_po : WhsEvent ()
 confirm_po = do
  let date = "2021-10-01"
      h1 = map (mult_p 10) [p1,p2,p3]     
@@ -121,11 +121,11 @@ confirm_po = do
             (fst p2, ("GBP",up2)),
             (fst p3, ("GBP",up3))]            
      fx = MkFx date Purchase factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- Confirm fx 
+ --Confirm fx 
  Pure ()
 
 export
-confirm_so : OrderEvent ()
+confirm_so : WhsEvent ()
 confirm_so = do
  let date = "2021-11-01"
      h1 = [p1,p2,p3]
@@ -138,21 +138,7 @@ confirm_so = do
             (fst p3, ("GBP",up3))]
             
      fx = MkFx date Sale hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- Confirm fx
- 
-     {-
-     sub1 = (snd p1) * (cast up1)
-     sub2 = (snd p2) * (cast up2)
-     sub3 = (snd p3) * (cast up3)
-               
-     line1 = MkFx date hilton (MkH p1 up1 ("GBP",sub1) )     
-     line2 = MkFx date hilton (MkH p2 up2 ("GBP",sub2)  )
-     line3 = MkFx date hilton (MkH p3 up3 ("GBP",sub3)  )  
-     -}
-     
- --Confirm (MkO Sale line1)
- --Confirm (MkO Sale line2)
- --Confirm (MkO Sale line3) 
+ --Confirm fx
  Pure ()
 
 
@@ -196,14 +182,99 @@ validateDirection (Control Purchase y) (Partner Purchase x) = True
 validateDirection Init Self = True
 validateDirection _ _ = False
 
+{-
 export
-init_self : OrderEvent ()
-init_self = do
-     let h11 = MkH11 [("company_shares",100)] [("GBP", (10000))]
-     Put11 Init Self OnHand h11
+tail : List a -> List a
+tail [] = []
+tail (x::xs) = xs
+-}
+export
+custRoute : (c:Address) -> List Location
+custRoute c = [Partner Sale c, Control Sale c, Self]
+export
+suppRoute : (s:Address) -> List Location
+suppRoute s = [Self, Control Purchase s, Partner Purchase s]
 
 export
-interpret : OrderEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
+locRoute : (c:Address)->(s:Address)->List Location
+locRoute c s = (custRoute c)++ (tail $ suppRoute s)
+
+
+export
+initRoute : List Location
+initRoute = [Init, Self]
+
+export
+init_self : OwnerEvent RouteRef
+init_self = do
+     let price : Price
+         price = (toEX20 1000)
+         
+         share : Product
+         share = ("company_shares",100)
+         h2 : Hom2
+         h2 = [ (fst share, ("GBP",price)) ]
+         h1 : Hom1
+         h1 = [share]
+         
+         h121 : Hom121
+         h121 = MkH121 h1 h2 (apply2' h2 h1)
+     ref <- Init h121 initRoute
+     Pure ref
+
+export
+toWhs : OwnerEvent a -> WhsEvent a
+toWhs (Init h121 route) = do
+       let h11 = (MkH11 (dx h121) (cx h121))
+       Put11 Init Self OnHand  h11
+       Put11 Init Self Forecast h11
+       ref <- NewRoute route
+       Pure ref
+       
+toWhs (Log x) =  Pure ()
+toWhs (Show x) = Pure ()
+toWhs (Pure x) = Pure x
+toWhs (Bind x f) = do res <- toWhs x
+                      toWhs (f res) --?toWhs_rhs_4
+
+     
+export
+interpret : WhsEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
+interpret  (NewRoute route) = do
+             let route_cnt = encode route
+                 route_ref = sha256 route_cnt
+             pure route_ref
+
+interpret (Put11 f t ledger h11) = do 
+             (so,po,led,lh,journal)<-get
+             let key = (f,t,ledger) 
+                 kf : (Location, Ledger)
+                 kf = (f,ledger)
+                 
+                 kt : (Location, Ledger)
+                 kt = (t,ledger)
+                                  
+                 led1' : LedgerMap
+                 led1' = update_ledger kf ( dx h11) led                 
+                 led1'' : LedgerMap
+                 led1'' = update_ledger kf (invHom1 $ cx h11) led1'
+                 
+                 led2' : LedgerMap
+                 led2' = update_ledger kt (invHom1 $ dx h11) led1''
+                 led2'' : LedgerMap
+                 led2'' = update_ledger kt (cx h11) led2'
+             case (lookup key lh) of
+                Nothing => do
+                   let lh' = insert key [h11] lh
+                   put (so,po,led2'',lh',journal)
+                Just h11_list => do
+                   let lh' = insert key (h11::h11_list) lh
+                   put (so,po,led2'',lh',journal)
+             pure () 
+
+interpret (Put121 f t ledger h121 ) = pure ()
+{-
+interpret (Close fx) = pure ()
 interpret (Open fx) = do
       let cnt = encode fx
           ref = sha256 cnt
@@ -224,40 +295,8 @@ interpret (Open fx) = do
                  so' = record {order = o'} so
              put (so',po,led,lh,(Fx fx)::journal)
       pure ref
-      
-interpret (Put11 f t ledger h11) = do
- 
-             (so,po,led,lh,journal)<-get
-             let key = (f,t,ledger) 
-                 k1 : (Location, Ledger)
-                 k1 = (f,ledger)
-                 k2 : (Location, Ledger)
-                 k2 = (t,ledger)
-                                  
-                 led1' : LedgerMap
-                 led1' = update_ledger k1 ( dx h11) led                 
-                 led1'' : LedgerMap
-                 led1'' = update_ledger k1 (invHom1 $ cx h11) led1'
-                 
-                 led2' : LedgerMap
-                 led2' = update_ledger k2 (dx h11) led1''
-                 led2'' : LedgerMap
-                 led2'' = update_ledger k2 (cx h11) led2'
-                 
-                 
-             
-             case (lookup key lh) of
-                Nothing => do
-                   let lh' = insert key [h11] lh
-                   put (so,po,led2'',lh',journal)
-                Just h11_list => do
-                   let lh' = insert key (h11::h11_list) lh
-                   put (so,po,led2'',lh',journal)
-             pure () 
-
-             
-
-interpret (Close fx) = pure ()
+-}
+{-
 interpret (Confirm fx ) = do 
              (so,po,led,lh,journal)<-get
              
@@ -274,7 +313,7 @@ interpret (Confirm fx ) = do
                  so' : Muf
                  so' = record {forecast = f'} so
              put (so',po,led,lh,journal)
-{-
+
 interpret (Confirm (MkO Purchase fx)) = do 
              (so,po,led)<-get
              

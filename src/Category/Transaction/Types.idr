@@ -291,6 +291,10 @@ public export
 FxRef : Type 
 FxRef = String --where --order reference used in warehouse
 
+public export     
+RouteRef : Type 
+RouteRef = String --where --order reference used in warehouse
+
 public export
 record FxData where
    constructor MkFx
@@ -299,7 +303,7 @@ record FxData where
    delivery:Address -- Delivery
    invoice:Address -- Invoice
    h3: Hom121
-   origin : Maybe FxRef
+   origin : Maybe FxRef --list of origins, a PO can have multiple origins
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
 
 public export
@@ -308,40 +312,65 @@ data JournalEvent = Fx FxData
 %runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
 
 public export
-data OrderEventError = Put11Error
+data WhsEventError = Put11Error
 
 public export
-data OrderEvent : Type -> Type where
-     --New : Order FxData -> OrderEvent ()
-     --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
-     --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> OrderEvent ()
-     Put11 : (from:Location)->(to:Location)->Ledger->Hom11 -> OrderEvent ()
-     
-     Open : (fx:FxData) -> OrderEvent FxRef
-     Close : (fx:FxData) -> OrderEvent ()
-     
-     
-     Confirm : (fx:FxData) -> OrderEvent ()
-     --Invoice : FxData -> OrderEvent (Order FxData)
-     
-     Log : String -> OrderEvent ()
-     Show : (Show ty) => ty -> OrderEvent ()
-     Pure : ty -> OrderEvent ty
-     Bind : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
+Route : Type
+Route = List Location
 
---%runElab derive "OrderEvent" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
-namespace OrderEventDo
+namespace WhsEventDo
   public export
-  (>>=) : OrderEvent a -> (a -> OrderEvent b) -> OrderEvent b
-  (>>=) = Bind
+  data WhsEvent : Type -> Type where
+       --New : Order FxData -> WhsEvent ()
+       --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->WhsEvent ()     
+       --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> WhsEvent ()
+       --Init : Hom11 -> WhsEvent RouteRef
+       NewRoute : Route -> WhsEvent RouteRef
+       
+       Put11 : (from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
+       Put121 : (from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
+
+       Log : String -> WhsEvent ()
+       Show : (Show ty) => ty -> WhsEvent ()
+       Pure : ty -> WhsEvent ty
+       Bind : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
+
 
   public export
-  (>>) : OrderEvent () -> OrderEvent b -> OrderEvent b
-  ma >> mb = Bind ma (\ _ => mb)
+  (>>=) : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
+  (>>=) = WhsEventDo.Bind
+
+  public export
+  (>>) : WhsEvent () -> WhsEvent b -> WhsEvent b
+  ma >> mb = WhsEventDo.Bind ma (\ _ => mb)
+
+namespace OwnerEventDo
+  public export
+  data OwnerEvent : Type -> Type where
+       --New : Order FxData -> OwnerEvent ()
+       --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OwnerEvent ()     
+       --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> OwnerEvent ()
+       --Init : Hom11 -> OwnerEvent RouteRef
+       Init : Hom121 -> Route -> OwnerEvent RouteRef
+       
+       --Open : (fx:FxData) -> OwnerEvent FxRef
+       --Close : (fx:FxData) -> OwnerEvent ()
+
+--       Confirm : (fx:FxData) -> WhsEvent ()
+
+       Log : String -> OwnerEvent ()
+       Show : (Show ty) => ty -> OwnerEvent ()
+       Pure : ty -> OwnerEvent ty
+       Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
 
 
---=======
--->>>>>>> 67dcb622833a087f3ff812dcb0ea085b31cb1604
+  public export
+  (>>=) : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
+  (>>=) = OwnerEventDo.Bind
+
+  public export
+  (>>) : OwnerEvent () -> OwnerEvent b -> OwnerEvent b
+  ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
 
