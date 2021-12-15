@@ -46,8 +46,9 @@ confirm_po = do
             (fst p2, ("GBP",up2)),
             (fst p3, ("GBP",up3))]
             
-     fx = (MkFx date factory1 (MkH121 h1 h2 (apply2' h2 h1) ))
+     fx = MkFx date factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
  Confirm (MkO Purchase fx)
+ 
  Pure ()
 
 export
@@ -63,7 +64,7 @@ confirm_so = do
             (fst p2, ("GBP",up2)),
             (fst p3, ("GBP",up3))]
             
-     fx = (MkFx date hilton (MkH121 h1 h2 (apply2' h2 h1) ))
+     fx = MkFx date hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
  Confirm (MkO Sale fx)
  
      {-
@@ -85,38 +86,83 @@ confirm_so = do
 public export
 record Muf where
   constructor MkMuf 
+  order : SortedMap (Date,Address) Hom121
   forecast : SortedMap (Date,Address) Hom121
   reservation : SortedMap (Date,Address) Hom11
   actual : SortedMap (Date,Address) Hom11
   invoice : SortedMap (Date,Address) Hom121
   
+  
+public export
+LedgerMap  : Type
+LedgerMap = SortedMap (ControlTag, DirectionTag, Ledger, ProdKey) EQty
+
+
+public export
+update_ledger : (ControlTag, DirectionTag, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
+update_ledger k [] m = m
+update_ledger k@(ct,d,l) ( (pk,eq)::xs) m = ret where
+          key : (ControlTag, DirectionTag, Ledger,ProdKey)
+          key = (ct,d,l,pk)
+          
+          ret : LedgerMap
+          ret = case (lookup key m ) of
+                  (Just q) => (update_ledger k xs (insert key (eq+q) m) )
+                  Nothing => (update_ledger k xs  (insert key eq m)     )
 
 export
-interpret : OrderEvent a -> State (Muf,Muf) a
-interpret (Confirm (MkO Sale y)) = do 
-             (so,po)<-get
+interpret : OrderEvent a -> State (Muf,Muf,LedgerMap) a
+interpret (Open fx) = pure ()
+interpret (Close fx) = pure ()
+interpret (Confirm (MkO Sale fx)) = do 
+             (so,po,led)<-get
              
              let f = forecast so
-                 key = (date y, l y) 
-                 f' = insert key (h3 y) f                  
+                 key : (Date,Address)
+                 key = (date fx, delivery fx) 
+                 
+                 x : Hom121
+                 x = (h3 fx)
+                 
+                 f' : SortedMap (Date,Address) Hom121
+                 f' = (insert key x f)
+                 
                  so' : Muf
                  so' = record {forecast = f'} so
-             put (so',po)
-             
-interpret (Confirm (MkO Purchase y)) = do 
-             (so,po)<-get
+             put (so',po,led)
+
+interpret (Confirm (MkO Purchase fx)) = do 
+             (so,po,led)<-get
              
              let f = forecast po
-                 key = (date y, l y) 
-                 f' = insert key (h3 y) f
+                 key : (Date,Address)
+                 key = (date fx, delivery fx) 
+                 
+                 f' : SortedMap (Date,Address) Hom121
+                 f' = insert key (h3 fx) f
+                 
+                 r : SortedMap (Date,Address) Hom11
                  r = reservation po
                  
-                 x = h3 y
+                 x : Hom121
+                 x = h3 fx
+                 
+                 r' : SortedMap (Date,Address) Hom11
                  r' = insert key (MkH11 (from x) (to x)) r
+                 
+                 k1 : (ControlTag, DirectionTag, Ledger)
+                 k1 = (Control (delivery fx), Purchase, OnHand)
+                 {-
+                 m1: LedgerMap --(insert k1 (from x) empty)
+                 m1 = (insert k1 (from x) empty)
+                 -}                 
+                 led' : LedgerMap
+                 led' = update_ledger k1 (from x) led
                  
                  po' : Muf
                  po' = record {forecast = f', reservation = r'} po
-             put (so,po')
+             put (so,po',led')
+
              
 interpret (Log x) = pure () --?interpret_rhs_1
 interpret (Show x) = pure () --?interpret_rhs_2

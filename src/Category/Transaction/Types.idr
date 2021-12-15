@@ -241,22 +241,31 @@ record Location where
   --address : Address
   
 %runElab derive "Location" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+
+public export     
+FxRef : Type 
+FxRef = String --where --order reference used in warehouse
+
 public export
 record FxData where
    constructor MkFx
    date:Date
-   l:Address
-   h3:Hom121
+   delivery:Address -- Delivery
+   invoice:Address -- Invoice
+   h3: Hom121
+   origin : Maybe FxRef
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
-     
-FxRef : Type 
-FxRef = String --where --order reference used in warehouse
+
 
 public export
 data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
      --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
-       
+     Open : (fx:FxData) -> OrderEvent ()
+     Close : (fx:FxData) -> OrderEvent ()
+     
+     
      Confirm : Order FxData -> OrderEvent ()
      --Invoice : FxData -> OrderEvent (Order FxData)
      
