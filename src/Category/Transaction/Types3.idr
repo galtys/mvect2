@@ -134,7 +134,7 @@ record ProdKey2 where
     keyfrom : ProdKey
     keyto : ProdKey
 %runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-{-
+
 public export
 Product : Type
 Product = (ProdKey, EQty)
@@ -155,7 +155,7 @@ record Hom3 where
    price_unit:Price
    to:Product
 %runElab derive "Hom3" [Generic, Meta, RecordToJSON,RecordFromJSON]
--}
+
 
 
 --CalcSource : Type
@@ -215,8 +215,8 @@ data Journal : Type where
 
 
 -}
--- <<<<<<< HEAD
-{-
+<<<<<<< HEAD
+
 public export
 data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 %runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
@@ -235,7 +235,7 @@ data BoM32 : Type where
    --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
    Node32 : (qty:TQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
--}
+
 {-
 public export
 record ProdKey2 where
@@ -244,8 +244,6 @@ record ProdKey2 where
     val : Price --keyfrom : ProdKey    
 %runElab derive "ProdKey2" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 -}
-
-
 
 public export
 Product : Type
@@ -343,7 +341,5 @@ namespace OrderEventDo
   ma >> mb = Bind ma (\ _ => mb)
 
 
---=======
--->>>>>>> 67dcb622833a087f3ff812dcb0ea085b31cb1604
-
-
+=======
+>>>>>>> 67dcb622833a087f3ff812dcb0ea085b31cb1604

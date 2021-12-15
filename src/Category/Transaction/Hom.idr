@@ -8,6 +8,7 @@ import Data.List
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
+import Category.Transaction.Types2
 import Data.Ratio
 
 --import Category.PG.Order
