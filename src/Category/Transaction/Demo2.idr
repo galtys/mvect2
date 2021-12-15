@@ -128,7 +128,7 @@ export
 init_self : OrderEvent ()
 init_self = do
      let h11 = MkH11 [("company_shares",100)] [("GBP", (10000))]
-     Put11 Init Self Sale OnHand h11
+     Put11 Init Self OnHand h11
 
 export
 confirm_so : OrderEvent ()
@@ -174,19 +174,19 @@ record Muf where
   
 public export
 LedgerMap  : Type
-LedgerMap = SortedMap (ControlTag, DirectionTag, Ledger, ProdKey) EQty
+LedgerMap = SortedMap (ControlTag, Ledger, ProdKey) EQty
 
 public export
 LedgerH11  : Type
-LedgerH11 = SortedMap (ControlTag, ControlTag, DirectionTag, Ledger) (List Hom11)
+LedgerH11 = SortedMap (ControlTag, ControlTag,  Ledger) (List Hom11)
 
 
 public export
-update_ledger : (ControlTag, DirectionTag, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
+update_ledger : (ControlTag, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
 update_ledger k [] m = m
-update_ledger k@(ct,d,l) ( (pk,eq)::xs) m = ret where
-          key : (ControlTag, DirectionTag, Ledger,ProdKey)
-          key = (ct,d,l,pk)
+update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
+          key : (ControlTag, Ledger,ProdKey)
+          key = (ct,l,pk)
           
           ret : LedgerMap
           ret = case (lookup key m ) of
@@ -216,14 +216,14 @@ interpret (Open fx) = do
              put (so',po,led,lh,(Fx fx)::journal)
       pure ref
       
-interpret (Put11 f t dir ledger h11) = do
+interpret (Put11 f t ledger h11) = do
  
              (so,po,led,lh,journal)<-get
-             let key = (f,t,dir,ledger) 
-                 k1 : (ControlTag, DirectionTag, Ledger)
-                 k1 = (f,dir,ledger)
-                 k2 : (ControlTag, DirectionTag, Ledger)
-                 k2 = (t,dir,ledger)
+             let key = (f,t,ledger) 
+                 k1 : (ControlTag, Ledger)
+                 k1 = (f,ledger)
+                 k2 : (ControlTag, Ledger)
+                 k2 = (t,ledger)
                                   
                  led1' : LedgerMap
                  led1' = update_ledger k1 (from h11) led                 

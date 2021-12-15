@@ -44,7 +44,7 @@ data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
 
 public export
-data ControlTag =  Self | Control Address |Partner Address | Init
+data ControlTag =  Self | Control DirectionTag Address |Partner DirectionTag Address | Init
 %runElab derive "ControlTag" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 
@@ -312,7 +312,7 @@ data OrderEvent : Type -> Type where
      --New : Order FxData -> OrderEvent ()
      --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OrderEvent ()     
      --Put121 : (from:ControlTag)->(to:ControlTag)->DirectionTag->Ledger->Hom121 -> OrderEvent ()
-     Put11 : (from:ControlTag)->(to:ControlTag)->DirectionTag->Ledger->Hom11 -> OrderEvent ()
+     Put11 : (from:ControlTag)->(to:ControlTag)->Ledger->Hom11 -> OrderEvent ()
      
      Open : (fx:FxData) -> OrderEvent FxRef
      Close : (fx:FxData) -> OrderEvent ()
