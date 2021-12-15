@@ -110,7 +110,7 @@ mult_p : EQty -> Product -> Product
 mult_p x (k,q) = (k,x*q)
 
 export
-confirm_po : WhsEvent ()
+confirm_po : OwnerEvent ()
 confirm_po = do
  let date = "2021-10-01"
      h1 = map (mult_p 10) [p1,p2,p3]     
@@ -125,7 +125,7 @@ confirm_po = do
  Pure ()
 
 export
-confirm_so : WhsEvent ()
+confirm_so : OwnerEvent ()
 confirm_so = do
  let date = "2021-11-01"
      h1 = [p1,p2,p3]
@@ -226,11 +226,11 @@ export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Init h121 route) = do
        let h11 = (MkH11 (dx h121) (cx h121))
-       Put11 Init Self OnHand  h11
-       Put11 Init Self Forecast h11
        ref <- NewRoute route
+       Put11 Init Self OnHand  h11 ref
+       Put11 Init Self Forecast h11 ref
        Pure ref
-       
+
 toWhs (Log x) =  Pure ()
 toWhs (Show x) = Pure ()
 toWhs (Pure x) = Pure x
@@ -245,7 +245,7 @@ interpret  (NewRoute route) = do
                  route_ref = sha256 route_cnt
              pure route_ref
 
-interpret (Put11 f t ledger h11) = do 
+interpret (Put11 f t ledger h11 route_ref) = do 
              (so,po,led,lh,journal)<-get
              let key = (f,t,ledger) 
                  kf : (Location, Ledger)
@@ -272,7 +272,7 @@ interpret (Put11 f t ledger h11) = do
                    put (so,po,led2'',lh',journal)
              pure () 
 
-interpret (Put121 f t ledger h121 ) = pure ()
+interpret (Put121 f t ledger h121 route_ref) = pure ()
 {-
 interpret (Close fx) = pure ()
 interpret (Open fx) = do

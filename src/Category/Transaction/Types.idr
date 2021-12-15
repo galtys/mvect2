@@ -328,8 +328,8 @@ namespace WhsEventDo
        --Init : Hom11 -> WhsEvent RouteRef
        NewRoute : Route -> WhsEvent RouteRef
        
-       Put11 : (from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
-       Put121 : (from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
+       Put11 : (from:Location)->(to:Location)->Ledger -> Hom11 -> RouteRef -> WhsEvent ()
+       Put121 : (from:Location)->(to:Location)->Ledger -> Hom121 -> RouteRef ->  WhsEvent ()       
 
        Log : String -> WhsEvent ()
        Show : (Show ty) => ty -> WhsEvent ()
