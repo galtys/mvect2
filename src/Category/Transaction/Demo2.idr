@@ -194,7 +194,12 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
                   Nothing => (update_ledger k xs  (insert key eq m)     )
 
 validateDirection : (from:Location) -> (to:Location) -> Bool
-
+validateDirection Init Self = True
+validateDirection (Partner Purchase x) (Control Purchase y) = True
+validateDirection (Control Purchase y) Self = True
+validateDirection Self (Control Sale y) = True
+validateDirection (Control Sale x) (Partner Sale y) = True
+validateDirection _ _ = False
 
 export
 interpret : OrderEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
@@ -229,9 +234,9 @@ interpret (Put11 f t ledger h11) = do
                  k2 = (t,ledger)
                                   
                  led1' : LedgerMap
-                 led1' = update_ledger k1 (from h11) led                 
+                 led1' = update_ledger k1 ( from h11) led                 
                  led1'' : LedgerMap
-                 led1'' = update_ledger k1 (to h11) led1'
+                 led1'' = update_ledger k1 (invHom1 $ to h11) led1'
                  
                  led2' : LedgerMap
                  led2' = update_ledger k2 (from h11) led1''
