@@ -142,15 +142,6 @@ confirm_so = do
  Pure ()
 
 
-public export
-record Muf where
-  constructor MkMuf 
-  order : SortedMap FxRef FxData --Hom121
-  forecast : SortedMap (Date,Address) Hom121
-  reservation : SortedMap (Date,Address) Hom11
-  actual : SortedMap (Date,Address) Hom11
-  invoice : SortedMap (Date,Address) Hom121
-  
   
 public export
 LedgerMap  : Type
@@ -158,8 +149,30 @@ LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
 
 public export
 LedgerH11  : Type
-LedgerH11 = SortedMap (Location, Location,  Ledger) (List Hom11)
+LedgerH11 = SortedMap (Location, Location) (List JournalEvent)
 
+public export
+LedgerH121  : Type
+LedgerH121 = SortedMap (Location, Location) (List JournalEvent)
+
+export
+RouteMap : Type
+RouteMap = SortedMap (Date,RouteRef,RouteState) Route
+{-
+public export
+record Muf where
+  constructor MkMuf 
+  new : RouteMap
+  progress : RouteMap
+  completed : RouteMap
+-}  
+  {-
+  order : SortedMap FxRef FxData --Hom121
+  forecast : SortedMap (Date,Address) Hom121
+  reservation : SortedMap (Date,Address) Hom11
+  actual : SortedMap (Date,Address) Hom11
+  invoice : SortedMap (Date,Address) Hom121
+  -}
 
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
@@ -207,7 +220,8 @@ initRoute = [Init, Self]
 export
 init_self : OwnerEvent RouteRef
 init_self = do
-     let price : Price
+     let date = "2010-01-15"
+         price : Price
          price = (toEX20 1000)
          
          share : Product
@@ -219,16 +233,16 @@ init_self = do
          
          h121 : Hom121
          h121 = MkH121 h1 h2 (apply2' h2 h1)
-     ref <- Init h121 initRoute
+     ref <- Init date initRoute h121
      Pure ref
 
 export
 toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Init h121 route) = do
+toWhs (Init date route h121) = do
        let h11 = (MkH11 (dx h121) (cx h121))
-       ref <- NewRoute route
-       Put11 Init Self OnHand  h11 ref
-       Put11 Init Self Forecast h11 ref
+       ref <- NewRoute date route
+       Put11 date Init Self OnHand  h11 
+       Put121 date Init Self Forecast h121 
        Pure ref
 
 toWhs (Log x) =  Pure ()
@@ -237,17 +251,22 @@ toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
 
+
      
 export
-interpret : WhsEvent a -> State (Muf,Muf,LedgerMap,LedgerH11,List JournalEvent) a
-interpret  (NewRoute route) = do
+interpret : WhsEvent a -> State (RouteMap,LedgerMap,LedgerH11,LedgerH121) a
+interpret  (NewRoute date route) = do
+             (routes,led,lh11,lh121)<-get
+             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
+                 routes' = insert (date, route_ref,Completed)  route routes
+             put (routes', led,lh11,lh121)
              pure route_ref
 
-interpret (Put11 f t ledger h11 route_ref) = do 
-             (so,po,led,lh,journal)<-get
-             let key = (f,t,ledger) 
+interpret (Put11 date f t ledger h11 ) = do 
+             (routes,led,lh11,lh121)<-get
+             let key = (f,t) 
                  kf : (Location, Ledger)
                  kf = (f,ledger)
                  
@@ -263,16 +282,28 @@ interpret (Put11 f t ledger h11 route_ref) = do
                  led2' = update_ledger kt (invHom1 $ dx h11) led1''
                  led2'' : LedgerMap
                  led2'' = update_ledger kt (cx h11) led2'
-             case (lookup key lh) of
+                 
+             case (lookup key lh11) of
                 Nothing => do
-                   let lh' = insert key [h11] lh
-                   put (so,po,led2'',lh',journal)
+                   let lh' = insert key [Fx11 (date, h11)] lh11
+                   put (routes,led2'',lh', lh121)
                 Just h11_list => do
-                   let lh' = insert key (h11::h11_list) lh
-                   put (so,po,led2'',lh',journal)
+                   let lh' = insert key ((Fx11 (date, h11))::h11_list) lh11
+                   put (routes,led2'',lh', lh121)
              pure () 
 
-interpret (Put121 f t ledger h121 route_ref) = pure ()
+interpret (Put121 date f t ledger h121 ) = do
+        (routes,led,lh11,lh121)<-get
+        let key = (f,t) 
+        case (lookup key lh121) of
+                Nothing => do
+                   let lh' = insert key [Fx121 (date,h121)] lh121
+                   put (routes,led, lh11, lh')
+                Just h_list => do
+                   let lh' = insert key ( (Fx121 (date, h121) )::h_list) lh121
+                   put (routes,led, lh11, lh')
+        
+        
 {-
 interpret (Close fx) = pure ()
 interpret (Open fx) = do

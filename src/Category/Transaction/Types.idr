@@ -307,8 +307,7 @@ record FxData where
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
 
 public export
-data JournalEvent = Fx FxData 
-
+data JournalEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) --FxData 
 %runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
 
 public export
@@ -318,6 +317,8 @@ public export
 Route : Type
 Route = List Location
 
+public export
+data RouteState = New | Progress | Completed
 
 namespace WhsEventDo
   public export
@@ -326,10 +327,10 @@ namespace WhsEventDo
        --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->WhsEvent ()     
        --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> WhsEvent ()
        --Init : Hom11 -> WhsEvent RouteRef
-       NewRoute : Route -> WhsEvent RouteRef
+       NewRoute : Date -> Route -> WhsEvent RouteRef
        
-       Put11 : (from:Location)->(to:Location)->Ledger -> Hom11 -> RouteRef -> WhsEvent ()
-       Put121 : (from:Location)->(to:Location)->Ledger -> Hom121 -> RouteRef ->  WhsEvent ()       
+       Put11 : (date:Date)->(from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
+       Put121 :(date:Date)->(from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
 
        Log : String -> WhsEvent ()
        Show : (Show ty) => ty -> WhsEvent ()
@@ -352,7 +353,7 @@ namespace OwnerEventDo
        --Move : (date:Date)->(h:Hom121)->(from:Location)->(to:Location)->OwnerEvent ()     
        --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> OwnerEvent ()
        --Init : Hom11 -> OwnerEvent RouteRef
-       Init : Hom121 -> Route -> OwnerEvent RouteRef
+       Init : Date -> Route ->  Hom121 -> OwnerEvent RouteRef
        
        --Open : (fx:FxData) -> OwnerEvent FxRef
        --Close : (fx:FxData) -> OwnerEvent ()
