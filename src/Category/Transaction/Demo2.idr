@@ -268,8 +268,37 @@ interpret  (NewRoute date route) = do
                  routes' = insert (date, route_ref,Completed)  route routes
              put (routes', led,lh11,lh121,jm)
              pure route_ref
-interpret (Put f t ledger je) = pure ()
-
+interpret (Put f t ledger je) = do
+             (routes,led,lh11,lh121,jm)<-get
+             
+             let key = (f,t, ledger)
+                 kf : (Location, Ledger)
+                 kf = (f,ledger)
+                 
+                 kt : (Location, Ledger)
+                 kt = (t,ledger)
+             
+                 muf11 : Hom11 -> LedgerMap
+                 muf11 h11 = update_ledger kf ( dx h11) led
+                 
+                 
+                 muf : JournalEvent -> LedgerMap
+                 muf (Fx121 (d,h121) ) = muf11 (MkH11 (dx h121) (cx h121) )
+                 muf (Fx11 (d,h11)) = muf11 h11
+                 
+                 led' : LedgerMap
+                 led' = muf je
+                
+             case (lookup key jm) of
+                Nothing => do
+                   let jm' = insert key [je] jm
+                   put (routes,led',lh11, lh121,jm')
+                   
+                Just je_list => do
+                   let jm' = insert key (je::je_list) jm
+                   put (routes,led',lh11, lh121, jm')
+             pure ()
+             
 interpret (Put11 date f t ledger h11 ) = do 
              (routes,led,lh11,lh121,jm)<-get
              let key = (f,t) 
@@ -280,7 +309,8 @@ interpret (Put11 date f t ledger h11 ) = do
                  kt = (t,ledger)
                                   
                  led1' : LedgerMap
-                 led1' = update_ledger kf ( dx h11) led                 
+                 led1' = update_ledger kf ( dx h11) led
+                 
                  led1'' : LedgerMap
                  led1'' = update_ledger kf (invHom1 $ cx h11) led1'
                  
