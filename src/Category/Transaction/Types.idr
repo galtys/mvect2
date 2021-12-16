@@ -328,7 +328,7 @@ namespace WhsEventDo
        --Put121 : (from:Location)->(to:Location)->DirectionTag->Ledger->Hom121 -> WhsEvent ()
        --Init : Hom11 -> WhsEvent RouteRef
        NewRoute : Date -> Route -> WhsEvent RouteRef
-       
+       Put   : (from:Location)->(to:Location)->Ledger -> JournalEvent -> WhsEvent ()
        Put11 : (date:Date)->(from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
        Put121 :(date:Date)->(from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
 

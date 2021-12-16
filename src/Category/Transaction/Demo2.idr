@@ -142,7 +142,7 @@ confirm_so = do
  Pure ()
 
 
-  
+
 public export
 LedgerMap  : Type
 LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
@@ -154,6 +154,11 @@ LedgerH11 = SortedMap (Location, Location) (List JournalEvent)
 public export
 LedgerH121  : Type
 LedgerH121 = SortedMap (Location, Location) (List JournalEvent)
+
+public export
+JournalMap  : Type
+JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+
 
 export
 RouteMap : Type
@@ -254,18 +259,19 @@ toWhs (Bind x f) = do res <- toWhs x
 
      
 export
-interpret : WhsEvent a -> State (RouteMap,LedgerMap,LedgerH11,LedgerH121) a
+interpret : WhsEvent a -> State (RouteMap,LedgerMap,LedgerH11,LedgerH121,JournalMap) a
 interpret  (NewRoute date route) = do
-             (routes,led,lh11,lh121)<-get
+             (routes,led,lh11,lh121,jm)<-get
              
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  routes' = insert (date, route_ref,Completed)  route routes
-             put (routes', led,lh11,lh121)
+             put (routes', led,lh11,lh121,jm)
              pure route_ref
+interpret (Put f t ledger je) = pure ()
 
 interpret (Put11 date f t ledger h11 ) = do 
-             (routes,led,lh11,lh121)<-get
+             (routes,led,lh11,lh121,jm)<-get
              let key = (f,t) 
                  kf : (Location, Ledger)
                  kf = (f,ledger)
@@ -286,22 +292,22 @@ interpret (Put11 date f t ledger h11 ) = do
              case (lookup key lh11) of
                 Nothing => do
                    let lh' = insert key [Fx11 (date, h11)] lh11
-                   put (routes,led2'',lh', lh121)
+                   put (routes,led2'',lh', lh121,jm)
                 Just h11_list => do
                    let lh' = insert key ((Fx11 (date, h11))::h11_list) lh11
-                   put (routes,led2'',lh', lh121)
+                   put (routes,led2'',lh', lh121,jm)
              pure () 
 
 interpret (Put121 date f t ledger h121 ) = do
-        (routes,led,lh11,lh121)<-get
+        (routes,led,lh11,lh121,jm)<-get
         let key = (f,t) 
         case (lookup key lh121) of
                 Nothing => do
                    let lh' = insert key [Fx121 (date,h121)] lh121
-                   put (routes,led, lh11, lh')
+                   put (routes,led, lh11, lh',jm)
                 Just h_list => do
                    let lh' = insert key ( (Fx121 (date, h121) )::h_list) lh121
-                   put (routes,led, lh11, lh')
+                   put (routes,led, lh11, lh',jm)
         
         
 {-
