@@ -146,7 +146,7 @@ confirm_so = do
 public export
 LedgerMap  : Type
 LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
-
+{-
 public export
 LedgerH11  : Type
 LedgerH11 = SortedMap (Location, Location) (List JournalEvent)
@@ -154,7 +154,7 @@ LedgerH11 = SortedMap (Location, Location) (List JournalEvent)
 public export
 LedgerH121  : Type
 LedgerH121 = SortedMap (Location, Location) (List JournalEvent)
-
+-}
 public export
 JournalMap  : Type
 JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
@@ -263,17 +263,17 @@ toWhs (Bind x f) = do res <- toWhs x
 
      
 export
-interpret : WhsEvent a -> State (RouteMap,LedgerMap,LedgerH11,LedgerH121,JournalMap) a
+interpret : WhsEvent a -> State (RouteMap,LedgerMap,JournalMap) a
 interpret  (NewRoute date route) = do
-             (routes,led_map,lh11,lh121,jm)<-get
+             (routes,led_map,jm)<-get
              
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  routes' = insert (date, route_ref,Completed)  route routes
-             put (routes', led_map,lh11,lh121,jm)
+             put (routes', led_map,jm)
              pure route_ref
 interpret (Put f t ledger je) = do
-             (routes,led_map,lh11,lh121,jm)<-get
+             (routes,led_map,jm)<-get
              
              let key = (f,t, ledger)
                  kf : (Location, Ledger)
@@ -303,11 +303,11 @@ interpret (Put f t ledger je) = do
              case (lookup key jm) of
                 Nothing => do
                    let jm' = insert key [je] jm
-                   put (routes,led',lh11, lh121,jm')
+                   put (routes,led',jm')
                    
                 Just je_list => do
                    let jm' = insert key (je::je_list) jm
-                   put (routes,led',lh11, lh121, jm')
+                   put (routes,led',jm')
              pure ()
 {-             
 interpret (Put11 date f t ledger h11 ) = do 
