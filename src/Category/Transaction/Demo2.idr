@@ -244,10 +244,14 @@ init_self = do
 export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Init date route h121) = do
-       let h11 = (MkH11 (dx h121) (cx h121))
+       let h11 = fromH121 h121
        ref <- NewRoute date route
-       Put11 date Init Self OnHand  h11 
-       Put121 date Init Self Forecast h121 
+       
+       --Put11 date Init Self OnHand  h11 
+       --Put121 date Init Self Forecast h121 
+       Put Init Self OnHand (Fx11 (date, h11))
+       Put Init Self Forecast (Fx121 (date, h121))
+              
        Pure ref
 
 toWhs (Log x) =  Pure ()
@@ -261,15 +265,15 @@ toWhs (Bind x f) = do res <- toWhs x
 export
 interpret : WhsEvent a -> State (RouteMap,LedgerMap,LedgerH11,LedgerH121,JournalMap) a
 interpret  (NewRoute date route) = do
-             (routes,led,lh11,lh121,jm)<-get
+             (routes,led_map,lh11,lh121,jm)<-get
              
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  routes' = insert (date, route_ref,Completed)  route routes
-             put (routes', led,lh11,lh121,jm)
+             put (routes', led_map,lh11,lh121,jm)
              pure route_ref
 interpret (Put f t ledger je) = do
-             (routes,led,lh11,lh121,jm)<-get
+             (routes,led_map,lh11,lh121,jm)<-get
              
              let key = (f,t, ledger)
                  kf : (Location, Ledger)
@@ -278,16 +282,23 @@ interpret (Put f t ledger je) = do
                  kt : (Location, Ledger)
                  kt = (t,ledger)
              
-                 muf11 : Hom11 -> LedgerMap
-                 muf11 h11 = update_ledger kf ( dx h11) led
+                 Hom11_2_LM : Hom11 -> LedgerMap
+                 Hom11_2_LM h11 = led2'' where
+                    led1' : LedgerMap
+                    led1' = update_ledger kf ( dx h11) led_map
+                    led1'' : LedgerMap
+                    led1'' = update_ledger kf (invHom1 $ cx h11) led1'
+                    led2' : LedgerMap
+                    led2' = update_ledger kt (invHom1 $ dx h11) led1''
+                    led2'' : LedgerMap
+                    led2'' = update_ledger kt (cx h11) led2'
                  
-                 
-                 muf : JournalEvent -> LedgerMap
-                 muf (Fx121 (d,h121) ) = muf11 (MkH11 (dx h121) (cx h121) )
-                 muf (Fx11 (d,h11)) = muf11 h11
+                 je2lm : JournalEvent -> LedgerMap
+                 je2lm (Fx121 (d,h121) ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
+                 je2lm (Fx11  (d,h11)) = Hom11_2_LM h11
                  
                  led' : LedgerMap
-                 led' = muf je
+                 led' = je2lm je
                 
              case (lookup key jm) of
                 Nothing => do
@@ -298,7 +309,7 @@ interpret (Put f t ledger je) = do
                    let jm' = insert key (je::je_list) jm
                    put (routes,led',lh11, lh121, jm')
              pure ()
-             
+{-             
 interpret (Put11 date f t ledger h11 ) = do 
              (routes,led,lh11,lh121,jm)<-get
              let key = (f,t) 
@@ -338,7 +349,7 @@ interpret (Put121 date f t ledger h121 ) = do
                 Just h_list => do
                    let lh' = insert key ( (Fx121 (date, h121) )::h_list) lh121
                    put (routes,led, lh11, lh',jm)
-        
+  -}      
         
 {-
 interpret (Close fx) = pure ()

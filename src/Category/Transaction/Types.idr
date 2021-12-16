@@ -275,6 +275,11 @@ record Hom11 where
    cx:Hom1
 %runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
+
+export
+fromH121 : Hom121 -> Hom11
+fromH121 h121 = (MkH11 (dx h121) (cx h121))
+
 {-
 public export
 record Location where
@@ -329,8 +334,8 @@ namespace WhsEventDo
        --Init : Hom11 -> WhsEvent RouteRef
        NewRoute : Date -> Route -> WhsEvent RouteRef
        Put   : (from:Location)->(to:Location)->Ledger -> JournalEvent -> WhsEvent ()
-       Put11 : (date:Date)->(from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
-       Put121 :(date:Date)->(from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
+       --Put11 : (date:Date)->(from:Location)->(to:Location)->Ledger -> Hom11 -> WhsEvent ()
+       --Put121 :(date:Date)->(from:Location)->(to:Location)->Ledger -> Hom121 -> WhsEvent ()       
 
        Log : String -> WhsEvent ()
        Show : (Show ty) => ty -> WhsEvent ()
