@@ -22,7 +22,7 @@ import Odoo.PG.Config
 
 %language ElabReflection
 
-
+{-
 -- Order
 OT : String
 OT = "sale_order"
@@ -377,3 +377,4 @@ record LineExt where
 
 %runElab derive "LineExt" [Generic, Meta, Show, Eq]
 --%runElab derive "LineExt" [Generic, Meta, Show, Eq,RecordToJSON,RecordFromJSON]
+-}

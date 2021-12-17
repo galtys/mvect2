@@ -9,6 +9,7 @@ import Data.SortedMap
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
+import Category.Transaction.Types2
 import Category.Transaction.Hom
 import Category.Transaction.Journal
 import Category.Transaction.Types
@@ -46,8 +47,10 @@ import Core.Context
 import System.FFI
 import Libc.Time
 --import System
+import Generics.Derive
 
 %ambiguity_depth 10
+%language ElabReflection
 
 json_result : String
 json_result = "{\"result\": 332}"
@@ -139,9 +142,14 @@ child_map_RBoM [] = empty
 child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
   -}
   
-toChildMap : List BrowseBoM.RecordModel -> SortedMap Bits32 (List BrowseBoM.RecordModel)
-toChildMap [] = empty
-toChildMap ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert product_id bom_lines (toChildMap xs)
+toBoM_map : List BrowseBoM.RecordModel -> SortedMap Bits32 (List BrowseBoM.RecordModel)
+toBoM_map [] = empty
+toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert product_id bom_lines (toBoM_map xs)
+
+toProduct_map : List BrowseProduct.RecordModel -> SortedMap Bits32 BrowseProduct.RecordModel
+toProduct_map [] = empty
+toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert pk p (toProduct_map xs)
+--toProduct_map [] = empty
 
 rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,Bits32)
 rbom_to_list Nothing = []
@@ -154,7 +162,14 @@ map_to_BoM32 (muf@(qty,p_id)::xs) m =
       bom32_ch = map_to_BoM32 ch m
       q = qty
       node = Node32 ( q) p_id bom32_ch in [node]++(map_to_BoM32 xs m)
-    
+{-
+public export
+data BoMProduct : Type where  
+   NodeProduct : (qty:EQty) -> (ProdKey) ->(components:List BoMProduct) -> BoMProduct
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
+  -}  
+        
+                
 pjb_test : IO ()
 pjb_test = do
   so <- BrowseOrder.read_ids [21833] (True)
@@ -171,7 +186,7 @@ pjb_test = do
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
   let qp = [(1,3303)]
-      bom_map = toChildMap boms
+      bom_map = toBoM_map boms
       m32x = map_to_BoM32 qp bom_map
       
   --print_BoM32 3303 m32x

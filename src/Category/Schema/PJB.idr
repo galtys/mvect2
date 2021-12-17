@@ -52,7 +52,7 @@ PT = MkTN "PT" "product_template" "ProductTemplate" False
 
 export
 PP : TableName
-PP = MkTN "PP" "product_product" "ProductProduct" False
+PP = MkTN "PP" "product_product" "Product" False
 
 
 export

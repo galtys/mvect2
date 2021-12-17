@@ -8,6 +8,7 @@ import Category.Transaction.Hom
 import Category.Transaction.Journal
 import Category.Transaction.Demo
 import Category.Transaction.Types
+import Category.Transaction.Types2
 import Data.Ratio
 --import Data.Zippable
 import JSON

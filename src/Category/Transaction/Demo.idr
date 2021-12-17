@@ -63,7 +63,7 @@ bInfo : TypeInfo
 bInfo = getInfo "Country"
 
 
-
+{-
 
 
 
@@ -84,7 +84,7 @@ public export
 pricelist : List (ProdKey,TQty)
 pricelist = (zip skus prices)
 
-{-
+
 public export
 Pricelist : Hom2
 Pricelist xs = map (pricelist_f1 pricelist) xs
@@ -92,7 +92,7 @@ Pricelist xs = map (pricelist_f1 pricelist) xs
 public export
 pricelist_journal : Journal
 pricelist_journal = jref (JDate 0 (JDoc "plist") PriceList)
--}
+
 
 
 --public export 
@@ -116,7 +116,7 @@ th11' = [ ("p1",3), ("p1", 6) ]
 public export
 th12 : Hom1
 th12 = [ ("GBP",38) ]
-
+-}
 {-
 public export
 th3 : Hom1

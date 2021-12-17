@@ -21,7 +21,7 @@ namespace PrimProductTemplate
           list_price:(Maybe Price)
       %runElab derive "PrimProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace PrimProductProduct
+namespace PrimProduct
 
       public export
       record RecordModel where
@@ -32,7 +32,7 @@ namespace PrimProductProduct
           retail:(Maybe Price)
           contract:(Maybe Price)
           default_code:String
-      %runElab derive "PrimProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "PrimProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace PrimBoM
 
@@ -224,7 +224,7 @@ namespace BrowseProductTemplate
           list_price:(Maybe Price)
       %runElab derive "BrowseProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
-namespace BrowseProductProduct
+namespace BrowseProduct
       public export
       record RecordModel where
           constructor MkRecordModel
@@ -234,7 +234,7 @@ namespace BrowseProductProduct
           retail:(Maybe Price)
           contract:(Maybe Price)
           default_code:String
-      %runElab derive "BrowseProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+      %runElab derive "BrowseProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace BrowseBoM
       public export
