@@ -893,7 +893,7 @@ namespace BrowseProductTemplate
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseProductTemplate.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseProductTemplate.read_records_c c op
+          ret <- BrowseProductTemplate.read_records_c c (op && BrowseProductTemplate.domain)
           finish c
           pure ret
 
@@ -966,7 +966,7 @@ namespace BrowseProductProduct
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseProductProduct.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseProductProduct.read_records_c c op
+          ret <- BrowseProductProduct.read_records_c c (op && BrowseProductProduct.domain)
           finish c
           pure ret
 
@@ -1014,7 +1014,7 @@ namespace BrowseProductProduct
 
 namespace BrowseBoM
       domain : Op
-      domain = (True)
+      domain = (IsNull BomIdBOM)
       isM2M_tab : Bool
       isM2M_tab = False
       export
@@ -1040,7 +1040,7 @@ namespace BrowseBoM
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseBoM.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseBoM.read_records_c c op
+          ret <- BrowseBoM.read_records_c c (op && BrowseBoM.domain)
           finish c
           pure ret
 
@@ -1112,7 +1112,7 @@ namespace BrowseResPartner
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseResPartner.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseResPartner.read_records_c c op
+          ret <- BrowseResPartner.read_records_c c (op && BrowseResPartner.domain)
           finish c
           pure ret
 
@@ -1183,7 +1183,7 @@ namespace BrowseM2M_OrderTax
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseM2M_OrderTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseM2M_OrderTax.read_records_c c op
+          ret <- BrowseM2M_OrderTax.read_records_c c (op && BrowseM2M_OrderTax.domain)
           finish c
           pure ret
 
@@ -1226,7 +1226,7 @@ namespace BrowseOrderTax
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrderTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseOrderTax.read_records_c c op
+          ret <- BrowseOrderTax.read_records_c c (op && BrowseOrderTax.domain)
           finish c
           pure ret
 
@@ -1302,7 +1302,7 @@ namespace BrowseOrderLine
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrderLine.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseOrderLine.read_records_c c op
+          ret <- BrowseOrderLine.read_records_c c (op && BrowseOrderLine.domain)
           finish c
           pure ret
 
@@ -1374,7 +1374,7 @@ namespace BrowseOrder
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseOrder.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseOrder.read_records_c c op
+          ret <- BrowseOrder.read_records_c c (op && BrowseOrder.domain)
           finish c
           pure ret
 
@@ -1445,7 +1445,7 @@ namespace BrowseAccountVoucher
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountVoucher.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseAccountVoucher.read_records_c c op
+          ret <- BrowseAccountVoucher.read_records_c c (op && BrowseAccountVoucher.domain)
           finish c
           pure ret
 
@@ -1516,7 +1516,7 @@ namespace BrowseStockMove
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseStockMove.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseStockMove.read_records_c c op
+          ret <- BrowseStockMove.read_records_c c (op && BrowseStockMove.domain)
           finish c
           pure ret
 
@@ -1588,7 +1588,7 @@ namespace BrowseStockPicking
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseStockPicking.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseStockPicking.read_records_c c op
+          ret <- BrowseStockPicking.read_records_c c (op && BrowseStockPicking.domain)
           finish c
           pure ret
 
@@ -1659,7 +1659,7 @@ namespace BrowseM2M_InvoiceTax
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseM2M_InvoiceTax.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseM2M_InvoiceTax.read_records_c c op
+          ret <- BrowseM2M_InvoiceTax.read_records_c c (op && BrowseM2M_InvoiceTax.domain)
           finish c
           pure ret
 
@@ -1707,7 +1707,7 @@ namespace BrowseAccountInvoiceLine
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountInvoiceLine.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseAccountInvoiceLine.read_records_c c op
+          ret <- BrowseAccountInvoiceLine.read_records_c c (op && BrowseAccountInvoiceLine.domain)
           finish c
           pure ret
 
@@ -1779,7 +1779,7 @@ namespace BrowseAccountInvoice
       read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List BrowseAccountInvoice.RecordModel )
       read_records op = do
           c <- connect DB_URI
-          ret <- BrowseAccountInvoice.read_records_c c op
+          ret <- BrowseAccountInvoice.read_records_c c (op && BrowseAccountInvoice.domain)
           finish c
           pure ret
 

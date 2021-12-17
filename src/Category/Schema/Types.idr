@@ -100,7 +100,7 @@ namespace OE
      M2O : (rel: TableName) -> (db_field:Field) ->(table:TableName) -> Schema
      O2M : (rec_field:String) -> (rel_f:Field) -> (tn: TableName) -> Schema
      M2M : (rec_field:String) -> (f1:OE.Field) -> (f2:OE.Field) -> (m2m_table:TableName) -> (tn: TableName) -> Schema
-     Model : (table:TableName) -> (fields:List Schema) -> Schema
+     Model : (table:TableName) -> (fields:List Schema) -> (domain:String) -> Schema
      Sch : (name:String) -> (models: List Schema) -> Schema
      
    %runElab derive "Schema" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]            

@@ -66,7 +66,7 @@ ListPrice : Schema
 ListPrice = Prim (MkF Nullable I_Price "list_price" DoublePrecision "(Just . toINC20)" "cast" PT)
 export
 ProductTemplate : Schema
-ProductTemplate = Model PT [Id_PT,NamePT,ListPrice]
+ProductTemplate = Model PT [Id_PT,NamePT,ListPrice] "(True)"
 
 --nullable Price "list_price" DoublePrecision (Just . toINC20) cast PT
 export
@@ -92,7 +92,7 @@ SKU: Schema
 SKU = Prim (MkF NotNull I_String "default_code" Text "(Just . cast)" "cast" PP)
 export
 ProductProduct : Schema
-ProductProduct = Model PP [Id_PP,ProductTmplID,TradePrice,RetailPrice,ContractPrice,SKU]
+ProductProduct = Model PP [Id_PP,ProductTmplID,TradePrice,RetailPrice,ContractPrice,SKU] "(True)"
 export
 Id_BoM : Schema
 Id_BoM = Pk "Id_BoM" "id" BoMT
@@ -117,7 +117,7 @@ BoMLines : Schema
 BoMLines = O2M "bom_lines" BoMID_F BoMT
 export
 BoM : Schema
-BoM = Model BoMT [Id_BoM,ProductQtyBoM,BoMID,BoMLines, ProductIDBoM]
+BoM = Model BoMT [Id_BoM,ProductQtyBoM,BoMID,BoMLines, ProductIDBoM] "(IsNull BomIdBOM)"
 
 
 export
@@ -154,10 +154,10 @@ DiscountILT : Schema
 DiscountILT = Prim (MkF Nullable I_EQty "discount" DoublePrecision "(Just . percent)" "cast" ILT)
 export
 InvoiceLine : Schema
-InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt,DiscountILT]
+InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt,DiscountILT] "(True)"
 export
 InvoiceTaxM2M : Schema
-InvoiceTaxM2M = Model M2M_InvoiceTax [ Prim F1_ilt, Prim F2_ilt]
+InvoiceTaxM2M = Model M2M_InvoiceTax [ Prim F1_ilt, Prim F2_ilt] "(True)"
 
 export
 Id_IT : Schema
@@ -203,7 +203,7 @@ InvoiceLines : Schema
 InvoiceLines = O2M "invoice_line" InvoiceIDF ILT
 export
 Invoice : Schema
-Invoice = Model IT [Id_IT,OriginIT,DateDue,NumberIT,AccountIDIT,PartnerIDIT,JournalIDIT,AmountTaxIT,StateIT,TypeIT,DateInvoice,AmountUntaxedIT,AmountTotalIT,InvoiceLines]
+Invoice = Model IT [Id_IT,OriginIT,DateDue,NumberIT,AccountIDIT,PartnerIDIT,JournalIDIT,AmountTaxIT,StateIT,TypeIT,DateInvoice,AmountUntaxedIT,AmountTotalIT,InvoiceLines] "(True)"
 
 
 ---------------------
@@ -239,7 +239,7 @@ StateSmt : Schema
 StateSmt = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" SMT)
 export
 StockMove : Schema
-StockMove = Model SMT [Id_Smt,OriginSmt,PriceUnitSmt,ProductQty,ProductIDSmt,LocationIDSmt,LocationDestIDSmt,PickingIDSmt,StateSmt]
+StockMove = Model SMT [Id_Smt,OriginSmt,PriceUnitSmt,ProductQty,ProductIDSmt,LocationIDSmt,LocationDestIDSmt,PickingIDSmt,StateSmt] "(True)"
 
 export
 Id_Spt : Schema
@@ -270,7 +270,7 @@ PickingMoves : Schema
 PickingMoves = O2M "move_ids" PickingIDSmtF SMT
 export
 StockPicking : Schema
-StockPicking = Model SPT [Id_Spt,OriginSpt,BackorderID,DateDone,PartnerIDSpt,MinDate,NameSpt,StateSpt,PickingMoves]
+StockPicking = Model SPT [Id_Spt,OriginSpt,BackorderID,DateDone,PartnerIDSpt,MinDate,NameSpt,StateSpt,PickingMoves] "(True)"
 
 
 
@@ -293,7 +293,7 @@ acv_cols : List Schema
 acv_cols = [Id_Acvt, NumberAcvt, PartnerIDAC,JournalID,AmountACVT]
 export
 AccountVoucher : Schema
-AccountVoucher = Model ACVT acv_cols
+AccountVoucher = Model ACVT acv_cols "(True)"
 
 
 export
@@ -351,7 +351,7 @@ rpt_cols : List Schema
 rpt_cols = [Id_Rpt,NameRpt,UseParentAddress,ActiveRpt,Street,ContractRpt,City,Zip,CountryID,ParentID,ChildContacts,Email,Street2]
 export
 ResPartner : Schema
-ResPartner = Model RPT rpt_cols
+ResPartner = Model RPT rpt_cols "(True)"
 
 ----- Odoo/OpenERP Tax Code 
 export
@@ -379,7 +379,7 @@ tax_cols = [Id_Tax,NameTax,DescriptionTax,AmountT,TypeTax,PriceInclude]
 
 export
 OdooTax : Schema
-OdooTax = Model OdooTaxTable tax_cols
+OdooTax = Model OdooTaxTable tax_cols "(True)"
 
 -- Order Line
 
@@ -424,10 +424,10 @@ order_line_cols = [Id_OLT,PriceUnit,ProductUomQty,Discount,DeliveryLine,PrimOrde
 
 export
 OrderLineCols : Schema
-OrderLineCols = Model OLT order_line_cols
+OrderLineCols = Model OLT order_line_cols "(True)"
 export
 OdooTaxM2M : Schema
-OdooTaxM2M = Model M2M_SaleTax [ Prim F1, Prim F2]
+OdooTaxM2M = Model M2M_SaleTax [ Prim F1, Prim F2] "(True)"
 
 -- Order 
 export
@@ -521,7 +521,7 @@ so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,Partne
 
 export
 SaleOrder : Schema
-SaleOrder = Model OT so_cols
+SaleOrder = Model OT so_cols "(True)"
 
 -- Schema
 

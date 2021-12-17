@@ -66,7 +66,7 @@ getPrimFields (M2O rel db_field table) = [Just (db_field)]
 
 getPrimFields (O2M rec_field rel_f tn) = []
 getPrimFields (M2M rec_field f1 f2 m2m_table tn) =           []
-getPrimFields (Model table fields) = concat (map getPrimFields fields)
+getPrimFields (Model table fields domain) = concat (map getPrimFields fields)
 getPrimFields (Sch name models) = []
 
 export
@@ -77,7 +77,7 @@ getRelRecFields (M2O rel db_field table) = [(id2pk (name db_field))]
 
 getRelRecFields (O2M rec_field rel_f tn) = [(id2pk rec_field)]
 getRelRecFields (M2M rec_field f1 f2 m2m_table tn)  = [(id2pk rec_field)]
-getRelRecFields (Model table fields) = concat (map getRelRecFields fields)
+getRelRecFields (Model table fields domain) = concat (map getRelRecFields fields)
 getRelRecFields (Sch name models) = []
 
 isO2M : Schema -> Bool
@@ -86,7 +86,7 @@ isO2M (Prim prim) = False
 isO2M (M2O rel db_field table) = False
 isO2M (O2M rec_field rel_f tn) = True
 isO2M (M2M rec_field f1 f2 m2m_table tn)= False
-isO2M (Model table fields) = False
+isO2M (Model table fields domain) = False
 isO2M (Sch name models) = False
 
 isM2M : Schema -> Bool
@@ -95,7 +95,7 @@ isM2M (Prim prim) = False
 isM2M (M2O rel db_field table) = False
 isM2M (O2M rec_field rel_f tn) = False
 isM2M (M2M rec_field f1 f2 m2m_table tn)= True
-isM2M (Model table fields) = False
+isM2M (Model table fields domain) = False
 isM2M (Sch name models) = False
 
 isM2O : Schema -> Bool
@@ -104,7 +104,7 @@ isM2O (Prim prim) = False
 isM2O (M2O rel db_field table) = True
 isM2O (O2M rec_field rel_f tn) = False
 isM2O (M2M rec_field f1 f2 m2m_table tn)= False
-isM2O (Model table fields) = False
+isM2O (Model table fields domain) = False
 isM2O (Sch name models) = False
 
 model2Fields : List Schema -> List Field
@@ -114,7 +114,7 @@ model2Fields ((Prim prim)::xs) = [prim]++(model2Fields xs)
 model2Fields ((M2O rel db_field table)::xs) = [(db_field)]++(model2Fields xs)
 model2Fields ((O2M rec_field rel_f tn)::xs) = []
 model2Fields ((M2M rec_field f1 f2 m2m_table tn)::xs) = []
-model2Fields ((Model table fields)::xs) = []
+model2Fields ((Model table fields domain)::xs) = []
 model2Fields ((Sch name models)::xs) = []
 
 db_field2Ref : String -> String
@@ -152,7 +152,7 @@ genSchemaTree p (Prim prim) = []
 genSchemaTree p (M2O rel db_field table)= [(p, Tm2o, (name db_field), dbtable rel) ]
 genSchemaTree p (O2M rec_field rel_f tn)= [(p, To2m, rec_field,dbtable $table rel_f) ]
 genSchemaTree p (M2M rec_field f1 f2 m2m_table tn)= [(p, Tm2m, rec_field,dbtable $table f2) ]
-genSchemaTree p (Model table fields) = concat $ map (genSchemaTree (dbtable table) ) fields
+genSchemaTree p (Model table fields domain) = concat $ map (genSchemaTree (dbtable table) ) fields
 genSchemaTree p (Sch name xs) = concat $ map (genSchemaTree p) xs
 
 public export
@@ -166,7 +166,7 @@ showPrimRecDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{
    f = db_field 
 showPrimRecDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
 showPrimRecDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
-showPrimRecDef mod@(Model table fields) = Def [Sep,ns,Sep,rec,elabRec] where --read_rec_c,Sep,read_rec,main_read
+showPrimRecDef mod@(Model table fields domain) = Def [Sep,ns,Sep,rec,elabRec] where --read_rec_c,Sep,read_rec,main_read
    fs : List String
    fs = getFieldRefs (getPrimFields mod)
    cols : String
@@ -191,7 +191,7 @@ showPrimDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:\#{col
    f = db_field 
 showPrimDef (O2M rec_field rel_f tn) = Line 4 "--O2M"
 showPrimDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 "--M2M"
-showPrimDef mod@(Model table fields) = Def [ns,Sep,primTab,Sep,
+showPrimDef mod@(Model table fields domain) = Def [ns,Sep,primTab,Sep,
                                             np2Rec,
                                             read_rec_c,Sep,read_rec,main_read] where
    fs : List String
@@ -261,7 +261,7 @@ showRelDefRec (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List
    f = db_field 
 showRelDefRec (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{BrowseRecRef tn}"#
 showRelDefRec (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
-showRelDefRec mod@(Model table fields) = Def [Sep,ns,rec,elabRec] where
+showRelDefRec mod@(Model table fields domain) = Def [Sep,ns,rec,elabRec] where
    o2m_fields : List Schema
    o2m_fields = (filter isO2M fields)
    m2m_fields : List Schema
@@ -292,7 +292,7 @@ showRelDef (M2O rel db_field table) = Line 4 #"\#{id2pk (name db_field)}:List \#
    f = db_field 
 showRelDef (O2M rec_field rel_f tn) = Line 4 #"\#{id2pk rec_field}:List \#{BrowseRecRef tn}"#
 showRelDef (M2M rec_field f1 f2 m2m_table tn) = Line 4 #"\#{id2pk rec_field}:List \#{primRecRef tn}"#
-showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_rec,main_read,
+showRelDef mod@(Model table fields domain) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_rec,main_read,
                                                              ret_ids] where
    o2m_fields : List Schema
    o2m_fields = (filter isO2M fields)
@@ -308,7 +308,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    ns : SDoc
    ns = Def [Line 0 #"namespace \#{BrowseModelRef table}"#,
               Line 2 "domain : Op",
-              Line 2 "domain = (True)",
+              Line 2 #"domain = \#{domain}"#,
               Line 2  "isM2M_tab : Bool",
               Line 2 #"isM2M_tab = \#{show isM2M_tab}"#]
    rec : SDoc
@@ -324,7 +324,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    rel_relRef ((M2O rel db_field x) :: xs) = [(name db_field,rel, db_field)]++(rel_relRef xs)
    rel_relRef ((O2M rec_field rel_f tn) :: xs) = [(rec_field,tn, rel_f)]++(rel_relRef xs)
    rel_relRef ((M2M rec_field f1 f2 m2m_table tn) :: xs) = []
-   rel_relRef ((Model x ys) :: xs) = []
+   rel_relRef ((Model x ys domain) :: xs) = []
    rel_relRef ((Sch name models) :: xs) = []
    
    rel_rec_names : String
@@ -353,7 +353,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
    rel_relRefM2M ((M2O rel db_field x) :: xs) = []++(rel_relRefM2M xs)   
    rel_relRefM2M ((O2M rec_field rel_f tn) :: xs) = []++(rel_relRefM2M xs)
    rel_relRefM2M ((M2M rec_field f1 f2 m2m_table rel) :: xs) = [ (rec_field,rel,m2m_table,f1,f2)]++(rel_relRefM2M xs)
-   rel_relRefM2M ((Model x ys) :: xs) = []
+   rel_relRefM2M ((Model x ys domain) :: xs) = []
    rel_relRefM2M ((Sch name models) :: xs) = []
       
    read_m2m : (rec_field:String) -> TableName -> TableName -> Field -> Field -> SDoc
@@ -404,7 +404,7 @@ showRelDef mod@(Model table fields) = Def [Sep,ns,read_rec_c,add_muf,ret_x,read_
                    Line 2 #"read_records : HasIO io => MonadError SQLError io => (op:Op)->io (List \#{BrowseRecRef table} )"#,
                    Line 2  "read_records op = do",
                    Line 4     "c <- connect DB_URI",
-                   Line 4     #"ret <- \#{BrowseModelRef table}.read_records_c c op"#,
+                   Line 4     #"ret <- \#{BrowseModelRef table}.read_records_c c (op && \#{BrowseModelRef table}.domain)"#,
                    Line 4     "finish c",                   
                    Line 4     "pure ret"]
    main_read : SDoc
@@ -476,8 +476,8 @@ showColumnDef (Prim prim) = toColumnSDoc $ prim
 showColumnDef (M2O rel db_field table) = toColumnSDoc db_field 
 showColumnDef (O2M rec_field rel_f tn) = Line 0 "--O2M"
 showColumnDef (M2M rec_field f1 f2 m2m_table tn) = Line 0 "--M2M"
-showColumnDef (Model tn []) = Def [] 
-showColumnDef (Model tn xs) = Def ([Sep]++(map showColumnDef xs))
+showColumnDef (Model tn [] domain) = Def [] 
+showColumnDef (Model tn xs domain) = Def ([Sep]++(map showColumnDef xs))
 showColumnDef (Sch n []) = Def []
 showColumnDef (Sch n xs) = Def [modules] where       
     modules:SDoc
@@ -492,8 +492,8 @@ showSchemaRecDef s = Def [showImports, showPrimRecDef s, showRelDefRec s] where
     schema_tables (M2O rel db_field table) = []
     schema_tables (O2M rec_field rel_f tn) = []
     schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
-    schema_tables (Model tn []) = []
-    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+    schema_tables (Model tn [] domain ) = []
+    schema_tables (Model tn (x :: xs) domain) = (schema_tables x) ++ (schema_tables (Model tn xs domain))
     schema_tables (Sch n []) = []
     schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
     
@@ -522,8 +522,8 @@ showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s
     schema_tables (M2O rel db_field table) = []
     schema_tables (O2M rec_field rel_f tn) = []
     schema_tables (M2M rec_field f1 f2 m2m_table tn)= [m2m_table]
-    schema_tables (Model tn []) = []
-    schema_tables (Model tn (x :: xs)) = (schema_tables x) ++ (schema_tables (Model tn xs))
+    schema_tables (Model tn [] domain ) = []
+    schema_tables (Model tn (x :: xs) domain) = (schema_tables x) ++ (schema_tables (Model tn xs domain))
     schema_tables (Sch n []) = []
     schema_tables (Sch n (x::xs) ) = (schema_tables x) ++ (schema_tables (Sch n xs))
 
