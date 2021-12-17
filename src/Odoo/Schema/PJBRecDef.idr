@@ -11,6 +11,41 @@ import Control.Monad.Either
 
 %language ElabReflection
 
+namespace PrimProductTemplate
+
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          name:String
+          list_price:(Maybe Price)
+      %runElab derive "PrimProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+namespace PrimProductProduct
+
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          product_tmpl_id:Bits32
+          trade_price:(Maybe Price)
+          retail_price:(Maybe Price)
+          contract_price:(Maybe Price)
+          default_code:String
+      %runElab derive "PrimProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+namespace PrimBoM
+
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          product_qty:EQty
+          bom_id:(Maybe Bits32)
+          --O2M
+          product_id:Bits32
+      %runElab derive "PrimBoM.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
 namespace PrimResPartner
 
       public export
@@ -179,6 +214,38 @@ namespace PrimAccountInvoice
           amount_total:Price
           --O2M
       %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+namespace BrowseProductTemplate
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          name:String
+          list_price:(Maybe Price)
+      %runElab derive "BrowseProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+namespace BrowseProductProduct
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          product_tmpl_id:List PrimProductTemplate.RecordModel
+          trade_price:(Maybe Price)
+          retail_price:(Maybe Price)
+          contract_price:(Maybe Price)
+          default_code:String
+      %runElab derive "BrowseProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
+
+namespace BrowseBoM
+      public export
+      record RecordModel where
+          constructor MkRecordModel
+          pk:Bits32
+          product_qty:EQty
+          bom_id:(Maybe Bits32)
+          bom_lines:List BrowseBoM.RecordModel
+          product_id:List PrimProductProduct.RecordModel
+      %runElab derive "BrowseBoM.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace BrowseResPartner
       public export

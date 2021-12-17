@@ -43,6 +43,84 @@ SMT : TableName
 SMT = MkTN "SMT" "stock_move" "StockMove" False
 
 export
+BoMT : TableName
+BoMT = MkTN "BOM" "mrp_bom" "BoM" False
+
+export
+PT : TableName
+PT = MkTN "PT" "product_template" "ProductTemplate" False
+
+export
+PP : TableName
+PP = MkTN "PP" "product_product" "ProductProduct" False
+
+
+export
+Id_PT : Schema
+Id_PT = Pk "Id_PT" "id" PT
+export
+NamePT: Schema
+NamePT = Prim (MkF NotNull I_String "name" Text "(Just . cast)" "cast" PT)
+export
+ListPrice : Schema
+ListPrice = Prim (MkF Nullable I_Price "list_price" DoublePrecision "(Just . toINC20)" "cast" PT)
+export
+ProductTemplate : Schema
+ProductTemplate = Model PT [Id_PT,NamePT,ListPrice]
+
+--nullable Price "list_price" DoublePrecision (Just . toINC20) cast PT
+export
+Id_PP : Schema
+Id_PP = Pk "Id_PP" "id" PP
+export
+ProductTmplIDF : Field
+ProductTmplIDF = (MkF NotNull I_Bits32 "product_tmpl_id" (BigInt) "(Just . cast)" "cast" PP)
+export
+ProductTmplID:Schema
+ProductTmplID = M2O PT ProductTmplIDF PP
+export
+TradePrice : Schema
+TradePrice = Prim (MkF Nullable I_Price "trade_price" DoublePrecision "(Just . toEX20)" "cast" PP)
+export
+RetailPrice : Schema
+RetailPrice = Prim (MkF Nullable I_Price "retail_price" DoublePrecision "(Just . toINC20)" "cast" PP)
+export
+ContractPrice : Schema
+ContractPrice = Prim (MkF Nullable I_Price "contract_price" DoublePrecision "(Just . toEX20)" "cast" PP)
+export
+SKU: Schema
+SKU = Prim (MkF NotNull I_String "default_code" Text "(Just . cast)" "cast" PP)
+export
+ProductProduct : Schema
+ProductProduct = Model PP [Id_PP,ProductTmplID,TradePrice,RetailPrice,ContractPrice,SKU]
+export
+Id_BoM : Schema
+Id_BoM = Pk "Id_BoM" "id" BoMT
+export
+ProductQtyBoM : Schema
+ProductQtyBoM = Prim (MkF NotNull I_EQty "product_qty" DoublePrecision "(Just . cast)" "cast" BoMT)
+
+ProductID_F : Field
+ProductID_F = (MkF NotNull I_Bits32 "product_id" (BigInt) "(Just . cast)" "cast" BoMT)
+
+BoMID_F : Field
+BoMID_F = (MkF Nullable I_Bits32 "bom_id" (BigInt) "(Just . cast)" "cast" BoMT)
+
+export
+ProductIDBoM : Schema
+ProductIDBoM = M2O PP ProductID_F BoMT
+export
+BoMID : Schema
+BoMID = Prim BoMID_F --M2O BoMT BoMID_F BoMT
+export
+BoMLines : Schema
+BoMLines = O2M "bom_lines" BoMID_F BoMT
+export
+BoM : Schema
+BoM = Model BoMT [Id_BoM,ProductQtyBoM,BoMID,BoMLines, ProductIDBoM]
+
+
+export
 Id_ILT : Schema
 Id_ILT = Pk "Id_ILT" "id" ILT
 export
@@ -74,6 +152,7 @@ TaxesIlt = M2M "tax_ids" F1_ilt F2_ilt M2M_InvoiceTax OdooTaxTable
 export
 DiscountILT : Schema
 DiscountILT = Prim (MkF Nullable I_EQty "discount" DoublePrecision "(Just . percent)" "cast" ILT)
+export
 InvoiceLine : Schema
 InvoiceLine = Model ILT [Id_ILT,InvoiceID,PriceUnitILT,QuantityILT,NameILT,ProductIDIlt,TaxesIlt,DiscountILT]
 export
@@ -448,7 +527,7 @@ SaleOrder = Model OT so_cols
 
 export
 PJB : Schema
-PJB = Sch "Odoo.Schema.PJB" [ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher,StockMove,StockPicking,
+PJB = Sch "Odoo.Schema.PJB" [ProductTemplate,ProductProduct,BoM, ResPartner,OdooTaxM2M, OdooTax, OrderLineCols, SaleOrder, AccountVoucher,StockMove,StockPicking,
                              InvoiceTaxM2M,InvoiceLine,Invoice] --,,OrderLineCols]
 
 ret_spaces : Bits32 -> String

@@ -256,7 +256,7 @@ main_read_bom : HasIO io => MonadError SQLError io => io (List (RBoM, List RBoM)
 main_read_bom  = do
   c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
   
-  read_product_templates c
+  --read_product_templates c
   
   
   boms <- read_root_boms c
@@ -275,6 +275,7 @@ main_read_bom  = do
   let qp = [(1,3303)]
   let m32x = ch_map_to_BoM32 qp m1
   let m32 = ch_map_to_BoM32 root_p_ids m1
+  
   print_list $ print_BoM32 0 m32x
   let qp_mult = mult_BoM32 1 m32x 
   print_list $ print_BoM32 0 qp_mult
