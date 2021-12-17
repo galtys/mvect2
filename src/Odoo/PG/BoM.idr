@@ -306,7 +306,7 @@ main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} )
             pure []
 
 export
-muf_3 : HasIO io => io (List (RBoM, List RBoM) )
-muf_3 = do  
+muf_3_bom : HasIO io => io (List (RBoM, List RBoM) )
+muf_3_bom = do  
      l1 <- (liftIO main_3)
      pure l1

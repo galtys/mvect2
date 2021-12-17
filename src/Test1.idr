@@ -90,7 +90,7 @@ x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
                     pure ()
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
-                    l1 <- muf_3
+                    l1 <- muf_3_bom
                     putStrLn ("EV WS  val: " ++ (show (get_p_int p_fn)))
                     let p_wm = (ev_to_ws_message p_ev)
                     msg <- mg_ws_receive_as_String p_conn p_wm                 
@@ -169,6 +169,9 @@ main = do
 --  test_libc_time
   --pjb_test
   test_demo2
+  x <- muf_3_bom
+  --traverse_ printLn x
+  
   --test_main_x
   --db_main  
   --mg_test
