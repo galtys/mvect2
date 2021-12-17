@@ -16,78 +16,6 @@ import Crypto.Hash.SHA256
 import Data.Ratio
 %language ElabReflection
 
-public export
-tree:TreeB
-tree= Node (Node (Leaf "1 ") "2 " (Leaf "3 "))
-           "4 "
-           (Leaf "5 ")
-public export
-show1:TreeB-> String
-show1 (Leaf s)=s
-show1 (Node l s r) = 
-    show1 l ++ s ++ show1 r
-
--- cps
-public export
-show2 : TreeB -> (String->a) -> a
-show2 (Leaf s) k = k s
-show2 (Node lft s rgt) k= 
-  show2 lft (\ls => 
-     show2 rgt (\rs => 
-       k (ls++s++rs)))
-
-mutual
-  done : String -> String
-  done x = x
-
-  next : (String,TreeB,(String->String))-> String -> String
-  next (s,rgt,k) ls = show3 rgt (cont (ls,s,k))
-
-  cont: (String,String,(String->String))-> String -> String
-  cont (ls,s,k) rs = k (ls++s++rs)
-
-  show3 : TreeB -> (String -> String) -> String
-  show3 (Leaf s) k = k s
-  show3 (Node lft s rgt) k = 
-     show3 lft (next (s,rgt,k))
-
-data Kont = Done
-          | Next String TreeB Kont
-          | Conc String String Kont
-          
-mutual
-  --()
-  --(String,Tree,String->String)
-  --(String,String,String->String)
-  apply : Kont -> String -> String
-  apply Done s = s
-  apply (Next s rgt k) ls = show4 rgt (Conc ls s k)
-  apply (Conc ls s k)  rs = apply k (ls++s++rs)
-  
-  public export
-  show4 : TreeB -> Kont -> String
-  show4 (Leaf s) k         = apply k s
-  show4 (Node lft s rgt) k = show4 lft (Next s rgt k)
-
-  public export
-  show4' : TreeB -> String
-  show4' t = show4 t Done
-  
-data Stack = List (String,Either TreeB String)
-{-
-mutual
-  apply2 : Stack -> String -> String
-  apply2 [] s = s
-  apply2 ((x,(Left rgt)::xs) s = show5 rgt ( (Right ):xs)
--}
-public export
-show3' : TreeB -> String
-show3' t = show3 t (\x=>x) 
-                            
-public export
-show2' : TreeB -> String
-show2' t = show2 t (\x => x)
-
 export
 hilton : Address
 hilton = MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
@@ -95,6 +23,10 @@ hilton = MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
 export
 factory1 : Address
 factory1 = MkA "Factory street" "" "Asia" "44AX" UK (MkC "Factory1")
+
+export
+factory2 : Address
+factory2 = MkA "Factory street2" "" "Asia2" "X" UK (MkC "Factory2")
 
 export
 p1:Product
@@ -105,6 +37,11 @@ p2 = ("p2",7)
 export
 p3:Product
 p3 = ("p1",10)
+
+export
+p4:Product
+p4 = ("p4",10)
+
 export
 mult_p : EQty -> Product -> Product
 mult_p x (k,q) = (k,x*q)
@@ -119,26 +56,36 @@ confirm_po = do
      up3 = (toEX20 17.00)     
      h2 = [ (fst p1, ("GBP",up1)), 
             (fst p2, ("GBP",up2)),
-            (fst p3, ("GBP",up3))]            
-     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- --Confirm fx 
+            (fst p3, ("GBP",up3))]
+     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 h2 (apply2' h2 h1) ) 
+     
+     h1' : Hom1
+     h1' = map (mult_p 10) [p4]
+     h2' : Hom2
+     h2' = [ (fst p4, ("GBP", toEX20 15.43) )]
+     fx' : FxData
+     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' h2' (apply2' h2' h1') ) 
+     
+ rew_r <- Open fx
+ rew_r' <- Open fx' 
  Pure ()
 
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
  let date = "2021-11-01"
-     h1 = [p1,p2,p3]
+     h1 = [p1,p2,p3,p4]
      up1 = (toEX20 31.73)
      up2 = (toEX20 15.03)
      up3 = (toEX20 25.00)
-     
+     up4 = (toEX20 21.00)     
      h2 = [ (fst p1, ("GBP",up1)), 
             (fst p2, ("GBP",up2)),
-            (fst p3, ("GBP",up3))]
+            (fst p3, ("GBP",up3)),
+            (fst p4, ("GBP",up3)) ]
             
-     fx = MkFx date Sale hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) Nothing
- --Confirm fx
+     fx = MkFx date Sale hilton hilton (MkH121 h1 h2 (apply2' h2 h1) ) 
+ rew_r <- Open fx
  Pure ()
 
 
@@ -146,15 +93,6 @@ confirm_so = do
 public export
 LedgerMap  : Type
 LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
-{-
-public export
-LedgerH11  : Type
-LedgerH11 = SortedMap (Location, Location) (List JournalEvent)
-
-public export
-LedgerH121  : Type
-LedgerH121 = SortedMap (Location, Location) (List JournalEvent)
--}
 public export
 JournalMap  : Type
 JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
@@ -163,21 +101,6 @@ JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
 export
 RouteMap : Type
 RouteMap = SortedMap (Date,RouteRef,RouteState) Route
-{-
-public export
-record Muf where
-  constructor MkMuf 
-  new : RouteMap
-  progress : RouteMap
-  completed : RouteMap
--}  
-  {-
-  order : SortedMap FxRef FxData --Hom121
-  forecast : SortedMap (Date,Address) Hom121
-  reservation : SortedMap (Date,Address) Hom11
-  actual : SortedMap (Date,Address) Hom11
-  invoice : SortedMap (Date,Address) Hom121
-  -}
 
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
@@ -200,23 +123,6 @@ validateDirection (Control Purchase y) (Partner Purchase x) = True
 validateDirection Init Self = True
 validateDirection _ _ = False
 
-{-
-export
-tail : List a -> List a
-tail [] = []
-tail (x::xs) = xs
--}
-export
-custRoute : (c:Address) -> List Location
-custRoute c = [Partner Sale c, Control Sale c, Self]
-export
-suppRoute : (s:Address) -> List Location
-suppRoute s = [Self, Control Purchase s, Partner Purchase s]
-
-export
-locRoute : (c:Address)->(s:Address)->List Location
-locRoute c s = (custRoute c)++ (tail $ suppRoute s)
-
 
 export
 initRoute : List Location
@@ -238,40 +144,102 @@ init_self = do
          
          h121 : Hom121
          h121 = MkH121 h1 h2 (apply2' h2 h1)
-     ref <- Init date initRoute h121
+         
+         je : JournalEvent
+         je = Fx121 (date, h121)
+     ref <- Init initRoute je
      Pure ref
 
 export
-toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Init date route h121) = do
-       let h11 = fromH121 h121
-       ref <- NewRoute date route
-       
-       --Put11 date Init Self OnHand  h11 
-       --Put121 date Init Self Forecast h121 
-       Put Init Self OnHand (Fx11 (date, h11))
-       Put Init Self Forecast (Fx121 (date, h121))
-              
-       Pure ref
+custWiRoute : (c:Address) -> (i:Address) -> List Location
+custWiRoute c i = [Partner Sale c, Control Sale i, Self]
 
+export
+suppWiRoute : (s:Address) -> (i:Address) -> List Location
+suppWiRoute s i = [Self, Control Purchase i, Partner Purchase s]
+
+export
+route2ft : Route -> List (Location,Location)
+route2ft [] = []
+route2ft (x::[]) = []
+route2ft (x::y::xs) = [(x,y)]++(route2ft xs)
+export
+fillRoute : List (Location,Location) -> Ledger -> JournalEvent -> WhsEvent ()
+fillRoute [] l je = Pure ()
+fillRoute (x::xs) ledger je = do
+     let (f,t) = x
+     Put f t ledger je
+     fillRoute xs ledger je
+     
+export
+toWhs : OwnerEvent a -> WhsEvent a
+toWhs (Init route je) = do     
+       
+       let je2dh : JournalEvent -> (Date, Hom11)
+           je2dh (Fx121 (date, h121)) = (date, fromH121 h121)
+           je2dh (Fx11  (date, h11)) = (date, h11)       
+           --je2dh (Empty date) = (date , MkH11 [] [])
+           ret : (Date,Hom11)
+           ret = je2dh je
+       
+       ref <- NewRoute (fst ret) route
+       -- todo: use route param to populate it
+       let r_ft = route2ft route
+       fillRoute r_ft OnHand je
+       fillRoute r_ft Forecast je
+       --put route into completed state
+       
+       Pure ref
+       
+toWhs (Open fx) = do
+       let inv : Address
+           inv = (invoice fx)
+           del : Address
+           del = (delivery fx)           
+           route_c : Route
+           route_c = custWiRoute del inv           
+           route_s : Route
+           route_s = suppWiRoute del inv
+           je : JournalEvent
+           je = Fx121 (date fx, h3 fx)
+           
+           je_inv : JournalEvent
+           je_inv = Fx121 (date fx, MkH121 [] (appl $ h3 fx) [] )
+           
+       case (direction fx) of
+           Purchase => do
+               new_r <- NewRoute (date fx) route_s
+               Put Self (Control Purchase inv) Forecast je_inv --empty invoice
+               
+               Put (Control Purchase inv) (Partner Purchase del) Forecast je               
+               Pure new_r
+           Sale => do
+               new_r <- NewRoute (date fx) route_c           
+               Put (Partner Sale del) (Control Sale inv) Forecast je
+               Put (Control Sale inv) Self Forecast je_inv --empty invoice
+               Pure new_r
+       
 toWhs (Log x) =  Pure ()
 toWhs (Show x) = Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
-
-
      
 export
 interpret : WhsEvent a -> State (RouteMap,LedgerMap,JournalMap) a
 interpret  (NewRoute date route) = do
-             (routes,led_map,jm)<-get
-             
+             (routes,led_map,jm)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
-                 routes' = insert (date, route_ref,Completed)  route routes
+                 routes' = insert (date, route_ref,Progress)  route routes
              put (routes', led_map,jm)
-             pure route_ref
+             pure route_ref            
+
+interpret (CloseRoute date route_ref ) = do
+            
+            pure ()
+
+             
 interpret (Put f t ledger je) = do
              (routes,led_map,jm)<-get
              
@@ -309,113 +277,7 @@ interpret (Put f t ledger je) = do
                    let jm' = insert key (je::je_list) jm
                    put (routes,led',jm')
              pure ()
-{-             
-interpret (Put11 date f t ledger h11 ) = do 
-             (routes,led,lh11,lh121,jm)<-get
-             let key = (f,t) 
-                 kf : (Location, Ledger)
-                 kf = (f,ledger)
-                 
-                 kt : (Location, Ledger)
-                 kt = (t,ledger)
-                                  
-                 led1' : LedgerMap
-                 led1' = update_ledger kf ( dx h11) led
-                 
-                 led1'' : LedgerMap
-                 led1'' = update_ledger kf (invHom1 $ cx h11) led1'
-                 
-                 led2' : LedgerMap
-                 led2' = update_ledger kt (invHom1 $ dx h11) led1''
-                 led2'' : LedgerMap
-                 led2'' = update_ledger kt (cx h11) led2'
-                 
-             case (lookup key lh11) of
-                Nothing => do
-                   let lh' = insert key [Fx11 (date, h11)] lh11
-                   put (routes,led2'',lh', lh121,jm)
-                Just h11_list => do
-                   let lh' = insert key ((Fx11 (date, h11))::h11_list) lh11
-                   put (routes,led2'',lh', lh121,jm)
-             pure () 
-
-interpret (Put121 date f t ledger h121 ) = do
-        (routes,led,lh11,lh121,jm)<-get
-        let key = (f,t) 
-        case (lookup key lh121) of
-                Nothing => do
-                   let lh' = insert key [Fx121 (date,h121)] lh121
-                   put (routes,led, lh11, lh',jm)
-                Just h_list => do
-                   let lh' = insert key ( (Fx121 (date, h121) )::h_list) lh121
-                   put (routes,led, lh11, lh',jm)
-  -}      
         
-{-
-interpret (Close fx) = pure ()
-interpret (Open fx) = do
-      let cnt = encode fx
-          ref = sha256 cnt
-      (so,po,led,lh,journal)<-get
-      case (direction fx) of
-         Purchase => do
-             let o = order po
-                 o' : SortedMap FxRef FxData
-                 o' = insert ref fx o                 
-                 po' : Muf
-                 po' = record {order = o'} po
-             put (so,po',led,lh,(Fx fx)::journal)
-         Sale => do
-             let o = order so
-                 o' : SortedMap FxRef FxData             
-                 o' = insert ref fx o
-                 so' : Muf
-                 so' = record {order = o'} so
-             put (so',po,led,lh,(Fx fx)::journal)
-      pure ref
--}
-{-
-interpret (Confirm fx ) = do 
-             (so,po,led,lh,journal)<-get
-             
-             let f = forecast so
-                 key : (Date,Address)
-                 key = (date fx, delivery fx) 
-                 
-                 x : Hom121
-                 x = (h3 fx)
-                 
-                 f' : SortedMap (Date,Address) Hom121
-                 f' = (insert key x f)
-                 
-                 so' : Muf
-                 so' = record {forecast = f'} so
-             put (so',po,led,lh,journal)
-
-interpret (Confirm (MkO Purchase fx)) = do 
-             (so,po,led)<-get
-             
-             let f = forecast po
-                 key : (Date,Address)
-                 key = (date fx, delivery fx) 
-                 
-                 f' : SortedMap (Date,Address) Hom121
-                 f' = insert key (h3 fx) f
-                 
-                 r : SortedMap (Date,Address) Hom11
-                 r = reservation po
-                 
-                 x : Hom121
-                 x = h3 fx
-                 
-                 r' : SortedMap (Date,Address) Hom11
-                 r' = insert key (MkH11 (from x) (to x)) r
-                 
-                 
-                 po' : Muf
-                 po' = record {forecast = f', reservation = r'} po
-             put (so,po',led')
--}
              
 interpret (Log x) = pure () --?interpret_rhs_1
 interpret (Show x) = pure () --?interpret_rhs_2
@@ -431,7 +293,3 @@ test_demo2 : IO ()
 test_demo2 = do
   
   pure ()
-  printLn $show1 tree
-  printLn $show2' tree
-  printLn $show3' tree
-  printLn $show4' tree
