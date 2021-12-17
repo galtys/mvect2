@@ -1025,8 +1025,6 @@ namespace BrowseBoM
           add_lines [] = pure []
           add_lines ((PrimBoM.MkRecordModel pk product_qty bom_id product_id)::xs) = do
             bom_lines <- BrowseBoM.read_records_c c ((BomIdBOM==Just(cast pk)))
-            let muf_m2o = ((PkPP==(cast product_id))) --&&op
-            product_id <- PrimProductProduct.read_records_c c muf_m2o
             let ret =(BrowseBoM.MkRecordModel pk product_qty bom_id bom_lines product_id)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)

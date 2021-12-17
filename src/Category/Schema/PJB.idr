@@ -108,7 +108,7 @@ BoMID_F = (MkF Nullable I_Bits32 "bom_id" (BigInt) "(Just . cast)" "cast" BoMT)
 
 export
 ProductIDBoM : Schema
-ProductIDBoM = M2O PP ProductID_F BoMT
+ProductIDBoM = Prim ProductID_F --M2O PP ProductID_F BoMT
 export
 BoMID : Schema
 BoMID = Prim BoMID_F --M2O BoMT BoMID_F BoMT

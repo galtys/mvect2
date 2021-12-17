@@ -78,7 +78,7 @@ Id_BM : Column
 Id_BM = primarySerial64 Bits32 "id" (Just . cast) BM
 
 ProdQty : Column
-ProdQty = notNull TQty "product_qty" DoublePrecision (Just . cast) cast BM
+ProdQty = notNull EQty "product_qty" DoublePrecision (Just . cast) cast BM
 
 ProductID : Column
 ProductID = notNull Bits32 "product_id" BigInt (Just . cast) cast BM
@@ -89,7 +89,7 @@ BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast BM
 record RBoM where
   constructor MkRBoM
   product_id : Bits32
-  product_qty : TQty
+  product_qty : EQty
   bom_id : (Maybe Bits32)
   pk : Bits32
         
@@ -166,7 +166,7 @@ safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
 
-rbom_to_list : Maybe (List RBoM) -> List (TQty,Bits32)
+rbom_to_list : Maybe (List RBoM) -> List (EQty,Bits32)
 rbom_to_list Nothing = []
 rbom_to_list (Just x) = [ (product_qty u,product_id u) | u<-x]
 
@@ -177,7 +177,7 @@ print_ch : HasIO io =>  Bits32 -> Bits32 -> SortedMap Bits32 (List RBoM) -> io()
 print_ch i p_id m = do
   printLn ( (ret_spaces i) ++(show p_id)++":"++(show $ rbom_to_list $ lookup p_id m))
 
-print_ch_r : HasIO io =>  Bits32 -> List (TQty,Bits32) -> SortedMap Bits32 (List RBoM) -> io ()
+print_ch_r : HasIO io =>  Bits32 -> List (EQty,Bits32) -> SortedMap Bits32 (List RBoM) -> io ()
 print_ch_r i [] m = pure ()
 print_ch_r i (muf@(qty,p_id)::xs) m = do
   let ch = rbom_to_list $ lookup p_id m
@@ -187,7 +187,7 @@ print_ch_r i (muf@(qty,p_id)::xs) m = do
   
   print_ch_r (i) xs m
 
-ch_map_to_BoM32 : List (TQty,Bits32) -> SortedMap Bits32 (List RBoM) -> List BoM32
+ch_map_to_BoM32 : List (EQty,Bits32) -> SortedMap Bits32 (List RBoM) -> List BoM32
 ch_map_to_BoM32 [] m = []
 ch_map_to_BoM32 (muf@(qty,p_id)::xs) m = 
   let ch = rbom_to_list $ lookup p_id m
@@ -195,18 +195,18 @@ ch_map_to_BoM32 (muf@(qty,p_id)::xs) m =
       q = qty
       node = Node32 ( q) p_id bom32_ch in [node]++(ch_map_to_BoM32 xs m)
 
-mult_BoM32 : TQty -> List BoM32 -> List BoM32
+mult_BoM32 : EQty -> List BoM32 -> List BoM32
 mult_BoM32 x [] = []
 mult_BoM32 x ((Node32 qty sku components) :: xs) = 
     let ch = mult_BoM32 (x*qty) components
         n = Node32 (x*qty) sku ch in [n] ++ (mult_BoM32 x xs)
 
-variants_BoM32 : List BoM32 -> List (TQty,Bits32)
+variants_BoM32 : List BoM32 -> List (EQty,Bits32)
 variants_BoM32 [] = []
 variants_BoM32 ((Node32 qty sku []) :: xs) = [(qty,sku)] ++ (variants_BoM32 xs)
 variants_BoM32 ((Node32 qty sku c) :: xs) = (variants_BoM32 c)++(variants_BoM32 xs)
 
-
+export
 print_BoM32 : Bits32 -> List BoM32 -> List String
 print_BoM32 i [] = []
 print_BoM32 i (b32@(Node32 qty sku components) :: xs) = 
@@ -214,7 +214,7 @@ print_BoM32 i (b32@(Node32 qty sku components) :: xs) =
       let ua = ( (ret_spaces i) ++ (show qty) ++ "," ++ (show sku) )
           uc = print_BoM32 (i+1) components
           uxs = print_BoM32 i xs in [ua]++uc++uxs
-      
+export      
 print_list : HasIO io => List String -> io ()
 print_list [] = pure ()
 print_list (x::xs) = do

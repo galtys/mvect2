@@ -133,6 +133,28 @@ pjb_test = do
   t3 <- time
   printLn (t3-t2)
   -}
+{-  
+child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
+child_map_RBoM [] = empty
+child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
+  -}
+  
+toChildMap : List BrowseBoM.RecordModel -> SortedMap Bits32 (List BrowseBoM.RecordModel)
+toChildMap [] = empty
+toChildMap ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert product_id bom_lines (toChildMap xs)
+
+rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,Bits32)
+rbom_to_list Nothing = []
+rbom_to_list (Just x) = [ (product_qty u,product_id u) | u<-x]
+    
+map_to_BoM32 : List (EQty,Bits32) -> SortedMap Bits32 (List BrowseBoM.RecordModel) -> List BoM32
+map_to_BoM32 [] m = []
+map_to_BoM32 (muf@(qty,p_id)::xs) m = 
+  let ch = rbom_to_list $ lookup p_id m  
+      bom32_ch = map_to_BoM32 ch m
+      q = qty
+      node = Node32 ( q) p_id bom32_ch in [node]++(map_to_BoM32 xs m)
+    
 pjb_test : IO ()
 pjb_test = do
   so <- BrowseOrder.read_ids [21833] (True)
@@ -147,8 +169,17 @@ pjb_test = do
   traverse_ printLn av
   -}
   boms <- BrowseBoM.read (True)
-  traverse_ printLn boms
+  --traverse_ printLn boms
+  let qp = [(1,3303)]
+      bom_map = toChildMap boms
+      m32x = map_to_BoM32 qp bom_map
+      
+  --print_BoM32 3303 m32x
   
+  print_list $ print_BoM32 0 m32x
+    
+  --let m1 = child_map_RBoM boms
+    
 mg_test : IO ()
 mg_test = do
   --ignore $ run forever greet

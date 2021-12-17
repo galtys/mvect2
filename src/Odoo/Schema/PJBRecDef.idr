@@ -244,7 +244,7 @@ namespace BrowseBoM
           product_qty:EQty
           bom_id:(Maybe Bits32)
           bom_lines:List BrowseBoM.RecordModel
-          product_id:List PrimProductProduct.RecordModel
+          product_id:Bits32
       %runElab derive "BrowseBoM.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace BrowseResPartner
