@@ -136,7 +136,8 @@ pjb_test = do
 pjb_test : IO ()
 pjb_test = do
   so <- BrowseOrder.read_ids [21833] (True)
-  printLn so
+  --printLn so
+  {-
   inv <- BrowseAccountInvoice.read (True)
   sp <- BrowseStockPicking.read (True)
   av <- BrowseAccountVoucher.read (True)  
@@ -144,7 +145,9 @@ pjb_test = do
   traverse_ printLn inv
   traverse_ printLn sp  
   traverse_ printLn av
-  
+  -}
+  boms <- BrowseBoM.read (True)
+  traverse_ printLn boms
   
 mg_test : IO ()
 mg_test = do
@@ -169,9 +172,9 @@ main = do
 --  test_libc_time
   --pjb_test
   test_demo2
-  x <- muf_3_bom
+  --x <- muf_3_bom
   --traverse_ printLn x
-  
+  pjb_test
   --test_main_x
   --db_main  
   --mg_test

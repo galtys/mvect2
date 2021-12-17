@@ -28,9 +28,9 @@ namespace PrimProductProduct
           constructor MkRecordModel
           pk:Bits32
           product_tmpl_id:Bits32
-          trade_price:(Maybe Price)
-          retail_price:(Maybe Price)
-          contract_price:(Maybe Price)
+          trade:(Maybe Price)
+          retail:(Maybe Price)
+          contract:(Maybe Price)
           default_code:String
       %runElab derive "PrimProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -230,9 +230,9 @@ namespace BrowseProductProduct
           constructor MkRecordModel
           pk:Bits32
           product_tmpl_id:List PrimProductTemplate.RecordModel
-          trade_price:(Maybe Price)
-          retail_price:(Maybe Price)
-          contract_price:(Maybe Price)
+          trade:(Maybe Price)
+          retail:(Maybe Price)
+          contract:(Maybe Price)
           default_code:String
       %runElab derive "BrowseProductProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 

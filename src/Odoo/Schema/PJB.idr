@@ -58,12 +58,12 @@ PkPP:Column
 PkPP=notNull Bits32 "id" (BigInt) (Just . cast) cast PP
 ProductTmplIdPP:Column
 ProductTmplIdPP=notNull Bits32 "product_tmpl_id" (BigInt) (Just . cast) cast PP
-TradePricePP:Column
-TradePricePP=nullable Price "trade_price" (DoublePrecision) (Just . toEX20) cast PP
-RetailPricePP:Column
-RetailPricePP=nullable Price "retail_price" (DoublePrecision) (Just . toINC20) cast PP
-ContractPricePP:Column
-ContractPricePP=nullable Price "contract_price" (DoublePrecision) (Just . toEX20) cast PP
+TradePP:Column
+TradePP=nullable Price "trade" (DoublePrecision) (Just . toEX20) cast PP
+RetailPP:Column
+RetailPP=nullable Price "retail" (DoublePrecision) (Just . toINC20) cast PP
+ContractPP:Column
+ContractPP=nullable Price "contract" (DoublePrecision) (Just . toEX20) cast PP
 DefaultCodePP:Column
 DefaultCodePP=notNull String "default_code" (Text) (Just . cast) cast PP
 
@@ -313,7 +313,7 @@ namespace PrimProductProduct
       domain = (True)
       export
       PrimCols : List Column
-      PrimCols = [PkPP, ProductTmplIdPP, TradePricePP, RetailPricePP, ContractPricePP, DefaultCodePP]
+      PrimCols = [PkPP, ProductTmplIdPP, TradePP, RetailPP, ContractPP, DefaultCodePP]
 
       public export
       PP_NP : Table
@@ -950,10 +950,10 @@ namespace BrowseProductProduct
 
           add_lines : (List PrimProductProduct.RecordModel) ->io (List  BrowseProductProduct.RecordModel)
           add_lines [] = pure []
-          add_lines ((PrimProductProduct.MkRecordModel pk product_tmpl_id trade_price retail_price contract_price default_code)::xs) = do
+          add_lines ((PrimProductProduct.MkRecordModel pk product_tmpl_id trade retail contract default_code)::xs) = do
             let muf_m2o = ((PkPT==(cast product_tmpl_id))) --&&op
             product_tmpl_id <- PrimProductTemplate.read_records_c c muf_m2o
-            let ret =(BrowseProductProduct.MkRecordModel pk product_tmpl_id trade_price retail_price contract_price default_code)
+            let ret =(BrowseProductProduct.MkRecordModel pk product_tmpl_id trade retail contract default_code)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 

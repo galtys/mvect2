@@ -80,13 +80,13 @@ ProductTmplID:Schema
 ProductTmplID = M2O PT ProductTmplIDF PP
 export
 TradePrice : Schema
-TradePrice = Prim (MkF Nullable I_Price "trade_price" DoublePrecision "(Just . toEX20)" "cast" PP)
+TradePrice = Prim (MkF Nullable I_Price "trade" DoublePrecision "(Just . toEX20)" "cast" PP)
 export
 RetailPrice : Schema
-RetailPrice = Prim (MkF Nullable I_Price "retail_price" DoublePrecision "(Just . toINC20)" "cast" PP)
+RetailPrice = Prim (MkF Nullable I_Price "retail" DoublePrecision "(Just . toINC20)" "cast" PP)
 export
 ContractPrice : Schema
-ContractPrice = Prim (MkF Nullable I_Price "contract_price" DoublePrecision "(Just . toEX20)" "cast" PP)
+ContractPrice = Prim (MkF Nullable I_Price "contract" DoublePrecision "(Just . toEX20)" "cast" PP)
 export
 SKU: Schema
 SKU = Prim (MkF NotNull I_String "default_code" Text "(Just . cast)" "cast" PP)
