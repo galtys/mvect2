@@ -139,14 +139,16 @@ pjb_test = do
   -}
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
-  let qp = [(1, PK32 3303)]
+  let prod = [ (1, PK32 $ product_id u) | u <- boms ]
+      qp = [(1, PK32 3303),(1, PK32 3241),(1, PK32 3269), (1,PK32 2931),(1,PK32 2701),(1,PK32 847)]
       bom_map = toBoM_map boms
       m32x = map_to_BoM32 qp bom_map
       
   --print_BoM32 3303 m32x
   
-  print_list $ print_BoM32 0 m32x
-    
+  print_list $ print_BoM32 0 $ mult_BoM32 1  m32x
+  printLn $ variants_BoM32 $ mult_BoM32 1  m32x
+      
   --let m1 = child_map_RBoM boms
     
 mg_test : IO ()

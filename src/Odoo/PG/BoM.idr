@@ -19,13 +19,13 @@ import Odoo.Schema.PJBRecDef
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
-
+export
 mult_BoM32 : EQty -> List BoM32 -> List BoM32
 mult_BoM32 x [] = []
 mult_BoM32 x ((Node32 qty sku components) :: xs) = 
     let ch = mult_BoM32 (x*qty) components
         n = Node32 (x*qty) sku ch in [n] ++ (mult_BoM32 x xs)
-
+export
 variants_BoM32 : List BoM32 -> List (EQty,ProdKey)
 variants_BoM32 [] = []
 variants_BoM32 ((Node32 qty sku []) :: xs) = [(qty,sku)] ++ (variants_BoM32 xs)
