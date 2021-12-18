@@ -47,7 +47,7 @@ data LineTerm : Type where
 -}
 
 public export
-data ProdKey = PKUser String | PK32 Bits32 | PKTax String
+data ProdKey = PKUser String | PK32 Bits32 | PKTax String | FromInt
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
