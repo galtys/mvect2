@@ -4,72 +4,41 @@ import Category.Transaction.Types
 import Category.Transaction.Qty
 import Data.SortedMap
 --import Control.Monad.State
-import Crypto.Hash.SHA256
+--import Crypto.Hash.SHA256
 import Data.Ratio
 import Generics.Derive
 import JSON
 
+
+import Odoo.Schema.PJBRecDef
+--import Odoo.PG.BoM
+
 %language ElabReflection
+public export
+data Country = UK | CZ | US | DE | FR
+%runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
 
 public export
-data ProdKey = PKUser String | PK32 Bits32 | PKTax String
-%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+record Contact where
+  constructor MkC
+  name : String
+%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
 
 public export
-data BoM32 : Type where  
-  --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
-   Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
-%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
-
-
-public export
-FromString ProdKey where
-   fromString s = PKUser s
-
-public export
-Product : Type
-Product = (ProdKey, EQty)
+record Address where
+  constructor MkA
+  street : String
+  street2 : String
+  city : String
+  zip : String
+  country_id : Country
+  contact: Contact
+%runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
 public export
-Currency : Type
-Currency = (ProdKey, Price)
+data Location =  Self | In | Out | Init | Loss | Control DirectionTag Address |Partner DirectionTag Address | Transit DirectionTag Address
+%runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
-public export
-Hom1 : Type
-Hom1 = List Product
-
-public export
-Product2 : Type
-Product2 = (ProdKey, Currency)
-
-public export
-Hom2 : Type
-Hom2 = List Product2 --was (Hom1->Hom1)
-
-
-
-public export
-record Hom121 where
-   constructor MkH121
-   dx:Hom1
-   appl:Hom2
-   cx : Hom1
-%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
-
-public export
-record Hom11 where
-   constructor MkH11
-   dx:Hom1
-   cx:Hom1
-%runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
-
-export
-fromH121 : Hom121 -> Hom11
-fromH121 h121 = (MkH11 (dx h121) (cx h121))
-
-public export     
-FxRef : Type 
-FxRef = String --where --order reference used in warehouse
 
 public export     
 RouteRef : Type 
@@ -87,11 +56,8 @@ record FxData where
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
 
 public export
-data JournalEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) --| Empty Date --FxData 
+data JournalEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11)
 %runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
-
-public export
-data WhsEventError = Put11Error
 
 public export
 Route : Type
@@ -112,7 +78,6 @@ namespace WhsEventDo
        Pure : ty -> WhsEvent ty
        Bind : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
 
-
   public export
   (>>=) : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
   (>>=) = WhsEventDo.Bind
@@ -131,7 +96,6 @@ namespace OwnerEventDo
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
        Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
-
 
   public export
   (>>=) : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b

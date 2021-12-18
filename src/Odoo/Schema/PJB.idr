@@ -1285,8 +1285,6 @@ namespace BrowseOrderLine
             let muf_m2m = ((JC PkOTax TaxIdM2M_ST)&&(OrderLineIdM2M_ST==(cast pk)))
             tax_ids_np<-getJoin c OTax_NP M2M_ST_NP (columns OTax_NP) muf_m2m
             let tax_ids=[PrimOrderTax.toRecord ox |ox <-tax_ids_np]
-            let muf_m2o = ((PkOT==(cast order_id))) --&&op
-            order_id <- PrimOrder.read_records_c c muf_m2o
             let ret =(BrowseOrderLine.MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)

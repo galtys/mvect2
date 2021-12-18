@@ -4,11 +4,11 @@ import Data.SortedMap
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
-import Category.Transaction.Hom
-import Category.Transaction.Journal
-import Category.Transaction.Demo
-import Category.Transaction.Types
-import Category.Transaction.Types2
+--import Category.Transaction.Hom
+--import Category.Transaction.Journal
+--import Category.Transaction.Demo
+--import Category.Transaction.Types
+--import Category.Transaction.Types2
 import Data.Ratio
 --import Odoo.PG.BoM
 import Odoo.Schema.PJBRecDef

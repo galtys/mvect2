@@ -14,7 +14,104 @@ import Category.Transaction.Hom
 import Category.Transaction.Journal
 import Crypto.Hash.SHA256
 import Data.Ratio
+import Odoo.Schema.PJBRecDef
+import Odoo.Schema.PJB
+
 %language ElabReflection
+
+export
+retail_cust_31587 : BrowseResPartner.RecordModel
+retail_cust_31587 = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "John Retail1", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Sharing House", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE5 CE6", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "retail_cust1@btconnect.com", 
+         street2 = Just "Mid Lane" }
+
+
+sti20 : PrimOrderTax.RecordModel
+sti20 = PrimOrderTax.MkRecordModel 
+      { pk = 14, 
+        name = "Standard rate sales IncVAT (20%)", 
+        description = Just "STI20", 
+        amount = 1/5, 
+        type = Just "percent", 
+        price_include = Just True }
+
+so_44970 : BrowseOrder.RecordModel
+so_44970 = BrowseOrder.MkRecordModel 
+       { pk = 44970, 
+         origin = Nothing, 
+         order_policy = "manual", 
+         date_order = "2021-11-18", 
+         partner_id = 31587, 
+         amount_tax = MkPrice { tax = TAXAMOUNT, price = 833 }, 
+         state = "manual", 
+         partner_invoice_id = 31587, 
+         amount_untaxed = MkPrice { tax = EX20, price = 4165 }, 
+         amount_total = MkPrice { tax = INC20, price = 4998 }, 
+         name = "SO44907", 
+         partner_shipping_id = 31587, 
+         picking_policy = "direct", 
+         carrier_id = Just 7, 
+         order_line = 
+             [MkRecordModel { pk = 176369, 
+                              price_unit = 0, 
+                              product_uom_qty = 1, 
+                              discount = Just 1, 
+                              delivery_line = Just True, 
+                              order_id = 44970, 
+                              product_id = Just 735, 
+                              tax_ids = [sti20] }, 
+              MkRecordModel { pk = 176363, 
+                              price_unit = 3199, 
+                              product_uom_qty = 1, 
+                              discount = Just 1, 
+                              delivery_line = Just False, 
+                              order_id = 44970, 
+                              product_id = Just 1042, 
+                              tax_ids = [sti20] }, 
+              MkRecordModel { pk = 176364, 
+                              price_unit = 1799, 
+                              product_uom_qty = 1, 
+                              discount = Just 1, 
+                              delivery_line = Just False, 
+                              order_id = 44970, 
+                              product_id = Just 1064, 
+                              tax_ids = [sti20] }, 
+              MkRecordModel { pk = 176366,
+                              price_unit = 139, 
+                              product_uom_qty = 1, 
+                              discount = Just 0, 
+                              delivery_line = Just False, 
+                              order_id = 44970, 
+                              product_id = Just 4085, 
+                              tax_ids = [sti20] }, 
+              MkRecordModel { pk = 176367, 
+                              price_unit = 69, 
+                              product_uom_qty = 2, 
+                              discount = Just 0, 
+                              delivery_line = Just False, 
+                              order_id = 44970, 
+                              product_id = Just 4089, 
+                              tax_ids = [sti20] }, 
+              MkRecordModel { pk = 176368, 
+                              price_unit = 49, 
+                              product_uom_qty = 1, 
+                              discount = Just 0, 
+                              delivery_line = Just False, 
+                              order_id = 44970, 
+                              product_id = Just 4095, 
+                              tax_ids = [sti20]} ] , 
+         requested_date = Nothing }
 
 export
 hilton : Address

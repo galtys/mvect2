@@ -18,34 +18,10 @@ public export
 data TreeB = Leaf String | Node TreeB String TreeB
 %runElab derive "TreeB" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
 
-public export
-data Country = UK | CZ | US | DE | FR
-%runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
-
-public export
-record Contact where
-  constructor MkC
-  name : String
-%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
-
-public export
-record Address where
-  constructor MkA
-  street : String
-  street2 : String
-  city : String
-  zip : String
-  country_id : Country
-  contact: Contact
-%runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 
 public export
 data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
-
-public export
-data Location =  Self | Control DirectionTag Address |Partner DirectionTag Address | Init
-%runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 
 public export
@@ -55,7 +31,7 @@ data Ledger = OnHand | Forecast
 public export
 data TaxCode =  INC20 | EX20 | TAXAMOUNT |ERROR
 %runElab derive "TaxCode" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
-
+{-
 public export
 data LineTermMultType = UnitPrice | Discount | MultQty | TaxMul
 %runElab derive "LineTermMultType" [Generic, Meta, Eq, Ord,Show,EnumToJSON,EnumFromJSON]
@@ -68,6 +44,17 @@ data LineTerm : Type where
      LEAdd : (l1:LineTerm) -> (l2:LineTerm) -> LineTerm
      LEMul : (u:EQty) -> (mu:LineTermMultType) -> (l:LineTerm) -> LineTerm
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
+-}
+
+public export
+data ProdKey = PKUser String | PK32 Bits32 | PKTax String
+%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
+public export
+data BoM32 : Type where  
+  --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
+   Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
 
 
 
@@ -105,3 +92,45 @@ public export
 Cast Price EQty where
   cast (MkPrice tax x) = x
   
+public export
+FromString ProdKey where
+   fromString s = PKUser s
+
+public export
+Product : Type
+Product = (ProdKey, EQty)
+
+public export
+Currency : Type
+Currency = (ProdKey, Price)
+
+public export
+Hom1 : Type
+Hom1 = List Product
+
+public export
+Product2 : Type
+Product2 = (ProdKey, Currency)
+
+public export
+Hom2 : Type
+Hom2 = List Product2 --was (Hom1->Hom1)
+
+public export
+record Hom11 where
+   constructor MkH11
+   dx:Hom1
+   cx:Hom1
+%runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
+
+public export
+record Hom121 where
+   constructor MkH121
+   dx:Hom1
+   appl:Hom2
+   cx : Hom1
+%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
+
+export
+fromH121 : Hom121 -> Hom11
+fromH121 h121 = (MkH11 (dx h121) (cx h121))

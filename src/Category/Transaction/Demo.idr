@@ -14,7 +14,7 @@ import Crypto.Hash.SHA256
 import Data.Ratio
 
 --import Category.PG.Order
-
+{-
 %language ElabReflection
 
 %runElab derive "UserName" [Generic, Meta,Eq, ToJSON,FromJSON]
@@ -61,19 +61,9 @@ tInfo = getInfo "TestInfo"
 export
 bInfo : TypeInfo
 bInfo = getInfo "Country"
-
+-}
 
 {-
-
-
-
-
-
-
-
-
-
-
 prices: List TQty
 prices = [10,7,5,2,11,9,50,1,33,100]
 

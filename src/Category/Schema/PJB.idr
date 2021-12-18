@@ -392,7 +392,7 @@ PrimOrderIDF : Field
 PrimOrderIDF = (MkF NotNull I_Bits32 "order_id" (BigInt) "(Just . cast)" "cast" OLT)
 export
 PrimOrderID : Schema
-PrimOrderID = M2O OT PrimOrderIDF OLT
+PrimOrderID = Prim PrimOrderIDF --M2O OT PrimOrderIDF OLT
 
 export
 PriceUnit : Schema

@@ -295,7 +295,7 @@ namespace BrowseOrderLine
           product_uom_qty:EQty
           discount:(Maybe EQty)
           delivery_line:(Maybe Bool)
-          order_id:List PrimOrder.RecordModel
+          order_id:Bits32
           product_id:(Maybe Bits32)
           tax_ids:List PrimOrderTax.RecordModel
       %runElab derive "BrowseOrderLine.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]

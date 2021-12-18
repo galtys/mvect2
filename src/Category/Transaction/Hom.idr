@@ -8,7 +8,7 @@ import Data.List
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
-import Category.Transaction.Types2
+--import Category.Transaction.Types2
 import Data.Ratio
 
 --import Category.PG.Order
@@ -124,7 +124,7 @@ get_line l =
        d = LEMul (discount l) Discount p 
        t = LETaxCode (tax_code l) d in (pk2,t)
 -}
-
+{-
 public export
 get_hom1_EQty : LineTerm -> EQty
 get_hom1_EQty (LEHom1 qty) = qty
@@ -132,14 +132,14 @@ get_hom1_EQty (LETaxCode tc l) = (get_hom1_EQty l)
 get_hom1_EQty (LEAdd l1 l2) = (get_hom1_EQty l1) + (get_hom1_EQty l2)
 get_hom1_EQty (LEMul u mu l) = get_hom1_EQty l
 
-{-
+
 public export
 get_hom2_EQty : LineTerm -> EQty 
 get_hom2_EQty (LEHom1 qty) = 1
 get_hom2_EQty (LETaxCode tc l) = (get_hom2_EQty l)
 get_hom2_EQty (LEAdd l1 l2) = (get_hom2_EQty l1) + (get_hom2_EQty l2)
 get_hom2_EQty (LEMul u mu l) = (get_hom2_EQty l) * u
--}
+
 
 public export
 get_hom2_Mul : LineTerm -> List (LineTermMultType,EQty)
@@ -159,10 +159,11 @@ get_tax_codes (LEHom1 qty) = []
 get_tax_codes (LETaxCode taxcode x) = [taxcode]++(get_tax_codes x)
 get_tax_codes (LEAdd l1 l2) = (get_tax_codes l1)++(get_tax_codes l2)
 get_tax_codes (LEMul u mu l) = (get_tax_codes l)
-
+-}
 get_tc_prodkey : List TaxCode -> ProdKey
 get_tc_prodkey xs = PKTax (concat [(show x) | x <- xs] )
 
+{-
 eqLineTerm_TaxMult : LineTerm -> LineTerm -> Bool
 eqLineTerm_TaxMult l1 l2 = 
           let l1_tc = sort $ get_tax_codes l1
@@ -176,7 +177,7 @@ eqLineTerm_TaxEQty l1 l2 =
               l2_tc = sort $ get_tax_codes l2
               l1_h2 = get_hom2_EQty l1
               l2_h2 = get_hom2_EQty l2 in ( (l1_tc==l2_tc) && (l1_h2==l2_h2) )
-
+-}
 fromMaybeEQty : Maybe EQty -> EQty
 fromMaybeEQty Nothing = 0
 fromMaybeEQty (Just x) = x
@@ -228,13 +229,13 @@ evalProduct2List xs = toList $ fromProduct2List xs
     let xs_map = fromList [(x,0) | x<- xs]
         ret = [ k | (k,v) <- xs_map ] in concat ret       
 -}
-
+{-
 public export
 ev_tax : LineTerm -> LineTerm
 ev_tax (LEHom1 qty) = (LEHom1 qty) --terminating
 ev_tax (LETaxCode taxcode x) = LEMul (taxRatio taxcode) TaxMul x
 ev_tax x = ev_tax x
-{-
+
 public export
 tax_line : Product2 -> Product2
 tax_line ((MkProdK2 keyfrom keyto), y) = --?tax_line_rhs_2

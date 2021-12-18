@@ -126,8 +126,12 @@ data BoMProduct : Type where
                 
 pjb_test : IO ()
 pjb_test = do
-  so <- BrowseOrder.read_ids [21833] (True)
-  --printLn so
+  cust <- BrowseResPartner.read_ids [31587] (True)
+  
+  so <- BrowseOrder.read_ids [44970] (True)
+  printLn so
+  --printLn ""
+  --traverse_ printLn cust
   {-
   inv <- BrowseAccountInvoice.read (True)
   sp <- BrowseStockPicking.read (True)
