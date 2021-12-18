@@ -150,7 +150,7 @@ toRProduct x =
 
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
 rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
-   qty = (cast product_qty) in Node32 ( qty) product_id xs
+   qty = (cast product_qty) in Node32 ( qty) (PK32 product_id) xs
 
 chmap2bom32 : (List (RBoM, List RBoM) ) -> List BoM32 -> List BoM32
 chmap2bom32 [] chld= []
@@ -159,26 +159,26 @@ chmap2bom32 ((x, y) :: xs) chld =
        b=rbom2bom32 x ch in [b]++chmap2bom32 xs chld
 
 
-child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
+child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap ProdKey (List RBoM)
 child_map_RBoM [] = empty
-child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
+child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert (PK32 product_id) y (child_map_RBoM xs)
 
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
 
-rbom_to_list : Maybe (List RBoM) -> List (EQty,Bits32)
+rbom_to_list : Maybe (List RBoM) -> List (EQty,ProdKey)
 rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (product_qty u,product_id u) | u<-x]
+rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
-print_ch : HasIO io =>  Bits32 -> Bits32 -> SortedMap Bits32 (List RBoM) -> io()
+print_ch : HasIO io =>  Bits32 -> ProdKey -> SortedMap ProdKey (List RBoM) -> io()
 print_ch i p_id m = do
   printLn ( (ret_spaces i) ++(show p_id)++":"++(show $ rbom_to_list $ lookup p_id m))
 
-print_ch_r : HasIO io =>  Bits32 -> List (EQty,Bits32) -> SortedMap Bits32 (List RBoM) -> io ()
+print_ch_r : HasIO io =>  Bits32 -> List (EQty,ProdKey) -> SortedMap ProdKey (List RBoM) -> io ()
 print_ch_r i [] m = pure ()
 print_ch_r i (muf@(qty,p_id)::xs) m = do
   let ch = rbom_to_list $ lookup p_id m
@@ -188,13 +188,13 @@ print_ch_r i (muf@(qty,p_id)::xs) m = do
   
   print_ch_r (i) xs m
 
-ch_map_to_BoM32 : List (EQty,Bits32) -> SortedMap Bits32 (List RBoM) -> List BoM32
+ch_map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List RBoM) -> List BoM32
 ch_map_to_BoM32 [] m = []
 ch_map_to_BoM32 (muf@(qty,p_id)::xs) m = 
   let ch = rbom_to_list $ lookup p_id m
       bom32_ch = ch_map_to_BoM32 ch m
       q = qty
-      node = Node32 ( q) p_id bom32_ch in [node]++(ch_map_to_BoM32 xs m)
+      node = Node32 ( q) (p_id) bom32_ch in [node]++(ch_map_to_BoM32 xs m)
 
 mult_BoM32 : EQty -> List BoM32 -> List BoM32
 mult_BoM32 x [] = []
@@ -202,7 +202,7 @@ mult_BoM32 x ((Node32 qty sku components) :: xs) =
     let ch = mult_BoM32 (x*qty) components
         n = Node32 (x*qty) sku ch in [n] ++ (mult_BoM32 x xs)
 
-variants_BoM32 : List BoM32 -> List (EQty,Bits32)
+variants_BoM32 : List BoM32 -> List (EQty,ProdKey)
 variants_BoM32 [] = []
 variants_BoM32 ((Node32 qty sku []) :: xs) = [(qty,sku)] ++ (variants_BoM32 xs)
 variants_BoM32 ((Node32 qty sku c) :: xs) = (variants_BoM32 c)++(variants_BoM32 xs)
@@ -222,7 +222,7 @@ print_list (x::xs) = do
   --printLn x
   putStrLn x
   print_list xs
-  
+  {-
 read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
 read_root_boms c  = do
   child_rows <- get c BoM_NP (columns BoM_NP) (IsNull BomID)
@@ -261,7 +261,7 @@ main_read_bom  = do
   
   
   boms <- read_root_boms c
-  let root_p_ids = [ (product_qty u,product_id u) | u <- boms]
+  let root_p_ids = [ (product_qty u,PK32 product_id u) | u <- boms]
   --printLn (length boms)
   l1 <- read_boms_ c boms
   --let l2 =  chmap2bom32 l1 []
@@ -312,3 +312,4 @@ muf_3_bom : HasIO io => io (List (RBoM, List RBoM) )
 muf_3_bom = do  
      l1 <- (liftIO main_3)
      pure l1
+-}

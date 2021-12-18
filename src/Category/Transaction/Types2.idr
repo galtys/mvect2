@@ -18,7 +18,7 @@ data ProdKey = PKUser String | PK32 Bits32 | PKTax String
 public export
 data BoM32 : Type where  
   --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
-   Node32 : (qty:EQty) -> (sku:Bits32) ->(components:List BoM32) -> BoM32   
+   Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
 
 

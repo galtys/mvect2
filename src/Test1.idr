@@ -93,7 +93,7 @@ x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
                     pure ()
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
-                    l1 <- muf_3_bom
+                    --l1 <- muf_3_bom
                     putStrLn ("EV WS  val: " ++ (show (get_p_int p_fn)))
                     let p_wm = (ev_to_ws_message p_ev)
                     msg <- mg_ws_receive_as_String p_conn p_wm                 
@@ -142,20 +142,20 @@ child_map_RBoM [] = empty
 child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
   -}
   
-toBoM_map : List BrowseBoM.RecordModel -> SortedMap Bits32 (List BrowseBoM.RecordModel)
+toBoM_map : List BrowseBoM.RecordModel -> SortedMap ProdKey (List BrowseBoM.RecordModel)
 toBoM_map [] = empty
-toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert product_id bom_lines (toBoM_map xs)
+toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 product_id) bom_lines (toBoM_map xs)
 
-toProduct_map : List BrowseProduct.RecordModel -> SortedMap Bits32 BrowseProduct.RecordModel
+toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
 toProduct_map [] = empty
-toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert pk p (toProduct_map xs)
+toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 pk) p (toProduct_map xs)
 --toProduct_map [] = empty
 
-rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,Bits32)
+rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,ProdKey)
 rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (product_qty u,product_id u) | u<-x]
+rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
     
-map_to_BoM32 : List (EQty,Bits32) -> SortedMap Bits32 (List BrowseBoM.RecordModel) -> List BoM32
+map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32
 map_to_BoM32 [] m = []
 map_to_BoM32 (muf@(qty,p_id)::xs) m = 
   let ch = rbom_to_list $ lookup p_id m  
@@ -185,7 +185,7 @@ pjb_test = do
   -}
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
-  let qp = [(1,3303)]
+  let qp = [(1, PK32 3303)]
       bom_map = toBoM_map boms
       m32x = map_to_BoM32 qp bom_map
       
