@@ -10,194 +10,11 @@ import Category.Transaction.Demo
 import Category.Transaction.Types
 import Category.Transaction.Types2
 import Data.Ratio
---import Data.Zippable
-import JSON
+--import Odoo.PG.BoM
+import Odoo.Schema.PJBRecDef
+--import Generics.Derive
 
-import Generics.Derive
-import JSON
-
-import Control.Monad.Either
-
-import PQ.CRUD
-import PQ.FFI
-import PQ.Schema
-import PQ.Types
-
-
-%ambiguity_depth 10
-{-
-%language ElabReflection
---------------------------------------------------------------------------------
---          Product and Bom
---------------------------------------------------------------------------------
-PT : String
-PT = "product_template"
-
-PP : String
-PP = "product_product"
-
-BM : String
-BM = "mrp_bom"
-
--- Product Template Table
-Id_PT : Column
-Id_PT = primarySerial64 Bits32 "id" (Just . cast) PT
-
-Name : Column
-Name = notNull String "name" Text Just id PT
-
-ListPrice : Column
-ListPrice = nullable Price "list_price" DoublePrecision (Just . toINC20) cast PT
-
-ProductTemplate_NP : Table
-ProductTemplate_NP = MkTable PT
-         [Id_PT, Name, ListPrice]
-
--- Product table
-Id_PP : Column
-Id_PP = primarySerial64 Bits32 "id" (Just . cast) PP
-
-ProductTmplID : Column
-ProductTmplID = notNull Bits32 "product_tmpl_id" BigInt (Just . cast) cast PP
-
-TradePrice : Column
-TradePrice = nullable Price "trade" DoublePrecision (Just . toEX20) cast PP
-
-RetailPrice : Column
-RetailPrice = nullable Price "retail" DoublePrecision (Just . toINC20) cast PP
-
-ContractPrice : Column
-ContractPrice = nullable Price "contract" DoublePrecision (Just . toEX20) cast PP
-
-SKU  : Column
-SKU = notNull String "default_code" Text Just id PP
-
-Product_NP : Table
-Product_NP = MkTable PP
-         [Id_PP,ProductTmplID, SKU, TradePrice,RetailPrice,ContractPrice]
-
--- BoM table
-Id_BM : Column
-Id_BM = primarySerial64 Bits32 "id" (Just . cast) BM
-
-ProdQty : Column
-ProdQty = notNull EQty "product_qty" DoublePrecision (Just . cast) cast BM
-
-ProductID : Column
-ProductID = notNull Bits32 "product_id" BigInt (Just . cast) cast BM
-
-BomID : Column
-BomID = nullable Bits32 "bom_id" BigInt (Just . cast) cast BM
-
-record RBoM where
-  constructor MkRBoM
-  product_id : Bits32
-  product_qty : EQty
-  bom_id : (Maybe Bits32)
-  pk : Bits32
-        
-%runElab derive "RBoM" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-
-BoM_NP : Table
-BoM_NP = MkTable "mrp_bom"
-      [ProductID,ProdQty,BomID,Id_BM]
-
-record RProduct where
-  constructor MkRProduct
-  pk : Bits32
-  sku : String  
-  name : String
-  list_price : Maybe Price
-  trade : Maybe Price
-  retail : Maybe Price
-  contract : Maybe Price
-%runElab derive "RProduct" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
-      
-ListProdCols : List Column
-ListProdCols = [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice]
-
-Prod_NP_R : Table
-Prod_NP_R = MkTable "x"
-            ListProdCols
-
---public export
---0 GetRSOP : List Column -> Type
---GetRSOP cs = SOP I [(GetTypes cs)]
-
-toRBoM : GetRow (columns BoM_NP) -> RBoM
-toRBoM =  to . (\x => MkSOP $ Z x)
-
-{-
-toRProduct : GetRow ListProdCols -> RProduct
-toRProduct = toR . tosop where
-  tosop : GetRow (ListProdCols) -> GetRSOP (ListProdCols)
-  tosop x = MkSOP $ Z x
-
-  toR : GetRSOP (ListProdCols) -> RProduct
-  toR = to
--}
-toRProduct : GetRow ListProdCols -> RProduct
-toRProduct = to . (\x => MkSOP $ Z x)
-
--}
-{-
-toRProduct : GetRow ListProdCols -> RProduct
-toRProduct x = 
-   let lp = (get (Maybe Price) (tl (tl (tl x))))
-       tp = (get (Maybe Price) (tl (tl (tl (tl x)))))
-       rp = (get (Maybe Price) (tl (tl (tl (tl (tl x))))))
-       cp = (get (Maybe Price) (tl (tl (tl (tl (tl (tl x)))))))
-       xn =(get String (tl (tl x)))
-       prod =MkRProduct (get Bits32 x) (get String (tl x)) xn lp tp rp cp in prod
--}
-{-
-rbom2bom32  : RBoM -> (List BoM32) -> BoM32
-rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
-   qty = (cast product_qty) in Node32 ( qty) (PK32 product_id) xs
-
-chmap2bom32 : (List (RBoM, List RBoM) ) -> List BoM32 -> List BoM32
-chmap2bom32 [] chld= []
-chmap2bom32 ((x, y) :: xs) chld = 
-   let ch=[ (rbom2bom32 ox chld) | ox <- y]
-       b=rbom2bom32 x ch in [b]++chmap2bom32 xs chld
-
-
-child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap ProdKey (List RBoM)
-child_map_RBoM [] = empty
-child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert (PK32 product_id) y (child_map_RBoM xs)
-
-rbom_to_list : Maybe (List RBoM) -> List (EQty,ProdKey)
-rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
-
-
-print_ch : HasIO io =>  Bits32 -> ProdKey -> SortedMap ProdKey (List RBoM) -> io()
-print_ch i p_id m = do
-  printLn ( (ret_spaces i) ++(show p_id)++":"++(show $ rbom_to_list $ lookup p_id m))
-
-print_ch_r : HasIO io =>  Bits32 -> List (EQty,ProdKey) -> SortedMap ProdKey (List RBoM) -> io ()
-print_ch_r i [] m = pure ()
-print_ch_r i (muf@(qty,p_id)::xs) m = do
-  let ch = rbom_to_list $ lookup p_id m
-  
-  printLn ( (ret_spaces i) ++(show p_id)++":"++(show ch ))
-  print_ch_r (i+1) ch m
-  
-  print_ch_r (i) xs m
-ch_map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List RBoM) -> List BoM32
-ch_map_to_BoM32 [] m = []
-ch_map_to_BoM32 (muf@(qty,p_id)::xs) m = 
-  let ch = rbom_to_list $ lookup p_id m
-      bom32_ch = ch_map_to_BoM32 ch m
-      q = qty
-      node = Node32 ( q) (p_id) bom32_ch in [node]++(ch_map_to_BoM32 xs m)
-safeHead : List x -> Maybe x
-safeHead [] = Nothing
-safeHead (y :: xs) = Just y
-
--}
-
-
+--%language ElabReflection
 
 ret_spaces : Bits32 -> String
 ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
@@ -229,94 +46,24 @@ print_list (x::xs) = do
   --printLn x
   putStrLn x
   print_list xs
-  {-
-read_root_boms : HasIO io => MonadError SQLError io => Connection -> io (List RBoM) 
-read_root_boms c  = do
-  child_rows <- get c BoM_NP (columns BoM_NP) (IsNull BomID)
-  let child_rbom = [ toRBoM ox | ox <- child_rows ]
-  pure child_rbom
-                          
-read_boms_ : HasIO io => MonadError SQLError io => Connection -> (List RBoM) ->  io (List (RBoM, List RBoM) )
-read_boms_ c [] = pure []
-read_boms_ c (x@(MkRBoM product_id product_qty b_id pk) :: xs) = do
-
-  child_rows <- get c BoM_NP (columns BoM_NP) (BomID == Just (cast pk ) )  
-  let child_rbom = [ toRBoM ox | ox <- child_rows ]
-  let ret = ((x,child_rbom))
-  xs <- read_boms_ c xs
-  pure ([ret]++xs) 
-
-read_product_templates : HasIO io => MonadError SQLError io => Connection -> io ()
-read_product_templates c = do
-  rows <- get c ProductTemplate_NP (columns ProductTemplate_NP) (Name == "test product") --(True)  
-  printLn ( rows)
-  printLn (length rows)
-  --ListProdCols : List Column
-  --ListProdCols = [Id_PP, SKU,Name,ListPrice, TradePrice, RetailPrice, ContractPrice]
-  
-  rows2 <- getJoin c ProductTemplate_NP Product_NP ListProdCols (JC ProductTmplID Id_PT)
-  
-  let rprod = [toRProduct ox | ox <- rows2 ]
-  traverse_ printLn rprod
-  pure ()
-  
-main_read_bom : HasIO io => MonadError SQLError io => io (List (RBoM, List RBoM) )
-main_read_bom  = do
-  c    <- connect "postgresql://jan@localhost:5432/pjb-2021-10-27_1238"  
-  
-  --read_product_templates c
-  
-  
-  boms <- read_root_boms c
-  let root_p_ids = [ (product_qty u,PK32 product_id u) | u <- boms]
-  --printLn (length boms)
-  l1 <- read_boms_ c boms
-  --let l2 =  chmap2bom32 l1 []
-  let m1 = child_map_RBoM l1
-  
-
-  --rows <- get c BoM_NP [Id] (IsNull BomID)  
-  --b_ids <- prods_to_bom_ids c [p_id]
-  --boms <- read_bom_p_id2 c b_ids
-  
-  --print_ch_r 0  m1
-  let qp = [(1,3303)]
-  let m32x = ch_map_to_BoM32 qp m1
-  let m32 = ch_map_to_BoM32 root_p_ids m1
-  
-  print_list $ print_BoM32 0 m32x
-  let qp_mult = mult_BoM32 1 m32x 
-  print_list $ print_BoM32 0 qp_mult
-  let vr =  variants_BoM32 qp_mult
-  let vr_qty = [ (fst x) | x<-vr ]
-  let sum_vr = sum vr_qty
-  printLn vr_qty
-  --printLn sum_vr
-  let r_sum_vr = (recip sum_vr)
-  let m32_r = mult_BoM32 r_sum_vr m32x
-  
-  print_list $ print_BoM32 0 m32_r
-  
-  let r_vr =  variants_BoM32 m32_r
-  let r_vr_qty = [ (fst x) | x<-r_vr ]
-  let vr2_qty = [ x*r_sum_vr | x <- vr_qty]
-  --printLn vr_qty  
-  --printLn vr2_qty
-  --printLn $ sum vr2_qty
-  finish c
-  pure l1
-  
-  
-export  
-main_3 : IO (List (RBoM, List RBoM) )
-main_3 = do Left err <- runEitherT (main_read_bom {io = EitherT SQLError IO} )
-              | Right l1 => pure l1
-            printLn err
-            pure []
-
 export
-muf_3_bom : HasIO io => io (List (RBoM, List RBoM) )
-muf_3_bom = do  
-     l1 <- (liftIO main_3)
-     pure l1
--}
+toBoM_map : List BrowseBoM.RecordModel -> SortedMap ProdKey (List BrowseBoM.RecordModel)
+toBoM_map [] = empty
+toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 product_id) bom_lines (toBoM_map xs)
+export
+toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
+toProduct_map [] = empty
+toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 pk) p (toProduct_map xs)
+--toProduct_map [] = empty
+export
+rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,ProdKey)
+rbom_to_list Nothing = []
+rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
+export    
+map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32
+map_to_BoM32 [] m = []
+map_to_BoM32 (muf@(qty,p_id)::xs) m = 
+  let ch = rbom_to_list $ lookup p_id m  
+      bom32_ch = map_to_BoM32 ch m
+      q = qty
+      node = Node32 ( q) p_id bom32_ch in [node]++(map_to_BoM32 xs m)

@@ -35,7 +35,6 @@ import PQ.Schema
 import PQ.Types
 
 import Odoo.PG.BoM
-import Odoo.PG.Order
 
 import Category.Schema.Types
 import Category.Schema.PJB
@@ -47,10 +46,8 @@ import Core.Context
 import System.FFI
 import Libc.Time
 --import System
-import Generics.Derive
 
 %ambiguity_depth 10
-%language ElabReflection
 
 json_result : String
 json_result = "{\"result\": 332}"
@@ -118,50 +115,7 @@ gen_adder x = (\a => a+x)
 
 so_id_44575 : Bits32
 so_id_44575 = 44575
-{-
-pjb_test : IO ()
-pjb_test = do
-  t0 <- time
-  p <- BrowseResPartner.read (True)
-  let toPair : String -> (String,Int)
-      toPair x = (x,1)
-      pmap : SortedMap String Int
-      pmap = fromList (map (toPair . name) p)
-  t1 <- time
-  traverse_ printLn (Data.SortedMap.toList pmap)
   
-  printLn (t1-t0)
-  t2 <- time
-  printLn (lookup "Zaki3" pmap)
-  t3 <- time
-  printLn (t3-t2)
-  -}
-{-  
-child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
-child_map_RBoM [] = empty
-child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
-  -}
-  
-toBoM_map : List BrowseBoM.RecordModel -> SortedMap ProdKey (List BrowseBoM.RecordModel)
-toBoM_map [] = empty
-toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 product_id) bom_lines (toBoM_map xs)
-
-toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
-toProduct_map [] = empty
-toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 pk) p (toProduct_map xs)
---toProduct_map [] = empty
-
-rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,ProdKey)
-rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
-    
-map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32
-map_to_BoM32 [] m = []
-map_to_BoM32 (muf@(qty,p_id)::xs) m = 
-  let ch = rbom_to_list $ lookup p_id m  
-      bom32_ch = map_to_BoM32 ch m
-      q = qty
-      node = Node32 ( q) p_id bom32_ch in [node]++(map_to_BoM32 xs m)
 {-
 public export
 data BoMProduct : Type where  
