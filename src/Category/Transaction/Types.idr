@@ -46,9 +46,19 @@ data LineTerm : Type where
 %runElab derive "LineTerm" [Generic, Meta, Eq, Show, ToJSON,FromJSON]     
 -}
 
+
+
 public export
 data ProdKey = PKUser String | PK32 Bits32 | PKTax String | FromInteger
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
+public export
+data TProdKey = T ProdKey
+%runElab derive "TProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
+--public export
+--ProdKey : Type
+--ProdKey = TProdKey
 
 public export
 data BoM32 : Type where  
@@ -112,11 +122,6 @@ public export
 Product2 : Type
 Product2 = (ProdKey, Currency)
 
-public export
-data ProductT = Dx Product | Apply Product Currency | Cx Currency
-
-public export
-data HomT = List ProductT
 
 public export
 Hom2 : Type
