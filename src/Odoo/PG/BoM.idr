@@ -26,9 +26,9 @@ mult_BoM32 x ((Node32 qty sku components) :: xs) =
     let ch = mult_BoM32 (x*qty) components
         n = Node32 (x*qty) sku ch in [n] ++ (mult_BoM32 x xs)
 export
-variants_BoM32 : List BoM32 -> List (EQty,ProdKey)
+variants_BoM32 : List BoM32 -> Hom1 --List (ProdKey, EQty)
 variants_BoM32 [] = []
-variants_BoM32 ((Node32 qty sku []) :: xs) = [(qty,sku)] ++ (variants_BoM32 xs)
+variants_BoM32 ((Node32 qty sku []) :: xs) = [(sku,qty)] ++ (variants_BoM32 xs)
 variants_BoM32 ((Node32 qty sku c) :: xs) = (variants_BoM32 c)++(variants_BoM32 xs)
 
 export
@@ -56,13 +56,13 @@ toProduct_map [] = empty
 toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 pk) p (toProduct_map xs)
 --toProduct_map [] = empty
 export
-rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> List (EQty,ProdKey)
+rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> Hom1 --List (ProdKey,EQty)
 rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
+rbom_to_list (Just x) = [ (PK32 $product_id u,product_qty u) | u<-x]
 export    
-map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32
+map_to_BoM32 : Hom1 -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32 --List (ProdKey,EQty)
 map_to_BoM32 [] m = []
-map_to_BoM32 (muf@(qty,p_id)::xs) m = 
+map_to_BoM32 (muf@(p_id,qty)::xs) m = 
   let ch = rbom_to_list $ lookup p_id m  
       bom32_ch = map_to_BoM32 ch m
       q = qty

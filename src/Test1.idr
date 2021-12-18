@@ -134,19 +134,19 @@ priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delive
               Nothing => (priceFromOrderLine xs)
               Just p_id => [ ( (fromMaybeDiscount discount)*price_unit, PK32 p_id) ] ++ (priceFromOrderLine xs)
 
-qtyFromOrderLine : List BrowseOrderLine.RecordModel -> List (EQty, ProdKey)
+qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
 qtyFromOrderLine [] = []
 qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
-              Nothing => [ (product_uom_qty, PKUser "missing") ] ++ (qtyFromOrderLine xs)
-              Just p_id => [ (product_uom_qty, PK32 p_id) ] ++ (qtyFromOrderLine xs)
+              Nothing => [ (PKUser "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (PK32 p_id, product_uom_qty) ] ++ (qtyFromOrderLine xs)
 
-fromStockMove : List BrowseStockMove.RecordModel -> List (EQty, ProdKey)
+fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
 fromStockMove [] = []
 fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
            case product_id of
               Nothing => (fromStockMove xs)
-              Just p_id => [ (product_qty, PK32 p_id ) ] ++ (fromStockMove xs)
+              Just p_id => [ (PK32 p_id,product_qty) ] ++ (fromStockMove xs)
 
 pjb_test : IO ()
 pjb_test = do
