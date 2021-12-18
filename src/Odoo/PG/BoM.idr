@@ -23,8 +23,10 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-%language ElabReflection
+
 %ambiguity_depth 10
+{-
+%language ElabReflection
 --------------------------------------------------------------------------------
 --          Product and Bom
 --------------------------------------------------------------------------------
@@ -137,6 +139,7 @@ toRProduct = toR . tosop where
 toRProduct : GetRow ListProdCols -> RProduct
 toRProduct = to . (\x => MkSOP $ Z x)
 
+-}
 {-
 toRProduct : GetRow ListProdCols -> RProduct
 toRProduct x = 
@@ -147,7 +150,7 @@ toRProduct x =
        xn =(get String (tl (tl x)))
        prod =MkRProduct (get Bits32 x) (get String (tl x)) xn lp tp rp cp in prod
 -}
-
+{-
 rbom2bom32  : RBoM -> (List BoM32) -> BoM32
 rbom2bom32 (MkRBoM product_id product_qty bom_id pk) xs = let 
    qty = (cast product_qty) in Node32 ( qty) (PK32 product_id) xs
@@ -163,16 +166,10 @@ child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap ProdKey (List RBoM)
 child_map_RBoM [] = empty
 child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert (PK32 product_id) y (child_map_RBoM xs)
 
-safeHead : List x -> Maybe x
-safeHead [] = Nothing
-safeHead (y :: xs) = Just y
-
 rbom_to_list : Maybe (List RBoM) -> List (EQty,ProdKey)
 rbom_to_list Nothing = []
 rbom_to_list (Just x) = [ (product_qty u,PK32 $product_id u) | u<-x]
 
-ret_spaces : Bits32 -> String
-ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
 
 print_ch : HasIO io =>  Bits32 -> ProdKey -> SortedMap ProdKey (List RBoM) -> io()
 print_ch i p_id m = do
@@ -187,7 +184,6 @@ print_ch_r i (muf@(qty,p_id)::xs) m = do
   print_ch_r (i+1) ch m
   
   print_ch_r (i) xs m
-
 ch_map_to_BoM32 : List (EQty,ProdKey) -> SortedMap ProdKey (List RBoM) -> List BoM32
 ch_map_to_BoM32 [] m = []
 ch_map_to_BoM32 (muf@(qty,p_id)::xs) m = 
@@ -195,6 +191,17 @@ ch_map_to_BoM32 (muf@(qty,p_id)::xs) m =
       bom32_ch = ch_map_to_BoM32 ch m
       q = qty
       node = Node32 ( q) (p_id) bom32_ch in [node]++(ch_map_to_BoM32 xs m)
+safeHead : List x -> Maybe x
+safeHead [] = Nothing
+safeHead (y :: xs) = Just y
+
+-}
+
+
+
+ret_spaces : Bits32 -> String
+ret_spaces x = if x==0 then "" else concat [ "  " | u<- [0..x]]
+
 
 mult_BoM32 : EQty -> List BoM32 -> List BoM32
 mult_BoM32 x [] = []
