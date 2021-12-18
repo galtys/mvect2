@@ -36,7 +36,7 @@ retail_cust_31587 = BrowseResPartner.MkRecordModel
          email = "retail_cust1@btconnect.com", 
          street2 = Just "Mid Lane" }
 
-
+export
 sti20 : PrimOrderTax.RecordModel
 sti20 = PrimOrderTax.MkRecordModel 
       { pk = 14, 
@@ -45,7 +45,7 @@ sti20 = PrimOrderTax.MkRecordModel
         amount = 1/5, 
         type = Just "percent", 
         price_include = Just True }
-
+export
 so_44970 : BrowseOrder.RecordModel
 so_44970 = BrowseOrder.MkRecordModel 
        { pk = 44970, 
@@ -66,7 +66,7 @@ so_44970 = BrowseOrder.MkRecordModel
              [MkRecordModel { pk = 176369, 
                               price_unit = 0, 
                               product_uom_qty = 1, 
-                              discount = Just 1, 
+                              discount = Just (EQVal EPercent 0), 
                               delivery_line = Just True, 
                               order_id = 44970, 
                               product_id = Just 735, 
@@ -74,7 +74,7 @@ so_44970 = BrowseOrder.MkRecordModel
               MkRecordModel { pk = 176363, 
                               price_unit = 3199, 
                               product_uom_qty = 1, 
-                              discount = Just 1, 
+                              discount = Just (EQVal EPercent 0), 
                               delivery_line = Just False, 
                               order_id = 44970, 
                               product_id = Just 1042, 
@@ -82,7 +82,7 @@ so_44970 = BrowseOrder.MkRecordModel
               MkRecordModel { pk = 176364, 
                               price_unit = 1799, 
                               product_uom_qty = 1, 
-                              discount = Just 1, 
+                              discount = Just (EQVal EPercent 0), 
                               delivery_line = Just False, 
                               order_id = 44970, 
                               product_id = Just 1064, 
@@ -90,7 +90,7 @@ so_44970 = BrowseOrder.MkRecordModel
               MkRecordModel { pk = 176366,
                               price_unit = 139, 
                               product_uom_qty = 1, 
-                              discount = Just 0, 
+                              discount = Just (EQVal EPercent 100), 
                               delivery_line = Just False, 
                               order_id = 44970, 
                               product_id = Just 4085, 
@@ -98,7 +98,7 @@ so_44970 = BrowseOrder.MkRecordModel
               MkRecordModel { pk = 176367, 
                               price_unit = 69, 
                               product_uom_qty = 2, 
-                              discount = Just 0, 
+                              discount = Just (EQVal EPercent 100), 
                               delivery_line = Just False, 
                               order_id = 44970, 
                               product_id = Just 4089, 
@@ -106,12 +106,122 @@ so_44970 = BrowseOrder.MkRecordModel
               MkRecordModel { pk = 176368, 
                               price_unit = 49, 
                               product_uom_qty = 1, 
-                              discount = Just 0, 
+                              discount = Just (EQVal EPercent 100), 
                               delivery_line = Just False, 
                               order_id = 44970, 
                               product_id = Just 4095, 
                               tax_ids = [sti20]} ] , 
          requested_date = Nothing }
+export
+sp_43747 : BrowseStockPicking.RecordModel
+sp_43747 = MkRecordModel 
+      { pk = 43747, 
+        origin = Just "SO44907", 
+        backorder_id = Nothing, 
+        date_done = "", 
+        partner_id = Just 31587, 
+        min_date = "2021-11-19 12:00:00", 
+        name = "OUT40884", 
+        state = "assigned", 
+        move_ids = 
+          [MkRecordModel 
+             { pk = 163195, 
+               origin = Just "SO44907", 
+               price_unit = 999, 
+               product_qty = 1, 
+               product_id = Just 726, 
+               location_id = Just 12, 
+               location_dest_id = Just 9, 
+               picking_id = Just 43747, 
+               state = "confirmed" }, 
+           MkRecordModel 
+             { pk = 163196, 
+               origin = Just "SO44907", 
+               price_unit = 211, 
+               product_qty = 8, 
+               product_id = Just 2932, 
+               location_id = Just 12, 
+               location_dest_id = Just 9, 
+               picking_id = Just 43747, 
+               state = "confirmed" }, 
+           MkRecordModel 
+             { pk = 163197, 
+               origin = Just "SO44907", 
+               price_unit = 88, 
+               product_qty = 8, 
+               product_id = Just 2852, 
+               location_id = Just 12, 
+               location_dest_id = Just 9, 
+               picking_id = Just 43747, 
+               state = "confirmed" }, 
+           MkRecordModel 
+             { pk = 163198, 
+               origin = Just "SO44907", 
+               price_unit = 199, 
+               product_qty = 1, 
+               product_id = Just 733, 
+               location_id = Just 12, 
+               location_dest_id = Just 9, 
+               picking_id = Just 43747, 
+               state = "confirmed" }, 
+           MkRecordModel 
+               { pk = 163199, 
+                 origin = Just "SO44907", 
+                 price_unit = 734, 
+                 product_qty = 2, 
+                 product_id = Just 2942, 
+                 location_id = Just 12, 
+                 location_dest_id = Just 9, 
+                 picking_id = Just 43747, 
+                 state = "confirmed" }, 
+           MkRecordModel { 
+                 pk = 163200, 
+                 origin = Just "SO44907", 
+                 price_unit = 95, 
+                 product_qty = 2, 
+                 product_id = Just 3531, 
+                 location_id = Just 12, 
+                 location_dest_id = Just 9, 
+                 picking_id = Just 43747, 
+                 state = "confirmed" }, 
+           MkRecordModel { 
+                 pk = 163192, 
+                 origin = Just "SO44907", 
+                 price_unit = 139, 
+                 product_qty = 1, 
+                 product_id = Just 4085, 
+                 location_id = Just 12, 
+                 location_dest_id = Just 9, 
+                 picking_id = Just 43747, 
+                 state = "assigned" }, 
+           MkRecordModel { 
+                 pk = 163193, 
+                 origin = Just "SO44907", 
+                 price_unit = 69, 
+                 product_qty = 2, 
+                 product_id = Just 4089, 
+                 location_id = Just 12, 
+                 location_dest_id = Just 9, 
+                 picking_id = Just 43747, 
+                 state = "assigned" }, 
+           MkRecordModel { 
+                 pk = 163194, 
+                 origin = Just "SO44907", 
+                 price_unit = 49, 
+                 product_qty = 1, 
+                 product_id = Just 4095, 
+                 location_id = Just 12, 
+                 location_dest_id = Just 9, 
+                 picking_id = Just 43747, 
+                 state = "assigned" }] }
+export
+va_43244 : BrowseAccountVoucher.RecordModel 
+va_43244 = BrowseAccountVoucher.MkRecordModel 
+         { pk = 43244, 
+           number = "WALT1248", 
+           partner_id = Just 31587, 
+           journal_id = Just 23, 
+           amount = 4998 }
 
 export
 hilton : Address

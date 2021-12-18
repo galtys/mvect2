@@ -122,8 +122,32 @@ data BoMProduct : Type where
    NodeProduct : (qty:EQty) -> (ProdKey) ->(components:List BoMProduct) -> BoMProduct
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
   -}  
-        
-                
+fromMaybeDiscount : Maybe EQty -> EQty
+fromMaybeDiscount Nothing = 0
+fromMaybeDiscount (Just x) = x
+
+
+priceFromOrderLine : List BrowseOrderLine.RecordModel -> List (EQty, ProdKey)
+priceFromOrderLine [] = []
+priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
+           case product_id of 
+              Nothing => (priceFromOrderLine xs)
+              Just p_id => [ ( (fromMaybeDiscount discount)*price_unit, PK32 p_id) ] ++ (priceFromOrderLine xs)
+
+qtyFromOrderLine : List BrowseOrderLine.RecordModel -> List (EQty, ProdKey)
+qtyFromOrderLine [] = []
+qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
+           case product_id of 
+              Nothing => [ (product_uom_qty, PKUser "missing") ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (product_uom_qty, PK32 p_id) ] ++ (qtyFromOrderLine xs)
+
+fromStockMove : List BrowseStockMove.RecordModel -> List (EQty, ProdKey)
+fromStockMove [] = []
+fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
+           case product_id of
+              Nothing => (fromStockMove xs)
+              Just p_id => [ (product_qty, PK32 p_id ) ] ++ (fromStockMove xs)
+
 pjb_test : IO ()
 pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
@@ -132,32 +156,29 @@ pjb_test = do
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
   sp <- BrowseStockPicking.read_ids [43747] (True)
 
-  traverse_ printLn so  
-  traverse_ printLn sp      
-  traverse_ printLn av
+  --traverse_ printLn so  
+  --traverse_ printLn sp      
+  --traverse_ printLn av
     
   --printLn ""
   --traverse_ printLn cust
-  {-
-  inv <- BrowseAccountInvoice.read (True)
-
-  av <- BrowseAccountVoucher.read (True)  
-
-  traverse_ printLn inv
   
-  -}
+  
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
   let prod = [ (1, PK32 $ product_id u) | u <- boms ]
-      qp = [(1, PK32 3303),(1, PK32 3241),(1, PK32 3269), (1,PK32 2931),(1,PK32 2701),(1,PK32 847)]
+      qp = qtyFromOrderLine so_44970.order_line   --[(1, PK32 3303),(1, PK32 3241),(1, PK32 3269), (1,PK32 2931),(1,PK32 2701),(1,PK32 847)]
       bom_map = toBoM_map boms
       m32x = map_to_BoM32 qp bom_map
       
   --print_BoM32 3303 m32x
-  
+  pure ()
   print_list $ print_BoM32 0 $ mult_BoM32 1  m32x
-  printLn $ variants_BoM32 $ mult_BoM32 1  m32x
-      
+  traverse_ printLn $ variants_BoM32 $ mult_BoM32 1  m32x
+  printLn $ fromStockMove sp_43747.move_ids
+  
+  --printLn [ (product_qty u, PK32 (product_id u)) | u <- sp_43747.move_ids ]
+  
   --let m1 = child_map_RBoM boms
     
 mg_test : IO ()
