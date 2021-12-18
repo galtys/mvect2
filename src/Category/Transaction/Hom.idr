@@ -44,6 +44,7 @@ merge_as_union acc x = case (lookup (fst x) acc) of
                                            0 => (delete (fst x) acc)
                                            nv => (insert (fst x) nv acc)                                           
 
+
 merge_item_into : (SortedMap ProdKey EQty) -> (ProdKey, EQty) -> (SortedMap ProdKey EQty)
 merge_item_into acc x = mergeWith (+) acc (fromList [x])
 
@@ -84,6 +85,9 @@ public export
 diffHom1 : Hom1 -> Hom1 -> Hom1
 diffHom1 x y = addHom1 x (invHom1 y)
 
+public export
+multHom1 : Hom1 -> Hom1 -> Hom1
+multHom1 x y = [] -- will be apply
 
 public export
 evDiffHom1 : Hom1 -> Hom1 -> Hom1
@@ -92,6 +96,26 @@ evDiffHom1 x y = (evalHom1 (diffHom1 x y))
 public export
 eqHom1 : Hom1 -> Hom1 -> Bool
 eqHom1 x y = (evDiffHom1 x y) == id_hom1
+
+
+public export
+Num Hom1 where
+   (+) x y = evalProductList $ addHom1 x y
+   (*) = multHom1 -- tbd?
+   fromInteger x = [ (FromInteger, fromInteger x) ] 
+
+   
+public export
+Neg Hom1 where
+   (-) = evDiffHom1
+   negate = invHom1
+
+
+
+
+
+
+
 
 ||| Tax
 public export
@@ -160,9 +184,6 @@ get_tax_codes (LETaxCode taxcode x) = [taxcode]++(get_tax_codes x)
 get_tax_codes (LEAdd l1 l2) = (get_tax_codes l1)++(get_tax_codes l2)
 get_tax_codes (LEMul u mu l) = (get_tax_codes l)
 -}
-get_tc_prodkey : List TaxCode -> ProdKey
-get_tc_prodkey xs = PKTax (concat [(show x) | x <- xs] )
-
 {-
 eqLineTerm_TaxMult : LineTerm -> LineTerm -> Bool
 eqLineTerm_TaxMult l1 l2 = 
@@ -178,9 +199,6 @@ eqLineTerm_TaxEQty l1 l2 =
               l1_h2 = get_hom2_EQty l1
               l2_h2 = get_hom2_EQty l2 in ( (l1_tc==l2_tc) && (l1_h2==l2_h2) )
 -}
-fromMaybeEQty : Maybe EQty -> EQty
-fromMaybeEQty Nothing = 0
-fromMaybeEQty (Just x) = x
 {-
 public export
 fromProduct2 : Product2 -> LineExt
@@ -261,24 +279,4 @@ confirm_so = do
 -}
 
 
-
-public export
-apply2' : Hom2 -> Hom1 -> Hom1
-apply2' h2 p = ret where
-  h2map : SortedMap ProdKey Currency --Product
-  h2map = fromList h2
-  
-  ret1 : List (Maybe Currency,EQty)
-  ret1 = [ (lookup (fst x) h2map,(snd x)) | x<-p ]
-  
-  ret2 : List (Maybe Currency,EQty) -> Hom1
-  ret2 [] = []
-  ret2 ((Nothing,q) ::xs) = (ret2 xs)
-  ret2 ((Just x,q) ::xs) = [(fst x, (price (snd x))*q)]++ (ret2 xs)
-  
-  
-  ret : Hom1
-  ret = (ret2 ret1)
-  
-  
 

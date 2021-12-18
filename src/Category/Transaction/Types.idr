@@ -47,7 +47,7 @@ data LineTerm : Type where
 -}
 
 public export
-data ProdKey = PKUser String | PK32 Bits32 | PKTax String | FromInt
+data ProdKey = PKUser String | PK32 Bits32 | PKTax String | FromInteger
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
@@ -136,3 +136,31 @@ record Hom121 where
 export
 fromH121 : Hom121 -> Hom11
 fromH121 h121 = (MkH11 (dx h121) (cx h121))
+
+
+
+------------- THIS WILL BE MOVED
+
+public export
+apply2' : Hom2 -> Hom1 -> Hom1
+apply2' h2 p = ret where
+  h2map : SortedMap ProdKey Currency --Product
+  h2map = fromList h2
+  
+  ret1 : List (Maybe Currency,EQty)
+  ret1 = [ (lookup (fst x) h2map,(snd x)) | x<-p ]
+  
+  ret2 : List (Maybe Currency,EQty) -> Hom1
+  ret2 [] = []
+  ret2 ((Nothing,q) ::xs) = (ret2 xs)
+  ret2 ((Just x,q) ::xs) = [(fst x, (price (snd x))*q)]++ (ret2 xs)
+  
+  
+  ret : Hom1
+  ret = (ret2 ret1)
+  
+  
+
+get_tc_prodkey : List TaxCode -> ProdKey
+get_tc_prodkey xs = PKTax (concat [(show x) | x <- xs] )
+

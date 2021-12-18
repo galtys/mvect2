@@ -125,14 +125,19 @@ data BoMProduct : Type where
 fromMaybeDiscount : Maybe EQty -> EQty
 fromMaybeDiscount Nothing = 0
 fromMaybeDiscount (Just x) = x
-
-
+{-
+fromMaybeEQty : Maybe EQty -> EQty
+fromMaybeEQty Nothing = 0
+fromMaybeEQty (Just x) = x
+-}
 priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
 priceFromOrderLine [] = []
 priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
               Nothing => (priceFromOrderLine xs)
               Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 ((fromMaybeDiscount discount)*price_unit)  ) ) ] ++ (priceFromOrderLine xs)
+
+
 
 qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
 qtyFromOrderLine [] = []
@@ -147,6 +152,15 @@ fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id locati
            case product_id of
               Nothing => (fromStockMove xs)
               Just p_id => [ (PK32 p_id,product_qty) ] ++ (fromStockMove xs)
+              
+priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
+priceFromStockMove [] = []
+priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
+           case product_id of
+              Nothing => (priceFromStockMove xs)
+              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 price_unit) ) ] ++ (priceFromStockMove xs)
+              
+              
 
 pjb_test : IO ()
 pjb_test = do
@@ -160,26 +174,26 @@ pjb_test = do
   --traverse_ printLn sp      
   --traverse_ printLn av
     
-  --printLn ""
-  --traverse_ printLn cust
-  
-  
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
-  let prod = [ (1, PK32 $ product_id u) | u <- boms ]
-      qp = qtyFromOrderLine so_44970.order_line   --[(1, PK32 3303),(1, PK32 3241),(1, PK32 3269), (1,PK32 2931),(1,PK32 2701),(1,PK32 847)]
+  let h1_order =qtyFromOrderLine so_44970.order_line
+      
       bom_map = toBoM_map boms
-      m32x = map_to_BoM32 qp bom_map
+      h1_bom = map_to_BoM32 h1_order bom_map
+      
+      h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
+      h1_stock = fromStockMove sp_43747.move_ids
+      
+      h2 = priceFromOrderLine so_44970.order_line
+      h2_picking = priceFromStockMove sp_43747.move_ids
       
   --print_BoM32 3303 m32x
   pure ()
-  print_list $ print_BoM32 0 $ mult_BoM32 1  m32x
-  traverse_ printLn $ variants_BoM32 $ mult_BoM32 1  m32x
-  printLn $ fromStockMove sp_43747.move_ids
   
-  --printLn [ (product_qty u, PK32 (product_id u)) | u <- sp_43747.move_ids ]
+  traverse_ printLn $ ( h1_order_stock - h1_stock)
+  traverse_ printLn $ ( apply2' h2 h1_order )
   
-  --let m1 = child_map_RBoM boms
+  printLn $ ( apply2' h2_picking h1_stock )  
     
 mg_test : IO ()
 mg_test = do
