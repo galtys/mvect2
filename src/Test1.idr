@@ -160,7 +160,9 @@ priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id l
               Nothing => (priceFromStockMove xs)
               Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 price_unit) ) ] ++ (priceFromStockMove xs)
               
-              
+fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
+fromAccountVoucher [] = []
+fromAccountVoucher ((MkRecordModel pk number partner_id journal_id amount) :: xs) = [("GBP",amount)]++(fromAccountVoucher xs)
 
 pjb_test : IO ()
 pjb_test = do
@@ -191,10 +193,11 @@ pjb_test = do
   pure ()
   
   traverse_ printLn $ ( h1_order_stock - h1_stock)
-  traverse_ printLn $ ( apply2' h2 h1_order )
+  traverse_ printLn $ evalHom1 $ ( apply2' h2 h1_order )
   
-  printLn $ ( apply2' h2_picking h1_stock )  
-    
+  printLn $ evalHom1 $ ( apply2' h2_picking h1_stock )  --discount missing
+  printLn $ fromAccountVoucher [va_43244]
+  
 mg_test : IO ()
 mg_test = do
   --ignore $ run forever greet

@@ -113,6 +113,12 @@ Product2 : Type
 Product2 = (ProdKey, Currency)
 
 public export
+data ProductT = Dx Product | Apply Product Currency | Cx Currency
+
+public export
+data HomT = List ProductT
+
+public export
 Hom2 : Type
 Hom2 = List Product2 --was (Hom1->Hom1)
 
