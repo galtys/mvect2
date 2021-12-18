@@ -130,6 +130,11 @@ pjb_test = do
   
   so <- BrowseOrder.read_ids [44970] (True)
   printLn so
+  
+  av <- BrowseAccountVoucher.read_ids [43244] (True)  
+    
+  traverse_ printLn av
+    
   --printLn ""
   --traverse_ printLn cust
   {-
