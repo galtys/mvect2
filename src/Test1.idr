@@ -127,12 +127,12 @@ fromMaybeDiscount Nothing = 0
 fromMaybeDiscount (Just x) = x
 
 
-priceFromOrderLine : List BrowseOrderLine.RecordModel -> List (EQty, ProdKey)
+priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
 priceFromOrderLine [] = []
 priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
               Nothing => (priceFromOrderLine xs)
-              Just p_id => [ ( (fromMaybeDiscount discount)*price_unit, PK32 p_id) ] ++ (priceFromOrderLine xs)
+              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 ((fromMaybeDiscount discount)*price_unit)  ) ) ] ++ (priceFromOrderLine xs)
 
 qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
 qtyFromOrderLine [] = []
