@@ -128,23 +128,23 @@ pjb_test : IO ()
 pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
   
-  so <- BrowseOrder.read_ids [44970] (True)
-  printLn so
-  
+  so <- BrowseOrder.read_ids [44970] (True)  
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
-    
+  sp <- BrowseStockPicking.read_ids [43747] (True)
+
+  traverse_ printLn so  
+  traverse_ printLn sp      
   traverse_ printLn av
     
   --printLn ""
   --traverse_ printLn cust
   {-
   inv <- BrowseAccountInvoice.read (True)
-  sp <- BrowseStockPicking.read (True)
+
   av <- BrowseAccountVoucher.read (True)  
-  traverse_ printLn so
+
   traverse_ printLn inv
-  traverse_ printLn sp  
-  traverse_ printLn av
+  
   -}
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
