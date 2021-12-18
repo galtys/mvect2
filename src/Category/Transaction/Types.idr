@@ -127,8 +127,10 @@ public export
 record Hom121 where
    constructor MkH121
    dx:Hom1
+   bom : List BoM32   
    appl:Hom2
    cx : Hom1
+   
 %runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
 
 export
