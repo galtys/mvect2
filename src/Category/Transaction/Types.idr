@@ -63,17 +63,9 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 
 
 public export
-data ProdKey = PKCy DxCx Currency | PKUser DxCx String | PK32 DxCx Bits32 | PKPrice DxCx Currency TaxCode | FromInteger DxCx --| PKAppl ProdKey ProdKey
+data ProdKey = PKCy DxCx Currency | PKUser DxCx String | PK32 DxCx Bits32 | PKPrice DxCx Currency TaxCode | FromInteger DxCx --|PKAppl ProdKey ProdKey
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
-public export
-TProdKey : Type
-TProdKey = T ProdKey
---%runElab derive "TProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
-
---public export
---ProdKey : Type
---ProdKey = TProdKey
 
 public export
 data BoM32 : Type where  
@@ -84,24 +76,6 @@ data BoM32 : Type where
 public export
 Product : Type
 Product = (ProdKey, EQty)
-
-public export
-TProduct : Type
-TProduct = (TProdKey, EQty)
-
-{-
-public export
-record Price where
-  constructor MkPrice
-  tax : TaxCode
-  price : EQty
-%runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
-export
-Price : Type
-Price = Product
--}
-
 
 export  
 toINC20 : Double -> Product
@@ -129,20 +103,14 @@ FromString ProdKey where
            Nothing => PKUser DX s
            Just cy => PKCy CX cy
            
-{-
-public export
-CurrencyProd : Type
-CurrencyProd = (ProdKey, Product)
--}
-
 public export
 Hom1 : Type
 Hom1 = List Product
-
+{-
 public export
 THom : Type
 THom = List TProduct
-
+-}
 public export
 Product2 : Type
 Product2 = (ProdKey, Product) --CurrencyProd)

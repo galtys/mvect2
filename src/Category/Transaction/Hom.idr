@@ -130,7 +130,7 @@ taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
 taxRatio TAXAMOUNT = 0
 taxRatio ERROR = 0
-
+{-
 export
 toDx : Product -> TProduct
 toDx (k,v) = (Debit k, v)
@@ -155,30 +155,10 @@ export
 toHom11 : THom -> Hom11
 toHom11 th = MkH11 (getDx th) (getCx th)
 
+
 export
 addTHom : THom -> THom -> THom
 addTHom x y = x++y
-export
-addHom11 : Hom11 -> Hom11 -> Hom11
-addHom11 (MkH11 dx cx) (MkH11 xs ys) = MkH11 (dx+xs) (cx+ys)
-
-
-
-export
-diffTHom : THom -> THom -> THom
-diffTHom x y = (map toDx dx)++(map toCx cx) where
-   dx : Hom1
-   dx = (getDx x)-(getDx y)
-   cx : Hom1
-   cx = (getCx x)-(getCx y)
-export
-diffHom11 : Hom11 -> Hom11 -> Hom11
-diffHom11 (MkH11 dx cx) (MkH11 xs ys) = MkH11 (dx-xs) (cx-ys)
-
-export
-fromIntegerHom11 : Integer -> Hom11
-fromIntegerHom11 x = MkH11 (fromInteger x) []
-
 export
 negateTHom : THom -> THom
 negateTHom x = (map toDx dx)++(map toCx cx) where
@@ -187,13 +167,49 @@ negateTHom x = (map toDx dx)++(map toCx cx) where
    cx : Hom1
    cx = invHom1 $ getCx x
 export
-negateHom11 : Hom11 -> Hom11
-negateHom11 (MkH11 dx cx) = MkH11 (invHom1 dx) (invHom1 cx)
-
 export
 multTHom : THom -> THom -> THom
 multTHom x y = []
 export
+public export
+Num THom where
+   (+) = addTHom
+   (*) = multTHom
+   fromInteger x = map toDx (fromInteger x)
+   
+public export
+Neg THom where
+   (-) = diffTHom
+   negate = negateTHom
+
+export
+diffTHom : THom -> THom -> THom
+diffTHom x y = (map toDx dx)++(map toCx cx) where
+   dx : Hom1
+   dx = (getDx x)-(getDx y)
+   cx : Hom1
+   cx = (getCx x)-(getCx y)
+
+
+-}
+
+
+
+export
+addHom11 : Hom11 -> Hom11 -> Hom11
+addHom11 (MkH11 dx cx) (MkH11 xs ys) = MkH11 (dx+xs) (cx+ys)
+
+export
+diffHom11 : Hom11 -> Hom11 -> Hom11
+diffHom11 (MkH11 dx cx) (MkH11 xs ys) = MkH11 (dx-xs) (cx-ys)
+
+export
+fromIntegerHom11 : Integer -> Hom11
+fromIntegerHom11 x = MkH11 (fromInteger x) []
+
+negateHom11 : Hom11 -> Hom11
+negateHom11 (MkH11 dx cx) = MkH11 (invHom1 dx) (invHom1 cx)
+
 multHom11 : Hom11 -> Hom11 -> Hom11
 multHom11 x y = MkH11 [] []
 
@@ -208,16 +224,6 @@ Neg Hom11 where
    (-) = diffHom11
    negate = negateHom11
    
-public export
-Num THom where
-   (+) = addTHom
-   (*) = multTHom
-   fromInteger x = map toDx (fromInteger x)
-   
-public export
-Neg THom where
-   (-) = diffTHom
-   negate = negateTHom
 
 {-
 public export
