@@ -132,12 +132,12 @@ priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delive
                   Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
         
   
-priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
-priceFromStockMove [] = []
-priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
+priceFromStockMove : TaxCode -> List BrowseStockMove.RecordModel -> Hom2
+priceFromStockMove tc [] = []
+priceFromStockMove tax_code ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
            case product_id of
-              Nothing => (priceFromStockMove xs)
-              Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP INC20, price_unit) ) ] ++ (priceFromStockMove xs)
+              Nothing => (priceFromStockMove tax_code xs)
+              Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP tax_code, price_unit) ) ] ++ (priceFromStockMove tax_code xs)
 
 
 
@@ -183,7 +183,7 @@ pjb_test = do
       h1_stock = fromStockMove sp_43747.move_ids
       
       h2 = priceFromOrderLine so_44970.order_line
-      h2_picking = priceFromStockMove sp_43747.move_ids
+      h2_picking = priceFromStockMove INC20 sp_43747.move_ids
 
   --print_BoM32 3303 m32x
 
