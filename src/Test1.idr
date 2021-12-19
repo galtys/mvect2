@@ -187,18 +187,47 @@ getCxEX20 (((PKPrice CX z ERROR), y) :: xs) = getCxEX20 xs
 getCxEX20 (((FromInteger x), y) :: xs) = getCxEX20 xs
 
 
+calc_so : List BrowseOrder.RecordModel -> IO ()
+calc_so [] = pure ()
+calc_so (so::xs) = do
+  let h1_order =qtyFromOrderLine (order_line so)
+      {-
+      bom_map = toBoM_map boms
+      h1_bom = map_to_BoM32 h1_order bom_map
+      
+      h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
+      h1_stock = fromStockMove sp_43747.move_ids
+      -}
+      h2 = priceFromOrderLine (order_line so)
+      --h2_picking = priceFromStockMove INC20 sp_43747.move_ids
+      
+      inc20 = evalHom1 $ getCxINC20 $ ( applyHom2 h2 h1_order )
+      ex20 = evalHom1 $ getCxEX20 $ ( applyHom2 h2 h1_order )
+      
+      tax = evalHom1 $ ( applyHom2Tax h2 h1_order )
+      
+  --print_BoM32 3303 m32x
+  printLn so.name  
+  --traverse_ printLn $ ( h1_order_stock - h1_stock)
+  --printLn inc20
+  --printLn ex20  
+  printLn (tax - [ amount_tax so ])
+  
+  calc_so xs
+
 pjb_test : IO ()
 pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
   
-  so <- BrowseOrder.read_ids [44970] (True)  
+  so <- BrowseOrder.read (True)  
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
   sp <- BrowseStockPicking.read_ids [43747] (True)
 
   --traverse_ printLn so  
   --traverse_ printLn sp      
   --traverse_ printLn av
-    
+  calc_so so
+{-    
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
   let h1_order =qtyFromOrderLine so_44970.order_line
@@ -230,7 +259,7 @@ pjb_test = do
     
   --printLn $ evalHom1 $ ( applyHom2 h2_picking h1_stock )  --discount missing
   --printLn $ fromAccountVoucher [va_43244]
-      
+-}      
   pure ()
           
 mg_test : IO ()
