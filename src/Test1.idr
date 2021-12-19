@@ -129,7 +129,7 @@ priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delive
            ret : Hom2
            ret =case product_id of 
                   Nothing => (priceFromOrderLine xs)
-                  Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
+                  Just p_id => [ (PK32 DX pk, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
         
   
 priceFromStockMove : TaxCode -> List BrowseStockMove.RecordModel -> Hom2
@@ -151,7 +151,7 @@ qtyFromOrderLine [] = []
 qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
               Nothing => [ (PKUser DX "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
-              Just p_id => [ (PK32 DX p_id, product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (PK32 DX pk, product_uom_qty) ] ++ (qtyFromOrderLine xs)
 
 fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
 fromStockMove [] = []
@@ -195,24 +195,50 @@ calc_so (so::xs) = do
       bom_map = toBoM_map boms
       h1_bom = map_to_BoM32 h1_order bom_map
       
+      INT-PART
+      
       h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
       h1_stock = fromStockMove sp_43747.move_ids
       -}
       h2 = priceFromOrderLine (order_line so)
       --h2_picking = priceFromStockMove INC20 sp_43747.move_ids
       
-      inc20 = evalHom1 $ getCxINC20 $ ( applyHom2 h2 h1_order )
-      ex20 = evalHom1 $ getCxEX20 $ ( applyHom2 h2 h1_order )
+      inc20 =evalHom1 $ getCxINC20 $ ( applyHom2 h2 h1_order )
+      ex20 =evalHom1 $ getCxEX20 $ ( applyHom2 h2 h1_order )
       
-      tax = evalHom1 $ ( applyHom2Tax h2 h1_order )
+      tax = evalHom1 $( applyHom2Tax h2 h1_order )
+      tax_diff = map fromPrice (tax - [amount_tax so])
+      
+      totals : Hom1
+      totals = [amount_tax so,amount_untaxed so,amount_total so]
+      
+      ex_diff : Hom1 --List Double
+      ex_diff = ( ex20-[amount_untaxed so] )
+      
+      inc20_diff : Hom1 --List Double
+      inc20_diff =  (inc20 - [amount_total so] )
       
   --print_BoM32 3303 m32x
-  printLn so.name  
-  --traverse_ printLn $ ( h1_order_stock - h1_stock)
-  --printLn inc20
-  --printLn ex20  
-  printLn (tax - [ amount_tax so ])
   
+  case inc20 of
+     [] => do
+          case (map fromPrice ex_diff) of
+             [] => pure ()
+             (ex::exs) => case ex>1.00 of
+                 True => do
+                     printLn (so.name,so.pk, totals, tax)
+                     printLn ( "  " ++ (show ex) )
+                 False => pure ()
+                
+     (x::xs) => 
+          case (map fromPrice inc20_diff ) of
+             [] => pure ()
+             (i_d :: sss) => case i_d>1.00 of
+                  True => do
+                      printLn (so.name,so.pk, totals, tax)
+                      printLn ( "  " ++ (show i_d) )
+                  False => pure ()
+                
   calc_so xs
 
 pjb_test : IO ()
@@ -220,6 +246,7 @@ pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
   
   so <- BrowseOrder.read (True)  
+  --so <- BrowseOrder.read_ids [19273, 44970, 24359, 45063, 45064] (True)  
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
   sp <- BrowseStockPicking.read_ids [43747] (True)
 

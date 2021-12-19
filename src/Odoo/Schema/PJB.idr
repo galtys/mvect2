@@ -1346,7 +1346,7 @@ namespace BrowseOrderLine
 
 namespace BrowseOrder
       domain : Op
-      domain = (True)
+      domain = ((StateOT /= "cancel")&&(StateOT /= "draft")) --(True)
       isM2M_tab : Bool
       isM2M_tab = False
       export

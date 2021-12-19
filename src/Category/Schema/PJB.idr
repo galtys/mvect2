@@ -521,7 +521,7 @@ so_cols = [Id_OT,Origin,OrderPolicy,DateOrder,PartnerID,AmountTax,StateOT,Partne
 
 export
 SaleOrder : Schema
-SaleOrder = Model OT so_cols "(True)"
+SaleOrder = Model OT so_cols "(True)"  -- #"((StateOT /= "cancel")&&(StateOT /= "draft"))"#  --
 
 -- Schema
 
