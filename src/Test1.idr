@@ -129,7 +129,7 @@ priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delive
            ret : Hom2
            ret =case product_id of 
                   Nothing => (priceFromOrderLine xs)
-                  Just p_id => [ (PK32 p_id, (PKPrice GBP INC20,val) ) ] ++ (priceFromOrderLine xs)
+                  Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP INC20,val) ) ] ++ (priceFromOrderLine xs)
         
   
 priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
@@ -137,7 +137,7 @@ priceFromStockMove [] = []
 priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
            case product_id of
               Nothing => (priceFromStockMove xs)
-              Just p_id => [ (PK32 p_id, (PKPrice GBP INC20, price_unit) ) ] ++ (priceFromStockMove xs)
+              Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP INC20, price_unit) ) ] ++ (priceFromStockMove xs)
 
 
 
@@ -150,15 +150,15 @@ qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty
 qtyFromOrderLine [] = []
 qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
-              Nothing => [ (PKUser "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
-              Just p_id => [ (PK32 p_id, product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Nothing => [ (PKUser DX "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (PK32 DX p_id, product_uom_qty) ] ++ (qtyFromOrderLine xs)
 
 fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
 fromStockMove [] = []
 fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
            case product_id of
               Nothing => (fromStockMove xs)
-              Just p_id => [ (PK32 p_id,product_qty) ] ++ (fromStockMove xs)
+              Just p_id => [ (PK32 DX p_id,product_qty) ] ++ (fromStockMove xs)
 
 pjb_test : IO ()
 pjb_test = do

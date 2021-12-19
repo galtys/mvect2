@@ -36,6 +36,10 @@ public export
 data Currency = GBP | EUR | CZK | USD
 %runElab derive "Currency" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
 
+public export
+data DxCx = DX | CX
+%runElab derive "DxCx" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
+
 export
 currencyAll : List Currency
 currencyAll = [GBP, EUR, CZK, USD]
@@ -59,7 +63,7 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 
 
 public export
-data ProdKey = PKCy Currency | PKUser String | PK32 Bits32 | PKPrice Currency TaxCode | FromInteger | PKAppl ProdKey ProdKey
+data ProdKey = PKCy DxCx Currency | PKUser DxCx String | PK32 DxCx Bits32 | PKPrice DxCx Currency TaxCode | FromInteger DxCx --| PKAppl ProdKey ProdKey
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
@@ -101,16 +105,16 @@ Price = Product
 
 export  
 toINC20 : Double -> Product
-toINC20 x = (PKPrice GBP INC20, (cast x))     --MkPrice INC20 (cast x) 
+toINC20 x = (PKPrice CX GBP INC20, (cast x))     --MkPrice INC20 (cast x) 
 export
 fromPrice : Product -> Double
 fromPrice (x,y) = cast y   --(MkPrice tax x) = (cast x)
 export
 toEX20 : Double -> Product
-toEX20 x = (PKPrice GBP EX20, (cast x))  --MkPrice EX20 (cast x) 
+toEX20 x = (PKPrice CX GBP EX20, (cast x))  --MkPrice EX20 (cast x) 
 export
 toTaxA : Double -> Product
-toTaxA x = (PKPrice GBP TAXAMOUNT, (cast x))  --MkPrice TAXAMOUNT (cast x) 
+toTaxA x = (PKPrice CX GBP TAXAMOUNT, (cast x))  --MkPrice TAXAMOUNT (cast x) 
 
 public export
 Cast Product Double where
@@ -122,8 +126,8 @@ Cast Product EQty where
 public export
 FromString ProdKey where
    fromString s = case toCurrency s of
-           Nothing => PKUser s
-           Just cy => PKCy cy
+           Nothing => PKUser DX s
+           Just cy => PKCy CX cy
            
 {-
 public export

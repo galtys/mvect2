@@ -49,16 +49,16 @@ print_list (x::xs) = do
 export
 toBoM_map : List BrowseBoM.RecordModel -> SortedMap ProdKey (List BrowseBoM.RecordModel)
 toBoM_map [] = empty
-toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 product_id) bom_lines (toBoM_map xs)
+toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 DX product_id) bom_lines (toBoM_map xs)
 export
 toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
 toProduct_map [] = empty
-toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 pk) p (toProduct_map xs)
+toProduct_map (p@(MkRecordModel pk product_tmpl_id trade retail contract default_code) :: xs) = insert (PK32 DX pk) p (toProduct_map xs)
 --toProduct_map [] = empty
 export
 rbom_to_list : Maybe (List BrowseBoM.RecordModel) -> Hom1 --List (ProdKey,EQty)
 rbom_to_list Nothing = []
-rbom_to_list (Just x) = [ (PK32 $product_id u,product_qty u) | u<-x]
+rbom_to_list (Just x) = [ (PK32 DX $product_id u,product_qty u) | u<-x]
 export    
 map_to_BoM32 : Hom1 -> SortedMap ProdKey (List BrowseBoM.RecordModel) -> List BoM32 --List (ProdKey,EQty)
 map_to_BoM32 [] m = []

@@ -102,7 +102,7 @@ public export
 Num Hom1 where
    (+) x y = evalProductList $ addHom1 x y
    (*) = multHom1 -- tbd?
-   fromInteger x = [ (FromInteger, fromInteger x) ] 
+   fromInteger x = [ (FromInteger DX, fromInteger x) ] 
 
    
 public export
