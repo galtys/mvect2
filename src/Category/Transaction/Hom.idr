@@ -110,13 +110,6 @@ Neg Hom1 where
    (-) = evDiffHom1
    negate = invHom1
 
-
-
-
-
-
-
-
 ||| Tax
 public export
 PC20 : EQty
@@ -137,6 +130,64 @@ taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
 taxRatio TAXAMOUNT = 0
 taxRatio ERROR = 0
+
+export
+toDx : Product -> TProduct
+toDx (k,v) = (Debit k, v)
+export
+toCx : Product -> TProduct
+toCx (k,v) = (Credit k, v)
+
+export
+toTHom : Hom11 -> THom
+toTHom (MkH11 dx cx) = (map toDx dx)++(map toCx cx)
+export
+getDx : THom -> Hom1
+getDx [] = []
+getDx (((Debit x), y) :: xs) = [(x,y)]++(getDx xs)
+getDx (((Credit x), y) :: xs) = getDx xs
+export
+getCx : THom -> Hom1
+getCx [] = []
+getCx (((Debit x), y) :: xs) = getCx xs
+getCx (((Credit x), y) :: xs) = [(x,y)]++(getCx xs)
+export
+toHom11 : THom -> Hom11
+toHom11 th = MkH11 (getDx th) (getCx th)
+
+export
+addTHom : THom -> THom -> THom
+addTHom x y = x++y
+
+export
+diffTHom : THom -> THom -> THom
+diffTHom x y = (map toDx dx)++(map toCx cx) where
+   dx : Hom1
+   dx = (getDx x)-(getDx y)
+   cx : Hom1
+   cx = (getCx x)-(getCx y)
+
+export
+negateTHom : THom -> THom
+negateTHom x = (map toDx dx)++(map toCx cx) where
+   dx : Hom1
+   dx = invHom1 $ getDx x
+   cx : Hom1
+   cx = invHom1 $ getCx x
+
+export
+multTHom : THom -> THom -> THom
+multTHom x y = []
+
+public export
+Num THom where
+   (+) = addTHom
+   (*) = multTHom
+   fromInteger x = map toDx (fromInteger x)
+public export
+Neg THom where
+   (-) = diffTHom
+   negate = negateTHom
 
 {-
 public export

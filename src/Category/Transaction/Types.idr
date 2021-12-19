@@ -53,8 +53,9 @@ data ProdKey = PKUser String | PK32 Bits32 | PKTax String | FromInteger
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
-data TProdKey = T ProdKey
-%runElab derive "TProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+TProdKey : Type
+TProdKey = T ProdKey
+--%runElab derive "TProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 --public export
 --ProdKey : Type
@@ -109,6 +110,9 @@ FromString ProdKey where
 public export
 Product : Type
 Product = (ProdKey, EQty)
+public export
+TProduct : Type
+TProduct = (TProdKey, EQty)
 
 public export
 Currency : Type
@@ -117,6 +121,10 @@ Currency = (ProdKey, Price)
 public export
 Hom1 : Type
 Hom1 = List Product
+
+public export
+THom : Type
+THom = List TProduct
 
 public export
 Product2 : Type
@@ -133,6 +141,8 @@ record Hom11 where
    dx:Hom1
    cx:Hom1
 %runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
+
+
 
 public export
 record Hom121 where
