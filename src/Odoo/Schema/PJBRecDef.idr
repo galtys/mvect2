@@ -145,12 +145,14 @@ namespace PrimStockMove
           constructor MkRecordModel
           pk:Bits32
           origin:(Maybe String)
-          price_unit:EQty
+          price_unit:(Maybe EQty)
           product_qty:EQty
-          product_id:(Maybe Bits32)
-          location_id:(Maybe Bits32)
-          location_dest_id:(Maybe Bits32)
+          product_id:Bits32
+          location_id:Bits32
+          location_dest_id:Bits32
           picking_id:(Maybe Bits32)
+          purchase_line_id:Bits32
+          sale_line_id:Bits32
           state:String
       %runElab derive "PrimStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -339,12 +341,14 @@ namespace BrowseStockMove
           constructor MkRecordModel
           pk:Bits32
           origin:(Maybe String)
-          price_unit:EQty
+          price_unit:(Maybe EQty)
           product_qty:EQty
-          product_id:(Maybe Bits32)
-          location_id:(Maybe Bits32)
-          location_dest_id:(Maybe Bits32)
+          product_id:Bits32
+          location_id:Bits32
+          location_dest_id:Bits32
           picking_id:(Maybe Bits32)
+          purchase_line_id:Bits32
+          sale_line_id:Bits32
           state:String
       %runElab derive "BrowseStockMove.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 

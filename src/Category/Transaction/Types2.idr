@@ -8,12 +8,12 @@ import Data.SortedMap
 import Data.Ratio
 import Generics.Derive
 import JSON
-
-
 import Odoo.Schema.PJBRecDef
---import Odoo.PG.BoM
 
 %language ElabReflection
+--import Odoo.PG.BoM
+{-
+
 public export
 data Country = UK | CZ | US | DE | FR
 %runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
@@ -34,9 +34,9 @@ record Address where
   country_id : Country
   contact: Contact
 %runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
-
+-}
 public export
-data Location =  Self | In | Out | Init | Loss | Control DirectionTag Address |Partner DirectionTag Address | Transit DirectionTag Address
+data Location =  Self | In | Out | Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 
@@ -49,8 +49,8 @@ record FxData where
    constructor MkFx
    date:Date
    direction: DirectionTag
-   delivery:Address -- Delivery
-   invoice:Address -- Invoice
+   delivery:BrowseResPartner.RecordModel -- Delivery
+   invoice:BrowseResPartner.RecordModel  -- Invoice
    h3: Hom121
    -- origin : Maybe FxRef --list of origins, a PO can have multiple origins
 %runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   

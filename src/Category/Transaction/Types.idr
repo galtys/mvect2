@@ -188,21 +188,3 @@ apply3' h2 p = ret where
   ret : Hom1
   ret = (ret2 ret1)
 -}  
-public export  
-applyHom2 : Hom2 -> Hom1 -> Hom1
-applyHom2 h2 p = ret where
-  {-
-  kp : List ProdKey
-  kp = map fst p
-  -}
-  ret1 : List (Maybe Product,EQty)
-  ret1 = [ (lookup (fst x) h2, snd x) | x <- p ]
-  
-  ev_ret1 : List (Maybe Product,EQty) -> Hom1
-  ev_ret1 [] = []
-  ev_ret1 ((Nothing,q)::xs) = (ev_ret1 xs)
-  ev_ret1 ((Just x,q)::xs) = [ (fst x, (snd x)*q) ]++(ev_ret1 xs)
-  
-  ret : Hom1
-  ret = (ev_ret1 ret1)
-

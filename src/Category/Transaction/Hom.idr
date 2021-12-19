@@ -10,6 +10,7 @@ import Category.Transaction.Qty
 import Category.Transaction.Types
 --import Category.Transaction.Types2
 import Data.Ratio
+import Odoo.Schema.PJBRecDef
 
 --import Category.PG.Order
 
@@ -132,6 +133,25 @@ taxRatio TAXAMOUNT = 0
 taxRatio ERROR = 0
 
 public export  
+applyHom2 : Hom2 -> Hom1 -> Hom1
+applyHom2 h2 p = ret where
+  {-
+  kp : List ProdKey
+  kp = map fst p
+  -}
+  ret1 : List (Maybe Product,EQty)
+  ret1 = [ (lookup (fst x) h2, snd x) | x <- p ]
+  
+  ev_ret1 : List (Maybe Product,EQty) -> Hom1
+  ev_ret1 [] = []
+  ev_ret1 ((Nothing,q)::xs) = (ev_ret1 xs)
+  ev_ret1 ((Just x,q)::xs) = [ (fst x, (snd x)*q) ]++(ev_ret1 xs)
+  
+  ret : Hom1
+  ret = (ev_ret1 ret1)
+
+
+public export  
 applyHom2Tax : Hom2 -> Hom1 -> Hom1
 applyHom2Tax h2 p = ret where
   {-
@@ -245,6 +265,91 @@ Neg Hom11 where
    (-) = diffHom11
    negate = negateHom11
    
+export
+fromMaybeEQty : Maybe EQty -> EQty
+fromMaybeEQty Nothing = 0
+fromMaybeEQty (Just x) = x
+export
+fromOrderTax2 : PrimOrderTax.RecordModel -> TaxCode
+fromOrderTax2 (MkRecordModel pk name Nothing amount type price_include) = ERROR
+fromOrderTax2 (MkRecordModel pk name (Just x) amount type price_include) = case x of
+       "STI20" => INC20
+       "STE20" => EX20
+       _       => ERROR
+export
+getTax : List PrimOrderTax.RecordModel -> TaxCode
+getTax [] = ERROR
+getTax (x::xs) = (fromOrderTax2 x)
+
+
+export              
+priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
+priceFromOrderLine [] = []
+priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = ret where
+           val : EQty
+           val = (fromMaybeEQty discount)*price_unit
+           ret : Hom2
+           ret =case product_id of 
+                  Nothing => (priceFromOrderLine xs)
+                  Just p_id => [ (PK32 DX pk, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
+        
+export  
+priceFromStockMove : TaxCode -> List BrowseStockMove.RecordModel -> Hom2
+priceFromStockMove tc [] = []
+priceFromStockMove tax_code ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state) :: xs) = [ (PK32 DX product_id, (PKPrice CX GBP tax_code,fromMaybeEQty price_unit ) ) ] ++ (priceFromStockMove tax_code xs)
+{-
+           case product_id of
+              Nothing => (priceFromStockMove tax_code xs)
+              Just p_id => 
+-}
+
+export
+fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
+fromAccountVoucher [] = []
+fromAccountVoucher ((MkRecordModel pk number partner_id journal_id amount) :: xs) = [("GBP",amount)]++(fromAccountVoucher xs)
+
+export
+qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
+qtyFromOrderLine [] = []
+qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
+           case product_id of 
+              Nothing => [ (PKUser DX "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (PK32 DX pk, product_uom_qty) ] ++ (qtyFromOrderLine xs)
+export
+fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
+fromStockMove [] = []
+fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state) :: xs) = [ (PK32 DX product_id,product_qty) ] ++ (fromStockMove xs)
+{-
+           case product_id of
+              Nothing => (fromStockMove xs)
+              Just p_id => 
+-}
+export
+getCxINC20 : Hom1 -> Hom1
+getCxINC20 [] = []
+getCxINC20 (((PKCy x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKUser x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PK32 x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice DX z w), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z INC20), y) :: xs) = [(PKPrice CX z INC20,y)] ++ getCxINC20 xs
+getCxINC20 (((PKPrice CX z EX20), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z ERROR), y) :: xs) = getCxINC20 xs
+getCxINC20 (((FromInteger x), y) :: xs) = getCxINC20 xs
+
+export
+getCxEX20 : Hom1 -> Hom1
+getCxEX20 [] = []
+getCxEX20 (((PKCy x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKUser x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PK32 x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice DX z w), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z INC20), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z EX20), y) :: xs) = [(PKPrice CX z EX20,y)] ++getCxEX20 xs
+getCxEX20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z ERROR), y) :: xs) = getCxEX20 xs
+getCxEX20 (((FromInteger x), y) :: xs) = getCxEX20 xs
+
 
 {-
 public export

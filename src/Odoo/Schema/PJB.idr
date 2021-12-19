@@ -185,17 +185,21 @@ PkSMT=notNull Bits32 "id" (BigInt) (Just . cast) cast SMT
 OriginSMT:Column
 OriginSMT=nullable String "origin" (VarChar 64) (Just . cast) cast SMT
 PriceUnitSMT:Column
-PriceUnitSMT=notNull EQty "price_unit" (DoublePrecision) (Just . cast) cast SMT
+PriceUnitSMT=nullable EQty "price_unit" (DoublePrecision) (Just . cast) cast SMT
 ProductQtySMT:Column
 ProductQtySMT=notNull EQty "product_qty" (DoublePrecision) (Just . cast) cast SMT
 ProductIdSMT:Column
-ProductIdSMT=nullable Bits32 "product_id" (BigInt) (Just . cast) cast SMT
+ProductIdSMT=notNull Bits32 "product_id" (BigInt) (Just . cast) cast SMT
 LocationIdSMT:Column
-LocationIdSMT=nullable Bits32 "location_id" (BigInt) (Just . cast) cast SMT
+LocationIdSMT=notNull Bits32 "location_id" (BigInt) (Just . cast) cast SMT
 LocationDestIdSMT:Column
-LocationDestIdSMT=nullable Bits32 "location_dest_id" (BigInt) (Just . cast) cast SMT
+LocationDestIdSMT=notNull Bits32 "location_dest_id" (BigInt) (Just . cast) cast SMT
 PickingIdSMT:Column
 PickingIdSMT=nullable Bits32 "picking_id" (BigInt) (Just . cast) cast SMT
+PurchaseLineIdSMT:Column
+PurchaseLineIdSMT=notNull Bits32 "purchase_line_id" (BigInt) (Just . cast) cast SMT
+SaleLineIdSMT:Column
+SaleLineIdSMT=notNull Bits32 "sale_line_id" (BigInt) (Just . cast) cast SMT
 StateSMT:Column
 StateSMT=notNull String "state" (Text) (Just . cast) cast SMT
 
@@ -657,7 +661,7 @@ namespace PrimStockMove
       domain = (True)
       export
       PrimCols : List Column
-      PrimCols = [PkSMT, OriginSMT, PriceUnitSMT, ProductQtySMT, ProductIdSMT, LocationIdSMT, LocationDestIdSMT, PickingIdSMT, StateSMT]
+      PrimCols = [PkSMT, OriginSMT, PriceUnitSMT, ProductQtySMT, ProductIdSMT, LocationIdSMT, LocationDestIdSMT, PickingIdSMT, PurchaseLineIdSMT, SaleLineIdSMT, StateSMT]
 
       public export
       SMT_NP : Table
@@ -1346,7 +1350,7 @@ namespace BrowseOrderLine
 
 namespace BrowseOrder
       domain : Op
-      domain = ((StateOT /= "cancel")&&(StateOT /= "draft")) --(True)
+      domain = (True)
       isM2M_tab : Bool
       isM2M_tab = False
       export
@@ -1498,8 +1502,8 @@ namespace BrowseStockMove
 
           add_lines : (List PrimStockMove.RecordModel) ->io (List  BrowseStockMove.RecordModel)
           add_lines [] = pure []
-          add_lines ((PrimStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)::xs) = do
-            let ret =(BrowseStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state)
+          add_lines ((PrimStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state)::xs) = do
+            let ret =(BrowseStockMove.MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state)
             ret_xs <- add_lines xs
             pure ([ret]++ret_xs)
 

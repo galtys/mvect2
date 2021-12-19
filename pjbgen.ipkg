@@ -26,8 +26,8 @@ modules = Web.Mongoose.Types
 	  , Category.Transaction.Qty
 	  , Data.Ratio
 	  , Category.Transaction.Types
-	  , Category.Transaction.Hom	  
-	  , Category.Transaction.Journal
+	  --, Category.Transaction.Hom	  
+	  --, Category.Transaction.Journal
           , Category.Schema.Types
           , Category.Schema.PJB
 	  , Category.Schema.GenPG

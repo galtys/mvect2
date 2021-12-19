@@ -215,19 +215,19 @@ OriginSmt: Schema
 OriginSmt = Prim (MkF Nullable I_String "origin" (VarChar 64) "(Just . cast)" "cast" SMT)
 export
 PriceUnitSmt : Schema
-PriceUnitSmt = Prim (MkF NotNull I_EQty "price_unit" DoublePrecision "(Just . cast)" "cast" SMT)
+PriceUnitSmt = Prim (MkF Nullable I_EQty "price_unit" DoublePrecision "(Just . cast)" "cast" SMT)
 export
 ProductQty : Schema
 ProductQty = Prim (MkF NotNull I_EQty "product_qty" DoublePrecision "(Just . cast)" "cast" SMT)
 export
 ProductIDSmt : Schema
-ProductIDSmt = Prim (MkF Nullable I_Bits32 "product_id" BigInt "(Just . cast)" "cast" SMT)
+ProductIDSmt = Prim (MkF NotNull I_Bits32 "product_id" BigInt "(Just . cast)" "cast" SMT)
 export
 LocationIDSmt : Schema
-LocationIDSmt = Prim (MkF Nullable I_Bits32 "location_id" BigInt "(Just . cast)" "cast" SMT)
+LocationIDSmt = Prim (MkF NotNull I_Bits32 "location_id" BigInt "(Just . cast)" "cast" SMT)
 export
 LocationDestIDSmt : Schema
-LocationDestIDSmt = Prim (MkF Nullable I_Bits32 "location_dest_id" BigInt "(Just . cast)" "cast" SMT)
+LocationDestIDSmt = Prim (MkF NotNull I_Bits32 "location_dest_id" BigInt "(Just . cast)" "cast" SMT)
 export
 PickingIDSmtF : Field
 PickingIDSmtF = (MkF Nullable I_Bits32 "picking_id" BigInt "(Just . cast)" "cast" SMT)
@@ -235,11 +235,19 @@ export
 PickingIDSmt : Schema
 PickingIDSmt = Prim PickingIDSmtF
 export
+PurchaseLineIDSmt : Schema
+PurchaseLineIDSmt = Prim (MkF NotNull I_Bits32 "purchase_line_id" BigInt "(Just . cast)" "cast" SMT)
+export
+SaleLineIDSmt : Schema
+SaleLineIDSmt = Prim (MkF NotNull I_Bits32 "sale_line_id" BigInt "(Just . cast)" "cast" SMT)
+
+export
 StateSmt : Schema
 StateSmt = Prim (MkF NotNull I_String "state" Text "(Just . cast)" "cast" SMT)
 export
 StockMove : Schema
-StockMove = Model SMT [Id_Smt,OriginSmt,PriceUnitSmt,ProductQty,ProductIDSmt,LocationIDSmt,LocationDestIDSmt,PickingIDSmt,StateSmt] "(True)"
+StockMove = Model SMT [Id_Smt,OriginSmt,PriceUnitSmt,ProductQty,ProductIDSmt,LocationIDSmt,LocationDestIDSmt,PickingIDSmt,
+                       PurchaseLineIDSmt, SaleLineIDSmt, StateSmt] "(True)"
 
 export
 Id_Spt : Schema

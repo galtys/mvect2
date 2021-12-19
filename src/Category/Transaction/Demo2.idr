@@ -19,22 +19,6 @@ import Odoo.Schema.PJB
 
 %language ElabReflection
 
-export
-retail_cust_31587 : BrowseResPartner.RecordModel
-retail_cust_31587 = BrowseResPartner.MkRecordModel 
-       { pk = 31587, 
-         name = "John Retail1", 
-         use_parent_address = Just False, 
-         active = Just True, 
-         street = Just "Sharing House", 
-         contract = Just False, 
-         city = Just "Mid London", 
-         zip = Just "CE5 CE6", 
-         country_id = Just 284, 
-         parent_id = Nothing, 
-         child_ids = [], 
-         email = "retail_cust1@btconnect.com", 
-         street2 = Just "Mid Lane" }
 
 export
 sti20 : PrimOrderTax.RecordModel
@@ -45,18 +29,6 @@ sti20 = PrimOrderTax.MkRecordModel
         amount = 1/5, 
         type = Just "percent", 
         price_include = Just True }
-
-export
-fromOrderTax2 : PrimOrderTax.RecordModel -> TaxCode
-fromOrderTax2 (MkRecordModel pk name Nothing amount type price_include) = ERROR
-fromOrderTax2 (MkRecordModel pk name (Just x) amount type price_include) = case x of
-       "STI20" => INC20
-       "STE20" => EX20
-       _       => ERROR
-export
-getTax : List PrimOrderTax.RecordModel -> TaxCode
-getTax [] = ERROR
-getTax (x::xs) = (fromOrderTax2 x)
 
 export
 so_44970 : BrowseOrder.RecordModel
@@ -141,92 +113,110 @@ sp_43747 = MkRecordModel
           [MkRecordModel 
              { pk = 163195, 
                origin = Just "SO44907", 
-               price_unit = 999, 
+               price_unit = Just 999, 
                product_qty = 1, 
-               product_id = Just 726, 
-               location_id = Just 12, 
-               location_dest_id = Just 9, 
+               product_id =  726, 
+               location_id =  12, 
+               location_dest_id =  9, 
                picking_id = Just 43747, 
+               purchase_line_id = 1,
+               sale_line_id = 1,
                state = "confirmed" }, 
            MkRecordModel 
              { pk = 163196, 
                origin = Just "SO44907", 
-               price_unit = 211, 
+               price_unit = Just 211, 
                product_qty = 8, 
-               product_id = Just 2932, 
-               location_id = Just 12, 
-               location_dest_id = Just 9, 
+               product_id =  2932, 
+               location_id =  12, 
+               location_dest_id =  9, 
                picking_id = Just 43747, 
+               purchase_line_id = 1,
+               sale_line_id = 1,
                state = "confirmed" }, 
            MkRecordModel 
              { pk = 163197, 
                origin = Just "SO44907", 
-               price_unit = 88, 
+               price_unit = Just 88, 
                product_qty = 8, 
-               product_id = Just 2852, 
-               location_id = Just 12, 
-               location_dest_id = Just 9, 
+               product_id =  2852, 
+               location_id =  12, 
+               location_dest_id =  9, 
                picking_id = Just 43747, 
+               purchase_line_id = 1,
+               sale_line_id = 1,
                state = "confirmed" }, 
            MkRecordModel 
              { pk = 163198, 
                origin = Just "SO44907", 
-               price_unit = 199, 
+               price_unit = Just 199, 
                product_qty = 1, 
-               product_id = Just 733, 
-               location_id = Just 12, 
-               location_dest_id = Just 9, 
+               product_id =  733, 
+               location_id =  12, 
+               location_dest_id =  9, 
                picking_id = Just 43747, 
+               purchase_line_id = 1,
+               sale_line_id = 1,
                state = "confirmed" }, 
            MkRecordModel 
                { pk = 163199, 
                  origin = Just "SO44907", 
-                 price_unit = 734, 
+                 price_unit = Just 734, 
                  product_qty = 2, 
-                 product_id = Just 2942, 
-                 location_id = Just 12, 
-                 location_dest_id = Just 9, 
+                 product_id =  2942, 
+                 location_id =  12, 
+                 location_dest_id =  9, 
                  picking_id = Just 43747, 
+                 purchase_line_id = 1,
+                 sale_line_id = 1,
                  state = "confirmed" }, 
            MkRecordModel { 
                  pk = 163200, 
                  origin = Just "SO44907", 
-                 price_unit = 95, 
+                 price_unit = Just 95, 
                  product_qty = 2, 
-                 product_id = Just 3531, 
-                 location_id = Just 12, 
-                 location_dest_id = Just 9, 
+                 product_id =  3531, 
+                 location_id =  12, 
+                 location_dest_id =  9, 
                  picking_id = Just 43747, 
+                 purchase_line_id = 1,
+                 sale_line_id = 1,
                  state = "confirmed" }, 
            MkRecordModel { 
                  pk = 163192, 
                  origin = Just "SO44907", 
-                 price_unit = 139, 
+                 price_unit = Just 139, 
                  product_qty = 1, 
-                 product_id = Just 4085, 
-                 location_id = Just 12, 
-                 location_dest_id = Just 9, 
+                 product_id =  4085, 
+                 location_id =  12, 
+                 location_dest_id = 9, 
                  picking_id = Just 43747, 
+                 purchase_line_id = 1,
+                 sale_line_id = 1,
                  state = "assigned" }, 
            MkRecordModel { 
                  pk = 163193, 
                  origin = Just "SO44907", 
-                 price_unit = 69, 
+                 price_unit = Just 69, 
                  product_qty = 2, 
-                 product_id = Just 4089, 
-                 location_id = Just 12, 
-                 location_dest_id = Just 9, 
+                 product_id =  4089, 
+                 location_id =  12, 
+                 location_dest_id =  9, 
                  picking_id = Just 43747, 
+                 purchase_line_id = 1,
+                 sale_line_id = 1,                 
                  state = "assigned" }, 
            MkRecordModel { 
                  pk = 163194, 
                  origin = Just "SO44907", 
-                 price_unit = 49, 
+                 price_unit = Just 49, 
                  product_qty = 1, 
-                 product_id = Just 4095, 
-                 location_id = Just 12, 
-                 location_dest_id = Just 9, 
+                 product_id =  4095, 
+                 location_id =  12, 
+                 location_dest_id =  9, 
                  picking_id = Just 43747, 
+                 purchase_line_id = 1,
+                 sale_line_id = 1,                 
                  state = "assigned" }] }
 export
 va_43244 : BrowseAccountVoucher.RecordModel 
@@ -236,18 +226,76 @@ va_43244 = BrowseAccountVoucher.MkRecordModel
            partner_id = Just 31587, 
            journal_id = Just 23, 
            amount = 4998 }
+export
+retail_cust_31587 : BrowseResPartner.RecordModel
+retail_cust_31587 = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "John Retail1", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Sharing House", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE5 CE6", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "retail_cust1@btconnect.com", 
+         street2 = Just "Mid Lane" }
 
 export
-hilton : Address
-hilton = MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
+hilton : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+hilton = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "John Hilton", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Sharing Hilton House", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE6", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "hilton@btconnect.com", 
+         street2 = Just "Mid Lane" }
+         --retail_cust_31587 --MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
 
 export
-factory1 : Address
-factory1 = MkA "Factory street" "" "Asia" "44AX" UK (MkC "Factory1")
+factory1 : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+factory1 = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "factory 1", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Sharing House", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE5 CE6", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "retail_cust1@btconnect.com", 
+         street2 = Just "Mid Lane" }
+         --retail_cust_31587 --MkA "Factory street" "" "Asia" "44AX" UK (MkC "Factory1")
 
 export
-factory2 : Address
-factory2 = MkA "Factory street2" "" "Asia2" "X" UK (MkC "Factory2")
+factory2 : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+factory2 = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "factory 2", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Sharing House", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE5 CE6", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "retail_cust1@btconnect.com", 
+         street2 = Just "Mid Lane" }
+         --retail_cust_31587  --MkA "Factory street2" "" "Asia2" "X" UK (MkC "Factory2")
 
 export
 p1:Product
@@ -295,7 +343,9 @@ export
 confirm_so : OwnerEvent ()
 confirm_so = do
  let date = "2021-11-01"
-     h1 = [p1,p2,p3,p4]
+     --h1 = [p1,p2,p3,p4]
+     h1 = qtyFromOrderLine (order_line so_44970)
+     {-
      up1 = (toEX20 31.73)
      up2 = (toEX20 15.03)
      up3 = (toEX20 25.00)
@@ -304,6 +354,8 @@ confirm_so = do
             (fst p2, up2),
             (fst p3, up3),
             (fst p4, up3) ]
+     -}
+     h2 = priceFromOrderLine (order_line so_44970)
             
      fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
  rew_r <- Open fx
@@ -372,11 +424,11 @@ init_self = do
      Pure ref
 
 export
-custWiRoute : (c:Address) -> (i:Address) -> List Location
+custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
 custWiRoute c i = [Partner Sale c, Control Sale i, Self]
 
 export
-suppWiRoute : (s:Address) -> (i:Address) -> List Location
+suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
 suppWiRoute s i = [Self, Control Purchase i, Partner Purchase s]
 
 export
@@ -413,9 +465,9 @@ toWhs (Init route je) = do
        Pure ref
        
 toWhs (Open fx) = do
-       let inv : Address
+       let inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
-           del : Address
+           del : BrowseResPartner.RecordModel
            del = (delivery fx)           
            route_c : Route
            route_c = custWiRoute del inv           

@@ -109,84 +109,6 @@ inf_loop p_mgr time_out = do
   inf_loop p_mgr time_out
 
 
-
-gen_adder : Int -> (Int ->Int)
-gen_adder x = (\a => a+x)
-
-so_id_44575 : Bits32
-so_id_44575 = 44575
-  
-fromMaybeDiscount : Maybe EQty -> EQty
-fromMaybeDiscount Nothing = 0
-fromMaybeDiscount (Just x) = x
-
-              
-priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
-priceFromOrderLine [] = []
-priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = ret where
-           val : EQty
-           val = (fromMaybeDiscount discount)*price_unit
-           ret : Hom2
-           ret =case product_id of 
-                  Nothing => (priceFromOrderLine xs)
-                  Just p_id => [ (PK32 DX pk, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
-        
-  
-priceFromStockMove : TaxCode -> List BrowseStockMove.RecordModel -> Hom2
-priceFromStockMove tc [] = []
-priceFromStockMove tax_code ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
-           case product_id of
-              Nothing => (priceFromStockMove tax_code xs)
-              Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP tax_code, price_unit) ) ] ++ (priceFromStockMove tax_code xs)
-
-
-
-fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
-fromAccountVoucher [] = []
-fromAccountVoucher ((MkRecordModel pk number partner_id journal_id amount) :: xs) = [("GBP",amount)]++(fromAccountVoucher xs)
-
-
-qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
-qtyFromOrderLine [] = []
-qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
-           case product_id of 
-              Nothing => [ (PKUser DX "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
-              Just p_id => [ (PK32 DX pk, product_uom_qty) ] ++ (qtyFromOrderLine xs)
-
-fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
-fromStockMove [] = []
-fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
-           case product_id of
-              Nothing => (fromStockMove xs)
-              Just p_id => [ (PK32 DX p_id,product_qty) ] ++ (fromStockMove xs)
-
-export
-getCxINC20 : Hom1 -> Hom1
-getCxINC20 [] = []
-getCxINC20 (((PKCy x z), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PKUser x z), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PK32 x z), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PKPrice DX z w), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PKPrice CX z INC20), y) :: xs) = [(PKPrice CX z INC20,y)] ++ getCxINC20 xs
-getCxINC20 (((PKPrice CX z EX20), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxINC20 xs
-getCxINC20 (((PKPrice CX z ERROR), y) :: xs) = getCxINC20 xs
-getCxINC20 (((FromInteger x), y) :: xs) = getCxINC20 xs
-
-export
-getCxEX20 : Hom1 -> Hom1
-getCxEX20 [] = []
-getCxEX20 (((PKCy x z), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PKUser x z), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PK32 x z), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PKPrice DX z w), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PKPrice CX z INC20), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PKPrice CX z EX20), y) :: xs) = [(PKPrice CX z EX20,y)] ++getCxEX20 xs
-getCxEX20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxEX20 xs
-getCxEX20 (((PKPrice CX z ERROR), y) :: xs) = getCxEX20 xs
-getCxEX20 (((FromInteger x), y) :: xs) = getCxEX20 xs
-
-
 calc_so : List BrowseOrder.RecordModel -> IO ()
 calc_so [] = pure ()
 calc_so (so::xs) = do
@@ -249,11 +171,12 @@ pjb_test = do
   --so <- BrowseOrder.read_ids [19273, 44970, 24359, 45063, 45064] (True)  
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
   sp <- BrowseStockPicking.read_ids [43747] (True)
-
+  mv <- BrowseStockMove.read (True)
+  traverse_ printLn [ (location_id m, location_dest_id m) | m <- mv ]
   --traverse_ printLn so  
   --traverse_ printLn sp      
   --traverse_ printLn av
-  calc_so so
+  --calc_so so
 {-    
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
