@@ -129,7 +129,7 @@ priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delive
            ret : Hom2
            ret =case product_id of 
                   Nothing => (priceFromOrderLine xs)
-                  Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP INC20,val) ) ] ++ (priceFromOrderLine xs)
+                  Just p_id => [ (PK32 DX p_id, (PKPrice CX GBP (getTax tax_ids),val) ) ] ++ (priceFromOrderLine xs)
         
   
 priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2

@@ -45,7 +45,19 @@ sti20 = PrimOrderTax.MkRecordModel
         amount = 1/5, 
         type = Just "percent", 
         price_include = Just True }
-        
+
+export
+fromOrderTax2 : PrimOrderTax.RecordModel -> TaxCode
+fromOrderTax2 (MkRecordModel pk name Nothing amount type price_include) = ERROR
+fromOrderTax2 (MkRecordModel pk name (Just x) amount type price_include) = case x of
+       "STI20" => INC20
+       "STE20" => EX20
+       _       => ERROR
+export
+getTax : List PrimOrderTax.RecordModel -> TaxCode
+getTax [] = ERROR
+getTax (x::xs) = (fromOrderTax2 x)
+
 export
 so_44970 : BrowseOrder.RecordModel
 so_44970 = BrowseOrder.MkRecordModel 
