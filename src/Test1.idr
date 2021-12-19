@@ -17,6 +17,7 @@ import Category.Transaction.Demo
 import Category.Transaction.Demo2
 import Data.Ratio
 --import Data.Zippable
+import Control.Monad.State
 
 import public Language.Reflection.Pretty
 import public Language.Reflection.Syntax
@@ -109,6 +110,23 @@ inf_loop p_mgr time_out = do
   inf_loop p_mgr time_out
 
 
+
+
+{-
+ret where
+   key : (Bits32,Bits32)
+   key = (location_id,location_dest_id) 
+   
+   ret : SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
+   ret =  case (lookup key m) of
+             Just mv_list  => insert (move::mv_list) (moveMap xs)
+             Nothing => insert [move] (moveMap xs)
+-}
+             
+{-
+moveCount : SortedMap (Bits32,Bits32) BrowseStockMove.RecordModel -> ( (Bits32,Bits32), Integer )
+moveCount m = [ (x, length y) | (x,y) <- toList m ]
+-}
 calc_so : List BrowseOrder.RecordModel -> IO ()
 calc_so [] = pure ()
 calc_so (so::xs) = do
@@ -163,6 +181,7 @@ calc_so (so::xs) = do
                 
   calc_so xs
 
+
 pjb_test : IO ()
 pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
@@ -172,7 +191,18 @@ pjb_test = do
   av <- BrowseAccountVoucher.read_ids [43244] (True)  
   sp <- BrowseStockPicking.read_ids [43747] (True)
   mv <- BrowseStockMove.read (True)
-  traverse_ printLn [ (location_id m, location_dest_id m) | m <- mv ]
+  printLn "reading Done"
+  print_group mv
+    
+--  printLn 
+  
+{-  
+  let retR : (StockMoveMap, () )
+      retR = runState (moveMap mv) 
+  -}    
+  --traverse_ printLn [ (location_id m, location_dest_id m) | m <- mv ]
+  
+  
   --traverse_ printLn so  
   --traverse_ printLn sp      
   --traverse_ printLn av

@@ -297,11 +297,6 @@ export
 priceFromStockMove : TaxCode -> List BrowseStockMove.RecordModel -> Hom2
 priceFromStockMove tc [] = []
 priceFromStockMove tax_code ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state) :: xs) = [ (PK32 DX product_id, (PKPrice CX GBP tax_code,fromMaybeEQty price_unit ) ) ] ++ (priceFromStockMove tax_code xs)
-{-
-           case product_id of
-              Nothing => (priceFromStockMove tax_code xs)
-              Just p_id => 
--}
 
 export
 fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
@@ -319,11 +314,7 @@ export
 fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
 fromStockMove [] = []
 fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id purchase_line_id sale_line_id state) :: xs) = [ (PK32 DX product_id,product_qty) ] ++ (fromStockMove xs)
-{-
-           case product_id of
-              Nothing => (fromStockMove xs)
-              Just p_id => 
--}
+
 export
 getCxINC20 : Hom1 -> Hom1
 getCxINC20 [] = []

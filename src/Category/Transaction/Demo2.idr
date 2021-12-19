@@ -15,10 +15,42 @@ import Category.Transaction.Journal
 import Crypto.Hash.SHA256
 import Data.Ratio
 import Odoo.Schema.PJBRecDef
-import Odoo.Schema.PJB
+--import Odoo.Schema.PJB
 
 %language ElabReflection
-
+export
+StockMoveMap : Type
+StockMoveMap = SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
+export
+moveMap : List BrowseStockMove.RecordModel -> StateT StockMoveMap IO ()
+moveMap [] = pure ()
+moveMap (x:: xs) = do
+   m <- get   
+   let keyx : (Bits32,Bits32)
+       keyx = (location_id x,location_dest_id x) 
+       m' : StockMoveMap
+       m' = case (Data.SortedMap.lookup keyx m) of
+               Nothing => insert keyx [x] m
+               Just mv_list => insert keyx (x::mv_list) m
+   --printLn keyx
+   put m'
+   moveMap xs
+{-
+export   
+runXdd : List BrowseStockMove.RecordModel -> IO StockMoveMap
+runXdd xs = execStateT empty (moveMap xs)
+-}
+export
+print_group : List BrowseStockMove.RecordModel -> IO ()    --List ( (Bits32,Bits32), Integer)
+print_group xs = do
+  retMvs <- execStateT empty (moveMap xs) --runXdd xs
+  
+  let ocas = [ (x,Prelude.List.length y) | (x,y) <- Data.SortedMap.toList retMvs ]
+  traverse_ printLn ocas
+  
+  pure ()
+  
+  
 
 export
 sti20 : PrimOrderTax.RecordModel
@@ -499,7 +531,7 @@ toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
      
 export
-interpret : WhsEvent a -> State (RouteMap,LedgerMap,JournalMap) a
+interpret : WhsEvent a -> StateT (RouteMap,LedgerMap,JournalMap) IO a
 interpret  (NewRoute date route) = do
              (routes,led_map,jm)<-get             
              let route_cnt = encode route
@@ -552,8 +584,8 @@ interpret (Put f t ledger je) = do
              pure ()
         
              
-interpret (Log x) = pure () --?interpret_rhs_1
-interpret (Show x) = pure () --?interpret_rhs_2
+interpret (Log x) = putStrLn x --pure () --?interpret_rhs_1
+interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
 interpret (Bind x f) = do res <- interpret x
                           interpret (f res)
