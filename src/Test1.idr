@@ -188,11 +188,15 @@ pjb_test = do
   --print_BoM32 3303 m32x
 
   
-  traverse_ printLn $ ( h1_order_stock - h1_stock)
-  traverse_ printLn $ evalHom1 $ ( applyHom2 h2 h1_order )
+  --traverse_ printLn $ ( h1_order_stock - h1_stock)
+  traverse_ printLn $ ( applyHom2 h2 h1_order )
+  traverse_ printLn $ ( applyHom2Tax h2 h1_order )
   
-  printLn $ evalHom1 $ ( applyHom2 h2_picking h1_stock )  --discount missing
-  printLn $ fromAccountVoucher [va_43244]
+  --traverse_ printLn $ evalHom1 $ ( applyHom2 h2 h1_order )
+  --traverse_ printLn $ evalHom1 $ ( applyHom2Tax h2 h1_order )
+    
+  --printLn $ evalHom1 $ ( applyHom2 h2_picking h1_stock )  --discount missing
+  --printLn $ fromAccountVoucher [va_43244]
       
   pure ()
           

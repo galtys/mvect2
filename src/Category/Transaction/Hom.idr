@@ -130,6 +130,27 @@ taxRatio INC20 = inc20_const
 taxRatio EX20 = one5
 taxRatio TAXAMOUNT = 0
 taxRatio ERROR = 0
+
+public export  
+applyHom2Tax : Hom2 -> Hom1 -> Hom1
+applyHom2Tax h2 p = ret where
+  {-
+  kp : List ProdKey
+  kp = map fst p
+  -}
+  ret1 : List (Maybe Product,EQty)
+  ret1 = [ (lookup (fst x) h2, snd x) | x <- p ]
+  
+  
+  
+  ev_ret1 : List (Maybe Product,EQty) -> Hom1
+  ev_ret1 [] = []
+  ev_ret1 ((Nothing,q)::xs) = (ev_ret1 xs)
+  ev_ret1 ((Just x,q)::xs) = [ (toTaxAmountKey $ fst x,(taxRatio $ taxCodeFromKey $ fst x)*(snd x)*q) ]++(ev_ret1 xs)
+  
+  ret : Hom1
+  ret = (ev_ret1 ret1)
+
 {-
 export
 toDx : Product -> TProduct

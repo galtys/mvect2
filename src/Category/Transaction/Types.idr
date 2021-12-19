@@ -65,6 +65,29 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 public export
 data ProdKey = PKCy DxCx Currency | PKUser DxCx String | PK32 DxCx Bits32 | PKPrice DxCx Currency TaxCode | FromInteger DxCx --|PKAppl ProdKey ProdKey
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+export
+taxCodeFromKey : ProdKey -> TaxCode
+taxCodeFromKey (PKCy x y) = ERROR
+taxCodeFromKey (PKUser x y) = ERROR
+taxCodeFromKey (PK32 x y) = ERROR
+taxCodeFromKey (PKPrice x y z) = z
+taxCodeFromKey (FromInteger x) = ERROR
+{-
+export
+currencyFromKey : ProdKey -> Maybe Currency
+currencyFromKey (PKCy x y) = Just y
+currencyFromKey (PKUser x y) = Nothing
+currencyFromKey (PK32 x y) = Nothing
+currencyFromKey (PKPrice x y z) = Just y
+currencyFromKey (FromInteger x) = Nothing
+-}
+export
+toTaxAmountKey : ProdKey -> ProdKey
+toTaxAmountKey (PKCy x y) = PKCy x y
+toTaxAmountKey (PKUser x y) = PKUser x y
+toTaxAmountKey (PK32 x y) = PK32 x y
+toTaxAmountKey (PKPrice x y z) = PKPrice x y TAXAMOUNT
+toTaxAmountKey (FromInteger x) = FromInteger x
 
 
 public export
@@ -182,3 +205,4 @@ applyHom2 h2 p = ret where
   
   ret : Hom1
   ret = (ev_ret1 ret1)
+
