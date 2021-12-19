@@ -125,10 +125,11 @@ FromString ProdKey where
            Nothing => PKUser s
            Just cy => PKCy cy
            
-
+{-
 public export
 CurrencyProd : Type
 CurrencyProd = (ProdKey, Product)
+-}
 
 public export
 Hom1 : Type
@@ -140,7 +141,7 @@ THom = List TProduct
 
 public export
 Product2 : Type
-Product2 = (ProdKey, CurrencyProd)
+Product2 = (ProdKey, Product) --CurrencyProd)
 
 
 public export
@@ -173,10 +174,10 @@ fromH121 h121 = (MkH11 (dx h121) (cx h121))
 
 
 ------------- THIS WILL BE MOVED
-
+{-
 public export
-apply2' : Hom2 -> Hom1 -> Hom1
-apply2' h2 p = ret where
+apply3' : Hom2 -> Hom1 -> Hom1
+apply3' h2 p = ret where
   h2map : SortedMap ProdKey CurrencyProd --Product
   h2map = fromList h2
   
@@ -191,6 +192,21 @@ apply2' h2 p = ret where
   
   ret : Hom1
   ret = (ret2 ret1)
+-}  
+public export  
+apply2' : Hom2 -> Hom1 -> Hom1
+apply2' h2 p = ret where
+  {-
+  kp : List ProdKey
+  kp = map fst p
+  -}
+  ret1 : List (Maybe Product,EQty)
+  ret1 = [ (lookup (fst x) h2, snd x) | x <- p ]
   
+  ev_ret1 : List (Maybe Product,EQty) -> Hom1
+  ev_ret1 [] = []
+  ev_ret1 ((Nothing,q)::xs) = (ev_ret1 xs)
+  ev_ret1 ((Just x,q)::xs) = [ (fst x, (snd x)*q) ]++(ev_ret1 xs)
   
-
+  ret : Hom1
+  ret = (ev_ret1 ret1)

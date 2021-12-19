@@ -45,7 +45,7 @@ sti20 = PrimOrderTax.MkRecordModel
         amount = 1/5, 
         type = Just "percent", 
         price_include = Just True }
-{-        
+        
 export
 so_44970 : BrowseOrder.RecordModel
 so_44970 = BrowseOrder.MkRecordModel 
@@ -54,11 +54,11 @@ so_44970 = BrowseOrder.MkRecordModel
          order_policy = "manual", 
          date_order = "2021-11-18", 
          partner_id = 31587, 
-         amount_tax = MkPrice { tax = TAXAMOUNT, price = 833 }, 
+         amount_tax = (PKPrice GBP TAXAMOUNT,833), --MkPrice { tax = TAXAMOUNT, price = 833 }, 
          state = "manual", 
          partner_invoice_id = 31587, 
-         amount_untaxed = MkPrice { tax = EX20, price = 4165 }, 
-         amount_total = MkPrice { tax = INC20, price = 4998 }, 
+         amount_untaxed = (PKPrice GBP EX20, 4165), --MkPrice { tax = EX20, price = 4165 }, 
+         amount_total = (PKPrice GBP INC20, 4998), --MkPrice { tax = INC20, price = 4998 }, 
          name = "SO44907", 
          partner_shipping_id = 31587, 
          picking_policy = "direct", 
@@ -113,7 +113,7 @@ so_44970 = BrowseOrder.MkRecordModel
                               product_id = Just 4095, 
                               tax_ids = [sti20]} ] , 
          requested_date = Nothing }
--}         
+         
 export
 sp_43747 : BrowseStockPicking.RecordModel
 sp_43747 = MkRecordModel 
@@ -263,15 +263,15 @@ confirm_po = do
      up1 = (toEX20 21.73)
      up2 = (toEX20 11.03)
      up3 = (toEX20 17.00)     
-     h2 = [ (fst p1, ("GBP",up1)), 
-            (fst p2, ("GBP",up2)),
-            (fst p3, ("GBP",up3))]
+     h2 = [ (fst p1, up1 ), 
+            (fst p2, up2 ),
+            (fst p3, up3 )]
      fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (apply2' h2 h1) ) 
      
      h1' : Hom1
      h1' = map (mult_p 10) [p4]
      h2' : Hom2
-     h2' = [ (fst p4, ("GBP", toEX20 15.43) )]
+     h2' = [ (fst p4, toEX20 15.43)]
      fx' : FxData
      fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (apply2' h2' h1') ) 
      
@@ -288,10 +288,10 @@ confirm_so = do
      up2 = (toEX20 15.03)
      up3 = (toEX20 25.00)
      up4 = (toEX20 21.00)     
-     h2 = [ (fst p1, ("GBP",up1)), 
-            (fst p2, ("GBP",up2)),
-            (fst p3, ("GBP",up3)),
-            (fst p4, ("GBP",up3)) ]
+     h2 = [ (fst p1, up1), 
+            (fst p2, up2),
+            (fst p3, up3),
+            (fst p4, up3) ]
             
      fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (apply2' h2 h1) ) 
  rew_r <- Open fx
@@ -347,7 +347,7 @@ init_self = do
          share : Product
          share = ("GTX43",100)
          h2 : Hom2
-         h2 = [ (fst share, ("GBP",price)) ]
+         h2 = [ (fst share, price) ]
          h1 : Hom1
          h1 = [share]
          

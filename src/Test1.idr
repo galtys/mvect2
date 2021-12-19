@@ -116,31 +116,29 @@ gen_adder x = (\a => a+x)
 so_id_44575 : Bits32
 so_id_44575 = 44575
   
-{-
-public export
-data BoMProduct : Type where  
-   NodeProduct : (qty:EQty) -> (ProdKey) ->(components:List BoMProduct) -> BoMProduct
-%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
-  -}  
 fromMaybeDiscount : Maybe EQty -> EQty
 fromMaybeDiscount Nothing = 0
 fromMaybeDiscount (Just x) = x
 
-{-
+              
 priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
 priceFromOrderLine [] = []
-priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
-           case product_id of 
-              Nothing => (priceFromOrderLine xs)
-              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 ((fromMaybeDiscount discount)*price_unit)  ) ) ] ++ (priceFromOrderLine xs)
-              
+priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = ret where
+           val : EQty
+           val = (fromMaybeDiscount discount)*price_unit
+           ret : Hom2
+           ret =case product_id of 
+                  Nothing => (priceFromOrderLine xs)
+                  Just p_id => [ (PK32 p_id, (PKPrice GBP INC20,val) ) ] ++ (priceFromOrderLine xs)
+        
+  
 priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
 priceFromStockMove [] = []
 priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
            case product_id of
               Nothing => (priceFromStockMove xs)
-              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 price_unit) ) ] ++ (priceFromStockMove xs)
-  -}            
+              Just p_id => [ (PK32 p_id, (PKPrice GBP INC20, price_unit) ) ] ++ (priceFromStockMove xs)
+
 
 
 fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
@@ -173,7 +171,7 @@ pjb_test = do
   --traverse_ printLn so  
   --traverse_ printLn sp      
   --traverse_ printLn av
-    {-
+    
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
   let h1_order =qtyFromOrderLine so_44970.order_line
@@ -195,7 +193,7 @@ pjb_test = do
   
   printLn $ evalHom1 $ ( apply2' h2_picking h1_stock )  --discount missing
   printLn $ fromAccountVoucher [va_43244]
-      -}
+      
   pure ()
           
 mg_test : IO ()
