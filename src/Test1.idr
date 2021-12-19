@@ -160,6 +160,33 @@ fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id locati
               Nothing => (fromStockMove xs)
               Just p_id => [ (PK32 DX p_id,product_qty) ] ++ (fromStockMove xs)
 
+export
+getCxINC20 : Hom1 -> Hom1
+getCxINC20 [] = []
+getCxINC20 (((PKCy x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKUser x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PK32 x z), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice DX z w), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z INC20), y) :: xs) = [(PKPrice CX z INC20,y)] ++ getCxINC20 xs
+getCxINC20 (((PKPrice CX z EX20), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxINC20 xs
+getCxINC20 (((PKPrice CX z ERROR), y) :: xs) = getCxINC20 xs
+getCxINC20 (((FromInteger x), y) :: xs) = getCxINC20 xs
+
+export
+getCxEX20 : Hom1 -> Hom1
+getCxEX20 [] = []
+getCxEX20 (((PKCy x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKUser x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PK32 x z), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice DX z w), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z INC20), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z EX20), y) :: xs) = [(PKPrice CX z EX20,y)] ++getCxEX20 xs
+getCxEX20 (((PKPrice CX z TAXAMOUNT), y) :: xs) = getCxEX20 xs
+getCxEX20 (((PKPrice CX z ERROR), y) :: xs) = getCxEX20 xs
+getCxEX20 (((FromInteger x), y) :: xs) = getCxEX20 xs
+
+
 pjb_test : IO ()
 pjb_test = do
   cust <- BrowseResPartner.read_ids [31587] (True)
@@ -184,13 +211,19 @@ pjb_test = do
       
       h2 = priceFromOrderLine so_44970.order_line
       h2_picking = priceFromStockMove INC20 sp_43747.move_ids
-
+      
+      inc20 = evalHom1 $ getCxINC20 $ ( applyHom2 h2 h1_order )
+      ex20 = evalHom1 $ getCxEX20 $ ( applyHom2 h2 h1_order )
+      
+      tax = evalHom1 $ ( applyHom2Tax h2 h1_order )
+      
   --print_BoM32 3303 m32x
 
   
   --traverse_ printLn $ ( h1_order_stock - h1_stock)
-  traverse_ printLn $ ( applyHom2 h2 h1_order )
-  traverse_ printLn $ ( applyHom2Tax h2 h1_order )
+  printLn $ (inc20-tax)
+  
+  printLn $ (ex20+tax)
   
   --traverse_ printLn $ evalHom1 $ ( applyHom2 h2 h1_order )
   --traverse_ printLn $ evalHom1 $ ( applyHom2Tax h2 h1_order )
