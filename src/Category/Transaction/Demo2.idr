@@ -45,7 +45,7 @@ sti20 = PrimOrderTax.MkRecordModel
         amount = 1/5, 
         type = Just "percent", 
         price_include = Just True }
-        
+{-        
 export
 so_44970 : BrowseOrder.RecordModel
 so_44970 = BrowseOrder.MkRecordModel 
@@ -113,6 +113,7 @@ so_44970 = BrowseOrder.MkRecordModel
                               product_id = Just 4095, 
                               tax_ids = [sti20]} ] , 
          requested_date = Nothing }
+-}         
 export
 sp_43747 : BrowseStockPicking.RecordModel
 sp_43747 = MkRecordModel 

@@ -125,18 +125,27 @@ data BoMProduct : Type where
 fromMaybeDiscount : Maybe EQty -> EQty
 fromMaybeDiscount Nothing = 0
 fromMaybeDiscount (Just x) = x
+
 {-
-fromMaybeEQty : Maybe EQty -> EQty
-fromMaybeEQty Nothing = 0
-fromMaybeEQty (Just x) = x
--}
 priceFromOrderLine : List BrowseOrderLine.RecordModel -> Hom2 --List (ProdKey, Currency)
 priceFromOrderLine [] = []
 priceFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
               Nothing => (priceFromOrderLine xs)
               Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 ((fromMaybeDiscount discount)*price_unit)  ) ) ] ++ (priceFromOrderLine xs)
+              
+priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
+priceFromStockMove [] = []
+priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
+           case product_id of
+              Nothing => (priceFromStockMove xs)
+              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 price_unit) ) ] ++ (priceFromStockMove xs)
+  -}            
 
+
+fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
+fromAccountVoucher [] = []
+fromAccountVoucher ((MkRecordModel pk number partner_id journal_id amount) :: xs) = [("GBP",amount)]++(fromAccountVoucher xs)
 
 
 qtyFromOrderLine : List BrowseOrderLine.RecordModel -> Hom1 --List (ProdKey,EQty)
@@ -152,17 +161,6 @@ fromStockMove ((MkRecordModel pk origin price_unit product_qty product_id locati
            case product_id of
               Nothing => (fromStockMove xs)
               Just p_id => [ (PK32 p_id,product_qty) ] ++ (fromStockMove xs)
-              
-priceFromStockMove : List BrowseStockMove.RecordModel -> Hom2
-priceFromStockMove [] = []
-priceFromStockMove ((MkRecordModel pk origin price_unit product_qty product_id location_id location_dest_id picking_id state) :: xs) = 
-           case product_id of
-              Nothing => (priceFromStockMove xs)
-              Just p_id => [ (PK32 p_id, ("GBP", MkPrice INC20 price_unit) ) ] ++ (priceFromStockMove xs)
-              
-fromAccountVoucher : List BrowseAccountVoucher.RecordModel -> Hom1
-fromAccountVoucher [] = []
-fromAccountVoucher ((MkRecordModel pk number partner_id journal_id amount) :: xs) = [("GBP",amount)]++(fromAccountVoucher xs)
 
 pjb_test : IO ()
 pjb_test = do
@@ -175,7 +173,7 @@ pjb_test = do
   --traverse_ printLn so  
   --traverse_ printLn sp      
   --traverse_ printLn av
-    
+    {-
   boms <- BrowseBoM.read (True)
   --traverse_ printLn boms
   let h1_order =qtyFromOrderLine so_44970.order_line
@@ -188,16 +186,18 @@ pjb_test = do
       
       h2 = priceFromOrderLine so_44970.order_line
       h2_picking = priceFromStockMove sp_43747.move_ids
-      
+
   --print_BoM32 3303 m32x
-  pure ()
+
   
   traverse_ printLn $ ( h1_order_stock - h1_stock)
   traverse_ printLn $ evalHom1 $ ( apply2' h2 h1_order )
   
   printLn $ evalHom1 $ ( apply2' h2_picking h1_stock )  --discount missing
   printLn $ fromAccountVoucher [va_43244]
-  
+      -}
+  pure ()
+          
 mg_test : IO ()
 mg_test = do
   --ignore $ run forever greet
