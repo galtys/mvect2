@@ -166,8 +166,8 @@ apply3' h2 p = ret where
   ret = (ret2 ret1)
 -}  
 public export  
-apply2' : Hom2 -> Hom1 -> Hom1
-apply2' h2 p = ret where
+applyHom2 : Hom2 -> Hom1 -> Hom1
+applyHom2 h2 p = ret where
   {-
   kp : List ProdKey
   kp = map fst p

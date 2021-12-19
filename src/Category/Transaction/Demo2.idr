@@ -278,14 +278,14 @@ confirm_po = do
      h2 = [ (fst p1, up1 ), 
             (fst p2, up2 ),
             (fst p3, up3 )]
-     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (apply2' h2 h1) ) 
+     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
      
      h1' : Hom1
      h1' = map (mult_p 10) [p4]
      h2' : Hom2
      h2' = [ (fst p4, toEX20 15.43)]
      fx' : FxData
-     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (apply2' h2' h1') ) 
+     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (applyHom2 h2' h1') ) 
      
  rew_r <- Open fx
  rew_r' <- Open fx' 
@@ -305,7 +305,7 @@ confirm_so = do
             (fst p3, up3),
             (fst p4, up3) ]
             
-     fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (apply2' h2 h1) ) 
+     fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
  rew_r <- Open fx
  Pure ()
 
@@ -364,7 +364,7 @@ init_self = do
          h1 = [share]
          
          h121 : Hom121
-         h121 = MkH121 h1 [] h2 (apply2' h2 h1)
+         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
          
          je : JournalEvent
          je = Fx121 (date, h121)

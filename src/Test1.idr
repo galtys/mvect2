@@ -189,9 +189,9 @@ pjb_test = do
 
   
   traverse_ printLn $ ( h1_order_stock - h1_stock)
-  traverse_ printLn $ evalHom1 $ ( apply2' h2 h1_order )
+  traverse_ printLn $ evalHom1 $ ( applyHom2 h2 h1_order )
   
-  printLn $ evalHom1 $ ( apply2' h2_picking h1_stock )  --discount missing
+  printLn $ evalHom1 $ ( applyHom2 h2_picking h1_stock )  --discount missing
   printLn $ fromAccountVoucher [va_43244]
       
   pure ()
