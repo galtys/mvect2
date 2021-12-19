@@ -341,11 +341,11 @@ export
 init_self : OwnerEvent RouteRef
 init_self = do
      let date = "2010-01-15"
-         price : Price
+         price : Product
          price = (toEX20 1000)
          
          share : Product
-         share = ("company_shares",100)
+         share = ("GTX43",100)
          h2 : Hom2
          h2 = [ (fst share, ("GBP",price)) ]
          h1 : Hom1

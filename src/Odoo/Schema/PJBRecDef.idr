@@ -18,7 +18,7 @@ namespace PrimProductTemplate
           constructor MkRecordModel
           pk:Bits32
           name:String
-          list_price:(Maybe Price)
+          list_price:(Maybe Product)
       %runElab derive "PrimProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace PrimProduct
@@ -28,9 +28,9 @@ namespace PrimProduct
           constructor MkRecordModel
           pk:Bits32
           product_tmpl_id:Bits32
-          trade:(Maybe Price)
-          retail:(Maybe Price)
-          contract:(Maybe Price)
+          trade:(Maybe Product)
+          retail:(Maybe Product)
+          contract:(Maybe Product)
           default_code:String
       %runElab derive "PrimProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -113,11 +113,11 @@ namespace PrimOrder
           order_policy:String
           date_order:Date
           partner_id:Bits32
-          amount_tax:Price
+          amount_tax:Product
           state:String
           partner_invoice_id:Bits32
-          amount_untaxed:Price
-          amount_total:Price
+          amount_untaxed:Product
+          amount_total:Product
           name:String
           partner_shipping_id:Bits32
           picking_policy:String
@@ -206,12 +206,12 @@ namespace PrimAccountInvoice
           account_id:(Maybe Bits32)
           partner_id:(Maybe Bits32)
           journal_id:(Maybe Bits32)
-          amount_tax:Price
+          amount_tax:Product
           state:String
           type:(Maybe String)
           date_invoice:Date
-          amount_untaxed:Price
-          amount_total:Price
+          amount_untaxed:Product
+          amount_total:Product
           --O2M
       %runElab derive "PrimAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -221,7 +221,7 @@ namespace BrowseProductTemplate
           constructor MkRecordModel
           pk:Bits32
           name:String
-          list_price:(Maybe Price)
+          list_price:(Maybe Product)
       %runElab derive "BrowseProductTemplate.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
 namespace BrowseProduct
@@ -230,9 +230,9 @@ namespace BrowseProduct
           constructor MkRecordModel
           pk:Bits32
           product_tmpl_id:List PrimProductTemplate.RecordModel
-          trade:(Maybe Price)
-          retail:(Maybe Price)
-          contract:(Maybe Price)
+          trade:(Maybe Product)
+          retail:(Maybe Product)
+          contract:(Maybe Product)
           default_code:String
       %runElab derive "BrowseProduct.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]
 
@@ -309,11 +309,11 @@ namespace BrowseOrder
           order_policy:String
           date_order:Date
           partner_id:Bits32
-          amount_tax:Price
+          amount_tax:Product
           state:String
           partner_invoice_id:Bits32
-          amount_untaxed:Price
-          amount_total:Price
+          amount_untaxed:Product
+          amount_total:Product
           name:String
           partner_shipping_id:Bits32
           picking_policy:String
@@ -396,11 +396,11 @@ namespace BrowseAccountInvoice
           account_id:(Maybe Bits32)
           partner_id:(Maybe Bits32)
           journal_id:(Maybe Bits32)
-          amount_tax:Price
+          amount_tax:Product
           state:String
           type:(Maybe String)
           date_invoice:Date
-          amount_untaxed:Price
-          amount_total:Price
+          amount_untaxed:Product
+          amount_total:Product
           invoice_line:List BrowseAccountInvoiceLine.RecordModel
       %runElab derive "BrowseAccountInvoice.RecordModel" [Generic, Meta, Show, Eq, Ord,RecordToJSON,RecordFromJSON]

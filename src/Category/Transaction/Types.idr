@@ -59,7 +59,7 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 
 
 public export
-data ProdKey = PKCy Currency | PKUser String | PK32 Bits32 | PKTax Currency TaxCode | FromInteger --|PKUserDate Date String | PK32Date Date Bits32
+data ProdKey = PKCy Currency | PKUser String | PK32 Bits32 | PKPrice Currency TaxCode | FromInteger | PKAppl ProdKey ProdKey
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 public export
@@ -80,38 +80,44 @@ data BoM32 : Type where
 public export
 Product : Type
 Product = (ProdKey, EQty)
+
 public export
 TProduct : Type
 TProduct = (TProdKey, EQty)
 
-
+{-
 public export
 record Price where
   constructor MkPrice
   tax : TaxCode
   price : EQty
 %runElab derive "Price" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+
+export
+Price : Type
+Price = Product
+-}
+
+
 export  
-toINC20 : Double -> Price
-toINC20 x = MkPrice INC20 (cast x) 
+toINC20 : Double -> Product
+toINC20 x = (PKPrice GBP INC20, (cast x))     --MkPrice INC20 (cast x) 
 export
-fromPrice : Price -> Double
-fromPrice (MkPrice tax x) = (cast x)
+fromPrice : Product -> Double
+fromPrice (x,y) = cast y   --(MkPrice tax x) = (cast x)
 export
-toEX20 : Double -> Price
-toEX20 x = MkPrice EX20 (cast x) 
+toEX20 : Double -> Product
+toEX20 x = (PKPrice GBP EX20, (cast x))  --MkPrice EX20 (cast x) 
 export
-toTaxA : Double -> Price
-toTaxA x = MkPrice TAXAMOUNT (cast x) 
-
-
+toTaxA : Double -> Product
+toTaxA x = (PKPrice GBP TAXAMOUNT, (cast x))  --MkPrice TAXAMOUNT (cast x) 
 
 public export
-Cast Price Double where
+Cast Product Double where
   cast = fromPrice
 public export
-Cast Price EQty where
-  cast (MkPrice tax x) = x
+Cast Product EQty where
+  cast (x,y) = y
   
 public export
 FromString ProdKey where
@@ -122,7 +128,7 @@ FromString ProdKey where
 
 public export
 CurrencyProd : Type
-CurrencyProd = (ProdKey, Price)
+CurrencyProd = (ProdKey, Product)
 
 public export
 Hom1 : Type
@@ -180,7 +186,7 @@ apply2' h2 p = ret where
   ret2 : List (Maybe CurrencyProd,EQty) -> Hom1
   ret2 [] = []
   ret2 ((Nothing,q) ::xs) = (ret2 xs)
-  ret2 ((Just x,q) ::xs) = [(fst x, (price (snd x))*q)]++ (ret2 xs)
+  ret2 ((Just x,q) ::xs) = [(fst x, (snd (snd x))*q)]++ (ret2 xs)
   
   
   ret : Hom1

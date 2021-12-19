@@ -52,18 +52,18 @@ PkPT=notNull Bits32 "id" (BigInt) (Just . cast) cast PT
 NamePT:Column
 NamePT=notNull String "name" (Text) (Just . cast) cast PT
 ListPricePT:Column
-ListPricePT=nullable Price "list_price" (DoublePrecision) (Just . toINC20) cast PT
+ListPricePT=nullable Product "list_price" (DoublePrecision) (Just . toINC20) cast PT
 
 PkPP:Column
 PkPP=notNull Bits32 "id" (BigInt) (Just . cast) cast PP
 ProductTmplIdPP:Column
 ProductTmplIdPP=notNull Bits32 "product_tmpl_id" (BigInt) (Just . cast) cast PP
 TradePP:Column
-TradePP=nullable Price "trade" (DoublePrecision) (Just . toEX20) cast PP
+TradePP=nullable Product "trade" (DoublePrecision) (Just . toEX20) cast PP
 RetailPP:Column
-RetailPP=nullable Price "retail" (DoublePrecision) (Just . toINC20) cast PP
+RetailPP=nullable Product "retail" (DoublePrecision) (Just . toINC20) cast PP
 ContractPP:Column
-ContractPP=nullable Price "contract" (DoublePrecision) (Just . toEX20) cast PP
+ContractPP=nullable Product "contract" (DoublePrecision) (Just . toEX20) cast PP
 DefaultCodePP:Column
 DefaultCodePP=notNull String "default_code" (Text) (Just . cast) cast PP
 
@@ -148,15 +148,15 @@ DateOrderOT=notNull Date "date_order" (VarChar 10) (Just . cast) cast OT
 PartnerIdOT:Column
 PartnerIdOT=notNull Bits32 "partner_id" (BigInt) (Just . cast) cast OT
 AmountTaxOT:Column
-AmountTaxOT=notNull Price "amount_tax" (DoublePrecision) (Just . toTaxA) cast OT
+AmountTaxOT=notNull Product "amount_tax" (DoublePrecision) (Just . toTaxA) cast OT
 StateOT:Column
 StateOT=notNull String "state" (Text) (Just . cast) cast OT
 PartnerInvoiceIdOT:Column
 PartnerInvoiceIdOT=notNull Bits32 "partner_invoice_id" (BigInt) (Just . cast) cast OT
 AmountUntaxedOT:Column
-AmountUntaxedOT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20) cast OT
+AmountUntaxedOT=notNull Product "amount_untaxed" (DoublePrecision) (Just . toEX20) cast OT
 AmountTotalOT:Column
-AmountTotalOT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast OT
+AmountTotalOT=notNull Product "amount_total" (DoublePrecision) (Just . toINC20) cast OT
 NameOT:Column
 NameOT=notNull String "name" (Text) (Just . cast) cast OT
 PartnerShippingIdOT:Column
@@ -253,7 +253,7 @@ PartnerIdIT=nullable Bits32 "partner_id" (BigInt) (Just . cast) cast IT
 JournalIdIT:Column
 JournalIdIT=nullable Bits32 "journal_id" (BigInt) (Just . cast) cast IT
 AmountTaxIT:Column
-AmountTaxIT=notNull Price "amount_tax" (DoublePrecision) (Just . toTaxA) cast IT
+AmountTaxIT=notNull Product "amount_tax" (DoublePrecision) (Just . toTaxA) cast IT
 StateIT:Column
 StateIT=notNull String "state" (Text) (Just . cast) cast IT
 TypeIT:Column
@@ -261,9 +261,9 @@ TypeIT=nullable String "type" (VarChar 64) (Just . cast) cast IT
 DateInvoiceIT:Column
 DateInvoiceIT=notNull Date "date_invoice" (VarChar 10) (Just . cast) cast IT
 AmountUntaxedIT:Column
-AmountUntaxedIT=notNull Price "amount_untaxed" (DoublePrecision) (Just . toEX20) cast IT
+AmountUntaxedIT=notNull Product "amount_untaxed" (DoublePrecision) (Just . toEX20) cast IT
 AmountTotalIT:Column
-AmountTotalIT=notNull Price "amount_total" (DoublePrecision) (Just . toINC20) cast IT
+AmountTotalIT=notNull Product "amount_total" (DoublePrecision) (Just . toINC20) cast IT
 --O2M
 namespace PrimProductTemplate
       domain : Op

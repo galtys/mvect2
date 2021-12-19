@@ -22,7 +22,7 @@ namespace OE
    export
    pt_show : PrimTypes -> String
    pt_show I_Bits32 = "Bits32"
-   pt_show I_Price = "Price"
+   pt_show I_Price = "Product"
    pt_show I_Date = "Date"
    pt_show I_String = "String"
    pt_show I_EQty = "EQty"
