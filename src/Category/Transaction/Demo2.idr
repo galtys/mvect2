@@ -483,8 +483,11 @@ confirm_so = do
      --h1_stock = fromStockMove sp_43747.move_ids
      h2 = priceFromOrderLine (order_line so_44970)
      
-     cx = (applyHom2 h2 dx)
+     tax = evalHom1 $( applyHom2Tax h2 dx )
+           
+     cx = (applyHom2 h2 dx) + tax
      h11 = MkH11 h1_order_stock cx
+     
 
      fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
