@@ -100,9 +100,6 @@ record MoveKey where
 public export
 record AllocationItem where
   constructor MkAI
-  --from : Route
-  --to : Route
-  --ledger : Ledger
   key : MoveKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
@@ -129,8 +126,7 @@ namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
        Init : Route ->  FxEvent -> UserData -> OwnerEvent RouteRef --just sugar post event
-       UpdateUserData : UserData -> OwnerEvent ()
-       
+       UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
        
        Open : (fx:FxData) -> OwnerEvent RouteRef
