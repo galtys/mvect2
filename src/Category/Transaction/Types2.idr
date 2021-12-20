@@ -53,11 +53,11 @@ record FxData where
    invoice:BrowseResPartner.RecordModel  -- Invoice
    h3: Hom121
    -- origin : Maybe FxRef --list of origins, a PO can have multiple origins
-%runElab derive "FxData" [Generic, Meta, RecordToJSON,RecordFromJSON]   
+%runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-data JournalEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11)
-%runElab derive "JournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
+data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11)
+%runElab derive "FxEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 public export
 Route : Type
@@ -67,14 +67,18 @@ public export
 data RouteState = Progress | Completed
 %runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
+public export
+data OwnerJournalEvent = MkNewRoute Route FxEvent | MkOpen FxData 
+%runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
+
 namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
        NewRoute : Date -> Route -> WhsEvent RouteRef
        CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
-       Put   : (from:Location)->(to:Location)->Ledger -> JournalEvent -> WhsEvent ()
+       Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
 
-       Log : String -> WhsEvent ()
+       Log : OwnerJournalEvent -> WhsEvent ()
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
        Bind : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
@@ -90,10 +94,10 @@ namespace WhsEventDo
 namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
-       Init : Route ->  JournalEvent -> OwnerEvent RouteRef
+       Init : Route ->  FxEvent -> OwnerEvent RouteRef
        
        Open : (fx:FxData) -> OwnerEvent RouteRef
-       Log : String -> OwnerEvent ()
+       Log : String  -> OwnerEvent ()
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
        Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
@@ -121,7 +125,7 @@ LocationMap  : Type
 LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
 RouteJournalMap  : Type
-RouteJournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+RouteJournalMap = SortedMap (Location, Location,Ledger) (List FxEvent)
 {-
 export
 RouteMap : Type
@@ -142,3 +146,6 @@ Show SystemState where
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
 initState = (MkSS empty empty empty)
+
+
+

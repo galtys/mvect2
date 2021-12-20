@@ -419,7 +419,7 @@ confirm_so = do
      fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
      
  rew_r <- Open fx
- Log rew_r
+ --Log rew_r
  
  Pure ()
 
@@ -468,7 +468,7 @@ init_self = do
          h121 : Hom121
          h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
          
-         je : JournalEvent
+         je : FxEvent
          je = Fx121 (date, h121)
      ref <- Init initRoute je
      Pure ref
@@ -487,7 +487,7 @@ route2ft [] = []
 route2ft (x::[]) = []
 route2ft (x::y::xs) = [(x,y)]++(route2ft xs)
 export
-fillRoute : List (Location,Location) -> Ledger -> JournalEvent -> WhsEvent ()
+fillRoute : List (Location,Location) -> Ledger -> FxEvent -> WhsEvent ()
 fillRoute [] l je = Pure ()
 fillRoute (x::xs) ledger je = do
      let (f,t) = x
@@ -496,8 +496,10 @@ fillRoute (x::xs) ledger je = do
      
 export
 toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Init route je) = do            
-       let je2dh : JournalEvent -> (Date, Hom11)
+toWhs (Init route je) = do  
+       Log (MkNewRoute route je)
+       
+       let je2dh : FxEvent -> (Date, Hom11)
            je2dh (Fx121 (date, h121)) = (date, fromH121 h121)
            je2dh (Fx11  (date, h11)) = (date, h11)       
            --je2dh (Empty date) = (date , MkH11 [] [])
@@ -511,6 +513,7 @@ toWhs (Init route je) = do
        --put route into completed state       
        Pure ref       
 toWhs (Open fx) = do
+       Log (MkOpen fx)
        let inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
@@ -519,9 +522,9 @@ toWhs (Open fx) = do
            route_c = custWiRoute del inv           
            route_s : Route
            route_s = suppWiRoute del inv
-           je : JournalEvent
+           je : FxEvent
            je = Fx121 (date fx, h3 fx)           
-           je_inv : JournalEvent
+           je_inv : FxEvent
            je_inv = Fx121 (date fx, MkH121 [] [] (appl $ h3 fx) [] )           
        case (direction fx) of
            Purchase => do
@@ -535,7 +538,7 @@ toWhs (Open fx) = do
                Put (Partner Sale del) (Control Sale inv) Forecast je
                Put (Control Sale inv) Self Forecast je_inv --empty invoice
                Pure new_r       
-toWhs (Log x) =  Log x --Pure ()
+toWhs (Log x) =  Pure ()
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
@@ -581,7 +584,7 @@ interpret (Put f t ledger je) = do
                     led2'' : LocationMap
                     led2'' = update_ledger kt (cx h11) led2'
                  
-                 je2lm : JournalEvent -> LocationMap
+                 je2lm : FxEvent -> LocationMap
                  je2lm (Fx121 (d,h121) ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
                  je2lm (Fx11  (d,h11)) = Hom11_2_LM h11
                  
@@ -597,7 +600,7 @@ interpret (Put f t ledger je) = do
                    let jm' = insert key (je::je_list) jm
                    put (MkSS routes led' jm')
              pure ()                     
-interpret (Log x) = putStrLn x --pure () --?interpret_rhs_1
+interpret (Log x) = putStrLn $ show x --pure () --?interpret_rhs_1
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
 interpret (Bind x f) = do res <- interpret x
