@@ -109,7 +109,9 @@ record MoveKey where
 public export
 record AllocationItem where
   constructor MkAI
-  key : MoveKey
+  --key : MoveKey
+  from : RouteKey
+  to : RouteKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
@@ -164,7 +166,8 @@ namespace WhsEventDo
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap
        
-       CloseRoute : (ref:RouteKey) -> WhsEvent ()       
+       CloseRoute : (ref:RouteKey) -> WhsEvent ()  
+       GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
        --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
        Put   : MoveKey -> FxEvent -> WhsEvent ()
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events

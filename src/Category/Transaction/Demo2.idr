@@ -558,6 +558,7 @@ toWhs (Close ref) = do
        Log (MkClose ref)
        
 toWhs (Allocate entry) = do
+       
        Log (MkAEntry entry)       
        
 toWhs (Show x) = Show x --Pure ()
@@ -607,6 +608,10 @@ interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do
                   put (MkSS routes'' led_map rjm j user_data_map)
                   
             pure ()
+interpret (GetRoute rk) = do
+            (MkSS routes led_map rjm j user_data_map)<-get
+            pure (lookup rk routes)
+            
             
 interpret (Put (MkMK f t ledger) je) = do
              (MkSS routes led_map rjm j user_data)<-get             
