@@ -74,6 +74,19 @@ record FxData where
    -- origin : Maybe FxRef --list of origins, a PO can have multiple origins
 %runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
+public export     
+RouteRef : Type 
+RouteRef = String --where --order reference used in warehouse
+
+public export
+AllocationRef : Type
+AllocationRef = String
+
+public export
+data Ref = MkRouteRef RouteRef | MkAllocationRef AllocationRef
+%runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
+
+
 public export
 data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) 
 %runElab derive "FxEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
@@ -82,9 +95,6 @@ public export
 Route : Type
 Route = List Location
 
-public export     
-RouteRef : Type 
-RouteRef = String --where --order reference used in warehouse
 
 public export
 data RouteState = Progress | Completed
@@ -127,9 +137,6 @@ record AllocationEntry where
   moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-public export
-AllocationRef : Type
-AllocationRef = String
 
 public export
 data OwnerJournalEvent : Type where
