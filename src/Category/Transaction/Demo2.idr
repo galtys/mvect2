@@ -557,12 +557,35 @@ toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       
 toWhs (Allocate entry@(MkAE ledger moves) ) = do       
-       
-       
-       let muf1 : AllocationItem -> OwnerEvent (Maybe Route,Maybe Route,FxEvent)
-       
-           muf2 : (Maybe Route,Maybe Route,FxEvent) -> OwnerEvent (Maybe (MoveKey,MoveKey,FxEvent))
-           
+       let muf2 : AllocationItem -> WhsEvent (Maybe (Route,Route,FxEvent))
+           muf2 ai =  do
+               rf <- GetRoute (from ai)
+               rt <- GetRoute (to ai)
+               case (rf,rt) of
+                  (Just rx, Just ry) => Pure (Just (rx,ry,fx ai))
+                  _ => Pure Nothing
+                  
+           allocateItem : (Route,Route,FxEvent) -> WhsEvent () -- Maybe (RouteKey, RouteKey, FxEvent)
+           allocateItem (rx,ry,fe) = do
+               let rkx : Maybe MoveKey
+                   rkx = safeHead $ route2ft (reverse rx) ledger
+                   rky : Maybe MoveKey               
+                   rky = safeHead $ route2ft ry ledger
+                   
+               case (rkx,rky) of
+                   (Just jx, Just jy) => do
+                        Put jx fe
+                        Put jy fe
+                   _ => Pure ()
+           allocate : List AllocationItem -> WhsEvent ()
+           allocate [] = Pure ()
+           allocate (x::xs) = do
+                ret <- muf2 x
+                case ret of
+                   (Just y) => allocateItem y
+                   Nothing => Pure ()
+                allocate xs
+       allocate moves
        Log (MkAEntry entry)
        
 toWhs (Show x) = Show x --Pure ()
