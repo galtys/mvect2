@@ -56,7 +56,7 @@ record FxData where
 %runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11)
+data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) 
 %runElab derive "FxEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 public export
@@ -68,8 +68,60 @@ data RouteState = Progress | Completed
 %runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
-data OwnerJournalEvent = MkNewRoute Route FxEvent | MkOpen FxData | MkClose RouteRef | MkError String
+record AllocationItem where
+  constructor MkAI
+  from : Route
+  to : Route
+  ledger : Ledger
+  fx : FxEvent
+%runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record AllocationEntry where
+  constructor MkAE
+  date : Date
+  move : List AllocationItem --(Route,Route,Ledger,FxEvent)
+%runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record MoveKey where
+  constructor MkMK
+  from : Location
+  to : Location
+  ledger : Ledger
+%runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+data OwnerJournalEvent : Type where
+     MkNewRoute : Route -> FxEvent -> OwnerJournalEvent
+     MkOpen : FxData -> OwnerJournalEvent
+     MkClose : RouteRef -> OwnerJournalEvent
+     MkError : String -> OwnerJournalEvent
+     MkAEntry : AllocationEntry -> OwnerJournalEvent
+     MkPost : RouteRef -> MoveKey ->  FxEvent -> OwnerJournalEvent     
 %runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
+
+namespace OwnerEventDo
+  public export
+  data OwnerEvent : Type -> Type where
+       Init : Route ->  FxEvent -> OwnerEvent RouteRef --just sugar post event
+       
+       Open : (fx:FxData) -> OwnerEvent RouteRef
+       Post : RouteRef -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
+       Close: (ref:RouteRef)  -> OwnerEvent ()       
+       Allocate : AllocationEntry -> OwnerEvent ()
+       
+       Show : (Show ty) => ty -> OwnerEvent ()
+       Pure : ty -> OwnerEvent ty
+       Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
+
+  public export
+  (>>=) : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
+  (>>=) = OwnerEventDo.Bind
+
+  public export
+  (>>) : OwnerEvent () -> OwnerEvent b -> OwnerEvent b
+  ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
 namespace WhsEventDo
   public export
@@ -91,25 +143,7 @@ namespace WhsEventDo
   (>>) : WhsEvent () -> WhsEvent b -> WhsEvent b
   ma >> mb = WhsEventDo.Bind ma (\ _ => mb)
 
-namespace OwnerEventDo
-  public export
-  data OwnerEvent : Type -> Type where
-       Init : Route ->  FxEvent -> OwnerEvent RouteRef
-       
-       Open : (fx:FxData) -> OwnerEvent RouteRef
-       Close: (ref:RouteRef)  -> OwnerEvent ()
-       
-       Show : (Show ty) => ty -> OwnerEvent ()
-       Pure : ty -> OwnerEvent ty
-       Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
 
-  public export
-  (>>=) : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
-  (>>=) = OwnerEventDo.Bind
-
-  public export
-  (>>) : OwnerEvent () -> OwnerEvent b -> OwnerEvent b
-  ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
 
 public export
