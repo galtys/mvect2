@@ -604,8 +604,8 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
            
            muf2 : AllocationItem -> WhsEvent (Maybe (Route,Route,FxEvent))
            muf2 ai =  do
-               rf <- GetRoute (from ai)
-               rt <- GetRoute (to ai)
+               rf <- GetRoute (supplier ai)
+               rt <- GetRoute (customer ai)
                case (rf,rt) of
                   (Just rx, Just ry) => Pure (Just (rx,ry,fx ai))
                   _ => Pure Nothing

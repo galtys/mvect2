@@ -122,8 +122,10 @@ public export
 record AllocationItem where
   constructor MkAI
   --key : MoveKey
-  from : RouteKey
-  to : RouteKey
+  supplier : RouteKey
+  customer: RouteKey
+  --from : RouteKey
+  --to : RouteKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 {-
