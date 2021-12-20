@@ -94,7 +94,7 @@ public export
 data BoM32 : Type where  
   --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
    Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
-%runElab derive "BoM32" [Generic, Meta, Show, Eq,ToJSON,FromJSON]
+%runElab derive "BoM32" [Generic, Meta, Show, Eq,Ord,ToJSON,FromJSON]
 
 public export
 Product : Type
@@ -148,7 +148,7 @@ record Hom11 where
    constructor MkH11
    dx:Hom1
    cx:Hom1
-%runElab derive "Hom11" [Generic, Meta, RecordToJSON,RecordFromJSON]
+%runElab derive "Hom11" [Generic, Meta, Show,Ord,Eq,RecordToJSON,RecordFromJSON]
 
 
 
@@ -160,7 +160,7 @@ record Hom121 where
    appl:Hom2
    cx : Hom1
    
-%runElab derive "Hom121" [Generic, Meta, RecordToJSON,RecordFromJSON]
+%runElab derive "Hom121" [Generic, Meta, Show,Ord,Eq,RecordToJSON,RecordFromJSON]
 
 export
 fromH121 : Hom121 -> Hom11

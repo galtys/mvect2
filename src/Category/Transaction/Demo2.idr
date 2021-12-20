@@ -390,7 +390,10 @@ confirm_so = do
      h2 = priceFromOrderLine (order_line so_44970)
             
      fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
+     
  rew_r <- Open fx
+ Log rew_r
+ 
  Pure ()
 
 
@@ -401,11 +404,12 @@ LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
 JournalMap  : Type
 JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
-
-
 export
 RouteMap : Type
 RouteMap = SortedMap (Date,RouteRef,RouteState) Route
+
+
+
 
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
@@ -478,24 +482,20 @@ fillRoute (x::xs) ledger je = do
      
 export
 toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Init route je) = do     
-       
+toWhs (Init route je) = do            
        let je2dh : JournalEvent -> (Date, Hom11)
            je2dh (Fx121 (date, h121)) = (date, fromH121 h121)
            je2dh (Fx11  (date, h11)) = (date, h11)       
            --je2dh (Empty date) = (date , MkH11 [] [])
            ret : (Date,Hom11)
-           ret = je2dh je
-       
+           ret = je2dh je       
        ref <- NewRoute (fst ret) route
        -- todo: use route param to populate it
        let r_ft = route2ft route
        fillRoute r_ft OnHand je
        fillRoute r_ft Forecast je
-       --put route into completed state
-       
-       Pure ref
-       
+       --put route into completed state       
+       Pure ref       
 toWhs (Open fx) = do
        let inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
@@ -506,11 +506,9 @@ toWhs (Open fx) = do
            route_s : Route
            route_s = suppWiRoute del inv
            je : JournalEvent
-           je = Fx121 (date fx, h3 fx)
-           
+           je = Fx121 (date fx, h3 fx)           
            je_inv : JournalEvent
-           je_inv = Fx121 (date fx, MkH121 [] [] (appl $ h3 fx) [] )
-           
+           je_inv = Fx121 (date fx, MkH121 [] [] (appl $ h3 fx) [] )           
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) route_s
@@ -522,10 +520,9 @@ toWhs (Open fx) = do
                new_r <- NewRoute (date fx) route_c           
                Put (Partner Sale del) (Control Sale inv) Forecast je
                Put (Control Sale inv) Self Forecast je_inv --empty invoice
-               Pure new_r
-       
-toWhs (Log x) =  Pure ()
-toWhs (Show x) = Pure ()
+               Pure new_r       
+toWhs (Log x) =  Log x --Pure ()
+toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
@@ -539,15 +536,10 @@ interpret  (NewRoute date route) = do
                  routes' = insert (date, route_ref,Progress)  route routes
              put (routes', led_map,jm)
              pure route_ref            
-
-interpret (CloseRoute date route_ref ) = do
-            
-            pure ()
-
-             
+interpret (CloseRoute date route_ref ) = do            
+            pure ()             
 interpret (Put f t ledger je) = do
-             (routes,led_map,jm)<-get
-             
+             (routes,led_map,jm)<-get             
              let key = (f,t, ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
@@ -581,9 +573,7 @@ interpret (Put f t ledger je) = do
                 Just je_list => do
                    let jm' = insert key (je::je_list) jm
                    put (routes,led',jm')
-             pure ()
-        
-             
+             pure ()                     
 interpret (Log x) = putStrLn x --pure () --?interpret_rhs_1
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
@@ -596,5 +586,6 @@ interpret (Bind x f) = do res <- interpret x
 export
 test_demo2 : IO ()
 test_demo2 = do
-  
+  reas <- execStateT (empty,empty,empty) (interpret (toWhs   confirm_so)   )
+  printLn reas
   pure ()

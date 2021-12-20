@@ -57,7 +57,7 @@ record FxData where
 
 public export
 data JournalEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11)
-%runElab derive "JournalEvent" [Generic, Meta, ToJSON,FromJSON]
+%runElab derive "JournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 public export
 Route : Type
@@ -65,6 +65,7 @@ Route = List Location
 
 public export
 data RouteState = Progress | Completed
+%runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 namespace WhsEventDo
   public export

@@ -193,8 +193,14 @@ pjb_test = do
   mv <- BrowseStockMove.read (True)
   printLn "reading Done"
   print_group mv
-    
---  printLn 
+  
+  
+  --retMvs <- execStateT (empty,empty,empty)  (interpret $ toWhs confirm_po)       ---(moveMap xs) --runXdd xs
+  
+  --xas <- 
+  
+  
+  --printLn xas
   
 {-  
   let retR : (StockMoveMap, () )
