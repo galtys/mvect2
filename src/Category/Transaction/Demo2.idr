@@ -602,8 +602,12 @@ interpret (Put f t ledger je) = do
                    put (MkSS routes led' jm' j)
              pure ()                     
 interpret (Log x) = do
+     (MkSS routes led_map jm js)<-get
+     let js'= (x::js)
      putStrLn $ show x --pure () --?interpret_rhs_1
      putStrLn ""
+     put (MkSS routes led_map jm js')
+     
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
 interpret (Bind x f) = do res <- interpret x
