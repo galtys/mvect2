@@ -11,6 +11,28 @@ import JSON
 import Odoo.Schema.PJBRecDef
 
 %language ElabReflection
+
+
+public export
+record UserData where
+  constructor MkUD
+  products : List BrowseProduct.RecordModel
+  templates : List BrowseProductTemplate.RecordModel
+  boms : List BrowseBoM.RecordModel
+  taxes : List BrowseOrderTax.RecordModel
+%runElab derive "UserData" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]  
+
+public export
+record UserDataMap where
+  constructor MkUDMap
+  products : SortedMap Bits32  BrowseProduct.RecordModel
+  templates : SortedMap Bits32 BrowseProductTemplate.RecordModel
+  boms : SortedMap Bits32 BrowseBoM.RecordModel
+  taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
+
+
+
+
 --import Odoo.PG.BoM
 {-
 
@@ -93,6 +115,7 @@ record MoveKey where
 
 public export
 data OwnerJournalEvent : Type where
+     MkUserUpdate : UserData -> OwnerJournalEvent
      MkNewRoute : Route -> FxEvent -> OwnerJournalEvent
      MkOpen : FxData -> OwnerJournalEvent
      MkClose : RouteRef -> OwnerJournalEvent
@@ -104,7 +127,10 @@ data OwnerJournalEvent : Type where
 namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
-       Init : Route ->  FxEvent -> OwnerEvent RouteRef --just sugar post event
+       Init : Route ->  FxEvent -> UserData -> OwnerEvent RouteRef --just sugar post event
+       UpdateUserData : UserData -> OwnerEvent ()
+       
+       GetUserData : OwnerEvent UserDataMap
        
        Open : (fx:FxData) -> OwnerEvent RouteRef
        Post : RouteRef -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
@@ -127,6 +153,8 @@ namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
        NewRoute : Date -> Route -> WhsEvent RouteRef
+       UpdateUserData : UserData -> WhsEvent ()
+       
        CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
        --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
        Put   : MoveKey -> FxEvent -> WhsEvent ()
@@ -142,9 +170,6 @@ namespace WhsEventDo
   public export
   (>>) : WhsEvent () -> WhsEvent b -> WhsEvent b
   ma >> mb = WhsEventDo.Bind ma (\ _ => mb)
-
-
-
 
 public export
 record RouteKey where
@@ -174,14 +199,30 @@ record SystemState where
    led_map : LocationMap
    jm   : RouteJournalMap
    journal : List OwnerJournalEvent
-   
+   user_data : UserDataMap
+      
 export
 Show SystemState where
-   show (MkSS routes led_map jm j) = "system state"
+   show (MkSS routes led_map jm j user_data) = "system state"
+
+export
+userDataToMap : UserData -> UserDataMap
+userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
+     p_map : SortedMap Bits32  BrowseProduct.RecordModel
+     p_map = (fromList [(pk u, u) | u <- p ])
+     t_map : SortedMap Bits32 BrowseProductTemplate.RecordModel
+     t_map = (fromList [(pk u, u) | u <- t ])
+     b_map : SortedMap Bits32 BrowseBoM.RecordModel
+     b_map = (fromList [(pk u, u) | u <- b ])
+     tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
+     tax_map = (fromList [(pk u, u) | u <- tax ])
+
+--(fromList  (fromList []) (fromList []) )
+
+export
+emptyUserData : UserData
+emptyUserData = (MkUD [] [] [] [])
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty [])
-
-
-
+initState = (MkSS empty empty empty [] (userDataToMap emptyUserData))

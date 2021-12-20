@@ -43,8 +43,6 @@ record SystemState where
 -}
 
 
-
-
 export
 StockMoveMap : Type
 StockMoveMap = SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
@@ -420,7 +418,7 @@ init_self = do
          
          je : FxEvent
          je = Fx121 (date, h121)
-     ref <- Init initRoute je
+     ref <- Init initRoute je emptyUserData
      Pure ref
 
 export
@@ -497,7 +495,8 @@ fillRoute (mk::xs) fxe = do
      
 export
 toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Init route je) = do  
+toWhs (Init route je  user_data) = do  
+       Log (MkUserUpdate user_data)
        Log (MkNewRoute route je)
        
        let je2dh : FxEvent -> (Date, Hom11)
@@ -514,7 +513,11 @@ toWhs (Init route je) = do
        fillRoute r_ft_onhand je       
        fillRoute r_ft_forecast je
        Pure ref
-       
+toWhs (UpdateUserData user_data) = do
+       Log (MkUserUpdate user_data)
+toWhs (GetUserData) = do
+       Pure (userDataToMap emptyUserData)
+                     
 toWhs (Open fx) = do
        Log (MkOpen fx)
        let inv : BrowseResPartner.RecordModel
@@ -559,7 +562,7 @@ toWhs (Bind x f) = do res <- toWhs x
 export
 interpret : WhsEvent a -> StateT SystemState IO a
 interpret  (NewRoute date route) = do
-             (MkSS routes led_map rjm j)<-get             
+             (MkSS routes led_map rjm j user_data)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  r_k : RouteKey --(Date,RouteRef,RouteState)
@@ -568,13 +571,17 @@ interpret  (NewRoute date route) = do
                  routes' : SortedMap RouteKey Route
                  routes' = insert r_k  route routes
                  
-             put (MkSS routes' led_map rjm j)
+             put (MkSS routes' led_map rjm j user_data)
              pure route_ref    
-                     
+interpret (UpdateUserData user_data ) = do
+             (MkSS routes led_map rjm j udm)<-get
+             let udm' = userDataToMap user_data
+             put (MkSS routes led_map rjm j udm')
+
 interpret (CloseRoute date route_ref ) = do            
             pure ()             
 interpret (Put (MkMK f t ledger) je) = do
-             (MkSS routes led_map rjm j)<-get             
+             (MkSS routes led_map rjm j user_data)<-get             
              let key = (MkMK f t ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
@@ -603,18 +610,18 @@ interpret (Put (MkMK f t ledger) je) = do
              case (lookup key rjm) of
                 Nothing => do
                    let rjm' = insert key [je] rjm
-                   put (MkSS routes led' rjm' j)
+                   put (MkSS routes led' rjm' j user_data)
                    
                 Just je_list => do
                    let rjm' = insert key (je::je_list) rjm
-                   put (MkSS routes led' rjm' j)
+                   put (MkSS routes led' rjm' j user_data)
              pure ()                     
 interpret (Log x) = do
-     (MkSS routes led_map rjm js)<-get
+     (MkSS routes led_map rjm js user_data)<-get
      let js'= (x::js)
      putStrLn $ show x --pure () --?interpret_rhs_1
      putStrLn ""
-     put (MkSS routes led_map rjm js')
+     put (MkSS routes led_map rjm js' user_data)
      
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
