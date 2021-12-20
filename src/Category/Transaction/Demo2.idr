@@ -23,11 +23,11 @@ import Odoo.Schema.PJBRecDef
 
 {-
 public export
-LedgerMap  : Type
-LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
+LocationMap  : Type
+LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
-JournalMap  : Type
-JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+RouteJournalMap  : Type
+RouteJournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
 export
 RouteMap : Type
 RouteMap = SortedMap (Date,RouteRef,RouteState) Route
@@ -36,8 +36,8 @@ public export
 record SystemState where
    constructor MkSS
    routes : RouteMap
-   led_map : LedgerMap
-   jm   : JournalMap
+   led_map : LocationMap
+   jm   : RouteJournalMap
 
 
 -}
@@ -426,13 +426,13 @@ confirm_so = do
 
 
 public export
-update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
+update_ledger : (Location, Ledger) -> Hom1 -> LocationMap -> LocationMap 
 update_ledger k [] m = m
 update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
           key : (Location, Ledger,ProdKey)
           key = (ct,l,pk)
           
-          ret : LedgerMap
+          ret : LocationMap
           ret = case (lookup key m ) of
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
@@ -543,7 +543,7 @@ toWhs (Bind x f) = do res <- toWhs x
                       
 
                       
-     --(RouteMap,LedgerMap,JournalMap)
+     --(RouteMap,LocationMap,RouteJournalMap)
 export
 interpret : WhsEvent a -> StateT SystemState IO a
 interpret  (NewRoute date route) = do
@@ -570,22 +570,22 @@ interpret (Put f t ledger je) = do
                  kt : (Location, Ledger)
                  kt = (t,ledger)
              
-                 Hom11_2_LM : Hom11 -> LedgerMap
+                 Hom11_2_LM : Hom11 -> LocationMap
                  Hom11_2_LM h11 = led2'' where
-                    led1' : LedgerMap
+                    led1' : LocationMap
                     led1' = update_ledger kf ( dx h11) led_map
-                    led1'' : LedgerMap
+                    led1'' : LocationMap
                     led1'' = update_ledger kf (invHom1 $ cx h11) led1'
-                    led2' : LedgerMap
+                    led2' : LocationMap
                     led2' = update_ledger kt (invHom1 $ dx h11) led1''
-                    led2'' : LedgerMap
+                    led2'' : LocationMap
                     led2'' = update_ledger kt (cx h11) led2'
                  
-                 je2lm : JournalEvent -> LedgerMap
+                 je2lm : JournalEvent -> LocationMap
                  je2lm (Fx121 (d,h121) ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
                  je2lm (Fx11  (d,h11)) = Hom11_2_LM h11
                  
-                 led' : LedgerMap
+                 led' : LocationMap
                  led' = je2lm je
                 
              case (lookup key jm) of

@@ -117,11 +117,11 @@ record RouteKey where
 
 
 public export
-LedgerMap  : Type
-LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
+LocationMap  : Type
+LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
-JournalMap  : Type
-JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+RouteJournalMap  : Type
+RouteJournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
 {-
 export
 RouteMap : Type
@@ -132,13 +132,13 @@ public export
 record SystemState where
    constructor MkSS
    routes : SortedMap RouteKey Route
-   led_map : LedgerMap
-   jm   : JournalMap
+   led_map : LocationMap
+   jm   : RouteJournalMap
 
 export
 Show SystemState where
    show (MkSS routes led_map jm) = "system state"
 
 export
-initState : SystemState --(RouteMap,LedgerMap,JournalMap)
+initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
 initState = (MkSS empty empty empty)
