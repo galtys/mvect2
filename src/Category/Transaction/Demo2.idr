@@ -638,8 +638,6 @@ interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do
 interpret (GetRoute rk) = do
             (MkSS routes led_map rjm j user_data_map)<-get
             pure (lookup rk routes)
-            
-            
 interpret (Put (MkMK f t ledger) je) = do
              (MkSS routes led_map rjm j user_data)<-get             
              let key = (MkMK f t ledger)
@@ -676,6 +674,14 @@ interpret (Put (MkMK f t ledger) je) = do
                    let rjm' = insert key (je::je_list) rjm
                    put (MkSS routes led' rjm' j user_data)
              pure ()                     
+interpret (Get key) = do 
+     (MkSS routes led_map rjm j user_data)<-get
+     let muf1 : Maybe (List FxEvent)
+         muf1 = (lookup key rjm)
+     case muf1 of
+        Just xs => pure xs
+        Nothing => pure []
+
 interpret (Log x) = do
      (MkSS routes led_map rjm js user_data)<-get
      let js'= (x::js)

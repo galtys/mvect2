@@ -173,8 +173,10 @@ namespace WhsEventDo
        
        CloseRoute : (ref:RouteKey) -> WhsEvent ()  
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
-       --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
+
        Put   : MoveKey -> FxEvent -> WhsEvent ()
+       Get : MoveKey -> WhsEvent (List FxEvent)
+       
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
