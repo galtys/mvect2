@@ -397,10 +397,36 @@ confirm_po = do
  rew_r <- Open fx
  rew_r' <- Open fx' 
  Pure ()
+export
+initRoute : List Location
+initRoute = [Init, Self]
+
+export
+init_self : OwnerEvent RouteRef
+init_self = do
+     let date = "2010-01-15"
+         price : Product
+         price = (toEX20 1000)
+         
+         share : Product
+         share = ("GTX43",100)
+         h2 : Hom2
+         h2 = [ (fst share, price) ]
+         h1 : Hom1
+         h1 = [share]
+         
+         h121 : Hom121
+         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
+         
+         je : FxEvent
+         je = Fx121 (date, h121)
+     ref <- Init initRoute je
+     Pure ref
 
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
+ iref <- init_self
  let date = "2021-11-01"
      --h1 = [p1,p2,p3,p4]
      h1 = qtyFromOrderLine (order_line so_44970)
@@ -447,31 +473,6 @@ validateDirection Init Self = True
 validateDirection _ _ = False
 
 
-export
-initRoute : List Location
-initRoute = [Init, Self]
-
-export
-init_self : OwnerEvent RouteRef
-init_self = do
-     let date = "2010-01-15"
-         price : Product
-         price = (toEX20 1000)
-         
-         share : Product
-         share = ("GTX43",100)
-         h2 : Hom2
-         h2 = [ (fst share, price) ]
-         h1 : Hom1
-         h1 = [share]
-         
-         h121 : Hom121
-         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
-         
-         je : FxEvent
-         je = Fx121 (date, h121)
-     ref <- Init initRoute je
-     Pure ref
 
 export
 custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
@@ -600,7 +601,9 @@ interpret (Put f t ledger je) = do
                    let jm' = insert key (je::je_list) jm
                    put (MkSS routes led' jm' j)
              pure ()                     
-interpret (Log x) = putStrLn $ show x --pure () --?interpret_rhs_1
+interpret (Log x) = do
+     putStrLn $ show x --pure () --?interpret_rhs_1
+     putStrLn ""
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
 interpret (Bind x f) = do res <- interpret x
