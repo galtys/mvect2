@@ -179,8 +179,9 @@ namespace OwnerEventDo
 public export
 record WhsEntry where
    constructor MkWE
+   ref : Ref   
    fx : FxEvent
-   ref : Ref
+
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 namespace WhsEventDo
@@ -195,7 +196,7 @@ namespace WhsEventDo
 
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
 
-       Get : MoveKey -> WhsEvent (List FxEvent)
+       Get : MoveKey -> WhsEvent (List WhsEntry)
        --Get : MoveKey -> WhsEvent (List FxEnvent)
               
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
@@ -217,7 +218,7 @@ LocationMap  : Type
 LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
 RouteJournalMap  : Type
-RouteJournalMap = SortedMap MoveKey (List FxEvent) --MoveKey   -- (Location, Location,Ledger)
+RouteJournalMap = SortedMap MoveKey (List WhsEntry) --MoveKey   -- (Location, Location,Ledger)
 {-
 export
 RouteMap : Type

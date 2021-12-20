@@ -649,7 +649,12 @@ interpret (GetRoute rk) = do
             pure (lookup rk routes)
 interpret (Put ref (MkMK f t ledger) je) = do
              (MkSS routes led_map rjm j user_data)<-get             
-             let key = (MkMK f t ledger)
+             let whs_e : WhsEntry
+                 whs_e = MkWE ref je
+                 
+                 key : MoveKey                 
+                 key = (MkMK f t ledger)
+                 
                  kf : (Location, Ledger)
                  kf = (f,ledger)
                                   
@@ -676,16 +681,16 @@ interpret (Put ref (MkMK f t ledger) je) = do
                 
              case (lookup key rjm) of
                 Nothing => do
-                   let rjm' = insert key [je] rjm
+                   let rjm' = insert key [whs_e] rjm
                    put (MkSS routes led' rjm' j user_data)
                    
                 Just je_list => do
-                   let rjm' = insert key (je::je_list) rjm
+                   let rjm' = insert key (whs_e::je_list) rjm
                    put (MkSS routes led' rjm' j user_data)
              pure ()                     
 interpret (Get key) = do 
      (MkSS routes led_map rjm j user_data)<-get
-     let muf1 : Maybe (List FxEvent)
+     let muf1 : Maybe (List WhsEntry)
          muf1 = (lookup key rjm)
      case muf1 of
         Just xs => pure xs
