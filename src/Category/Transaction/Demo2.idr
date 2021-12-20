@@ -513,6 +513,9 @@ toWhs (Init route je) = do
        fillRoute r_ft Forecast je
        --put route into completed state       
        Pure ref       
+toWhs (Close ref) = do
+       Log (MkClose ref)
+       
 toWhs (Open fx) = do
        Log (MkOpen fx)
        let inv : BrowseResPartner.RecordModel
@@ -539,7 +542,7 @@ toWhs (Open fx) = do
                Put (Partner Sale del) (Control Sale inv) Forecast je
                Put (Control Sale inv) Self Forecast je_inv --empty invoice
                Pure new_r       
-toWhs (Log x) =  Pure ()
+--toWhs (Log x) =  Pure ()
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x

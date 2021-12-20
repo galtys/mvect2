@@ -68,7 +68,7 @@ data RouteState = Progress | Completed
 %runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
-data OwnerJournalEvent = MkNewRoute Route FxEvent | MkOpen FxData 
+data OwnerJournalEvent = MkNewRoute Route FxEvent | MkOpen FxData | MkClose RouteRef | MkError String
 %runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 namespace WhsEventDo
@@ -78,7 +78,7 @@ namespace WhsEventDo
        CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
        Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
 
-       Log : OwnerJournalEvent -> WhsEvent ()
+       Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
        Bind : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
@@ -97,7 +97,8 @@ namespace OwnerEventDo
        Init : Route ->  FxEvent -> OwnerEvent RouteRef
        
        Open : (fx:FxData) -> OwnerEvent RouteRef
-       Log : String  -> OwnerEvent ()
+       Close: (ref:RouteRef)  -> OwnerEvent ()
+       
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
        Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b
