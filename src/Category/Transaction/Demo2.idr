@@ -400,7 +400,7 @@ initRoute : List Location
 initRoute = [Init, Self]
 
 export
-init_self : OwnerEvent RouteRef
+init_self : OwnerEvent RouteKey --RouteRef
 init_self = do
      let date = "2010-01-15"
          price : Product
@@ -514,6 +514,7 @@ toWhs (Init route je  user_data) = do
        fillRoute r_ft_onhand je       
        fillRoute r_ft_forecast je
        Pure ref
+       
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)
@@ -552,9 +553,9 @@ toWhs (Post ref key fx) = do
       Put key fx
       Log (MkPost ref key fx)      
       
-toWhs (Close date ref) = do
-       CloseRoute date ref
-       Log (MkClose date ref)
+toWhs (Close ref) = do
+       CloseRoute ref
+       Log (MkClose ref)
        
 toWhs (Allocate entry) = do
        Log (MkAEntry entry)       
@@ -573,12 +574,14 @@ interpret  (NewRoute date route) = do
              (MkSS routes led_map rjm j user_data)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
+                 
                  r_k : RouteKey --(Date,RouteRef,RouteState)
                  r_k = (MkRK date route_ref Progress)                 
+                 
                  routes' : SortedMap RouteKey Route
                  routes' = insert r_k  route routes                
              put (MkSS routes' led_map rjm j user_data)
-             pure route_ref
+             pure r_k --route_ref
 
 interpret (UpdateUserData user_data ) = do
              (MkSS routes led_map rjm j udm)<-get
@@ -589,8 +592,22 @@ interpret (GetUserDataW ) = do
              (MkSS routes led_map rjm j user_data_map)<-get
              pure user_data_map
              
-interpret (CloseRoute date route_ref ) = do            
-            pure ()             
+interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do     
+            (MkSS routes led_map rjm j user_data_map)<-get
+            case lookup route_ref routes of
+              Nothing => pure ()
+              (Just this) => do
+                  let new_ref : RouteKey
+                      new_ref = (MkRK date ref Completed)
+                      routes' : SortedMap RouteKey Route
+                      routes' = insert new_ref this routes
+                      
+                      routes'' : SortedMap RouteKey Route
+                      routes'' = delete route_ref routes'
+                  put (MkSS routes'' led_map rjm j user_data_map)
+                  
+            pure ()
+            
 interpret (Put (MkMK f t ledger) je) = do
              (MkSS routes led_map rjm j user_data)<-get             
              let key = (MkMK f t ledger)

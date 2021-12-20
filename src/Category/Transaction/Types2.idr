@@ -62,9 +62,6 @@ data Location =  Self | In | Out | Init | Loss | Control DirectionTag BrowseResP
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 
-public export     
-RouteRef : Type 
-RouteRef = String --where --order reference used in warehouse
 
 public export
 record FxData where
@@ -85,9 +82,21 @@ public export
 Route : Type
 Route = List Location
 
+public export     
+RouteRef : Type 
+RouteRef = String --where --order reference used in warehouse
+
 public export
 data RouteState = Progress | Completed
 %runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+public export
+record RouteKey where
+  constructor MkRK
+  date : Date
+  ref : RouteRef
+  state : RouteState
+%runElab derive "RouteKey" [Generic, Meta, Eq,Show,Ord, RecordToJSON,RecordFromJSON]  
+
 
 public export
 record MoveKey where
@@ -111,27 +120,29 @@ record AllocationEntry where
   move : List AllocationItem --(Route,Route,Ledger,FxEvent)
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
+
+
 public export
 data OwnerJournalEvent : Type where
      MkUserUpdate : UserData -> OwnerJournalEvent
      MkNewRoute : Route -> FxEvent -> OwnerJournalEvent
      MkOpen : FxData -> OwnerJournalEvent
-     MkClose : Date -> RouteRef -> OwnerJournalEvent
+     MkClose : RouteKey -> OwnerJournalEvent
      MkError : String -> OwnerJournalEvent
      MkAEntry : AllocationEntry -> OwnerJournalEvent
-     MkPost : RouteRef -> MoveKey ->  FxEvent -> OwnerJournalEvent     
+     MkPost : RouteKey -> MoveKey ->  FxEvent -> OwnerJournalEvent     
 %runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
-       Init : Route ->  FxEvent -> UserData -> OwnerEvent RouteRef --just sugar post event
+       Init : Route ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
        UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
        
-       Open : (fx:FxData) -> OwnerEvent RouteRef
-       Post : RouteRef -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
-       Close: (date:Date) -> (ref:RouteRef)  -> OwnerEvent ()       
+       Open : (fx:FxData) -> OwnerEvent RouteKey
+       Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
+       Close: (ref:RouteKey)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent ()
        
        Show : (Show ty) => ty -> OwnerEvent ()
@@ -149,11 +160,11 @@ namespace OwnerEventDo
 namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
-       NewRoute : Date -> Route -> WhsEvent RouteRef
+       NewRoute : Date -> Route -> WhsEvent RouteKey
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap
        
-       CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
+       CloseRoute : (ref:RouteKey) -> WhsEvent ()       
        --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
        Put   : MoveKey -> FxEvent -> WhsEvent ()
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
@@ -169,14 +180,6 @@ namespace WhsEventDo
   (>>) : WhsEvent () -> WhsEvent b -> WhsEvent b
   ma >> mb = WhsEventDo.Bind ma (\ _ => mb)
 
-public export
-record RouteKey where
-  constructor MkRK
-  date : Date
-  ref : RouteRef
-  state : RouteState
-%runElab derive "RouteKey" [Generic, Meta, Eq,Show,Ord, RecordToJSON,RecordFromJSON]  
-
 
 public export
 LocationMap  : Type
@@ -187,7 +190,7 @@ RouteJournalMap = SortedMap MoveKey (List FxEvent) --MoveKey   -- (Location, Loc
 {-
 export
 RouteMap : Type
-RouteMap = SortedMap RouteKey Route --(Date,RouteRef,RouteState) Route
+RouteMap = SortedMap RouteKey Route --(Date,RouteKey,RouteState) Route
 -}
 
 public export
