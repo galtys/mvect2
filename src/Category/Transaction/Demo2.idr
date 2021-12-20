@@ -556,18 +556,18 @@ toWhs (Open fx) = do
            fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
            
            forecastIn : MoveKey
-           forecastIn = MkMK Self (In del) Forecast           
+           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route 
            purchaseInvoice : MoveKey
-           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast
+           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
            purchaseOrder : MoveKey
-           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
            
            saleOrder : MoveKey
            saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
            saleInvoice : MoveKey
-           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --delivery,return,payment,refund
+           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
            saleDemand : MoveKey
-           saleDemand = MkMK (Out del) Self Forecast           
+           saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
            
        case (direction fx) of
            Purchase => do
@@ -588,8 +588,7 @@ toWhs (Open fx) = do
 toWhs (Init route je  user_data) = do  
        UpdateUserData user_data
        Log (MkUserUpdate user_data)
-       Log (MkNewRoute route je)
-       
+       Log (MkNewRoute route je)       
        let je2dh : FxEvent -> (Date, Hom11)
            je2dh (Fx121 date h121) = (date, fromH121 h121)
            je2dh (Fx11  date h11) = (date, h11)       
@@ -599,11 +598,11 @@ toWhs (Init route je  user_data) = do
            
        ref <- NewRoute (fst ret) route
        let r_ft_onhand = route2ft route OnHand
-           r_ft_forecast = route2ft route Forecast
-           
+           r_ft_forecast = route2ft route Forecast           
        --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
        fillRoute (MkRouteKeyRef ref) r_ft_forecast je
-       Pure ref              
+       Pure ref
+       
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)       
