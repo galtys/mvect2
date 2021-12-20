@@ -319,6 +319,24 @@ hilton = BrowseResPartner.MkRecordModel
          --retail_cust_31587 --MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
 
 export
+self_company : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+self_company = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "Self Main Company", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Self Street", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE6 SS", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "self@btconnect.com", 
+         street2 = Just "Mid Lane" }
+         --retail_cust_31587 --MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
+
+export
 factory1 : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
 factory1 = BrowseResPartner.MkRecordModel 
        { pk = 31587, 
@@ -395,9 +413,10 @@ confirm_po = do
  rew_r <- Open fx
  rew_r' <- Open fx' 
  Pure ()
+
 export
 initRoute : List Location
-initRoute = [Init, Self]
+initRoute = [Init, In self_company, Self]
 
 export
 init_self : OwnerEvent RouteKey --RouteRef
@@ -512,11 +531,10 @@ toWhs (Init route je  user_data) = do
            ret = je2dh je       
            
        ref <- NewRoute (fst ret) route
-       -- todo: use route param to populate it
        let r_ft_onhand = route2ft route OnHand
            r_ft_forecast = route2ft route Forecast
            
-       fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
+       --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
        fillRoute (MkRouteKeyRef ref) r_ft_forecast je
        Pure ref       
        

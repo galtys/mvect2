@@ -6,7 +6,7 @@ libs: wrap_libmongoose.c wrap_libc.c sha256.c
 	#cc -shared sha256.c -o libsha256.so
 	#cc mongoose.c -o mongoose.o
 	cc -shared wrap_libmongoose.c wrap_libc.c mongoose.c -o libmongoose.so
-	#cc -shared sha256.c -o libsha256.so
+	cc -shared sha256.c -o libsha256.so
 
 mvect2: mvect2.ipkg
 	idris2 --build mvect2.ipkg

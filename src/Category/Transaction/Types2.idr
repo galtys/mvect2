@@ -58,7 +58,7 @@ record Address where
 %runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
 -}
 public export
-data Location =  Self | In | Out | Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel
+data Location =  Self | In BrowseResPartner.RecordModel | Out BrowseResPartner.RecordModel | Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 
