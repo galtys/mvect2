@@ -417,7 +417,7 @@ init_self = do
          h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
          
          je : FxEvent
-         je = Fx121 (date, h121)
+         je = Fx121 date h121
      ref <- Init initRoute je emptyUserData
      Pure ref
 
@@ -487,11 +487,11 @@ route2ft (x::[]) l= []
 route2ft (x::y::xs) l = [(MkMK x y l)]++(route2ft xs l)
 
 export
-fillRoute : List MoveKey -> FxEvent -> WhsEvent ()
-fillRoute [] fxe = Pure ()
-fillRoute (mk::xs) fxe = do
-     Put mk fxe
-     fillRoute xs fxe
+fillRoute : Ref -> List MoveKey -> FxEvent -> WhsEvent ()
+fillRoute ref [] fxe = Pure ()
+fillRoute ref (mk::xs) fxe = do
+     Put ref mk fxe
+     fillRoute ref xs fxe
 
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
@@ -505,8 +505,8 @@ toWhs (Init route je  user_data) = do
        Log (MkNewRoute route je)
        
        let je2dh : FxEvent -> (Date, Hom11)
-           je2dh (Fx121 (date, h121)) = (date, fromH121 h121)
-           je2dh (Fx11  (date, h11)) = (date, h11)       
+           je2dh (Fx121 date h121) = (date, fromH121 h121)
+           je2dh (Fx11  date h11) = (date, h11)       
            --je2dh (Empty date) = (date , MkH11 [] [])
            ret : (Date,Hom11)
            ret = je2dh je       
@@ -515,9 +515,11 @@ toWhs (Init route je  user_data) = do
        -- todo: use route param to populate it
        let r_ft_onhand = route2ft route OnHand
            r_ft_forecast = route2ft route Forecast
-       fillRoute r_ft_onhand je       
-       fillRoute r_ft_forecast je
+           
+       fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
+       fillRoute (MkRouteKeyRef ref) r_ft_forecast je
        Pure ref       
+       
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)       
@@ -535,29 +537,34 @@ toWhs (Open fx) = do
            route_s : Route
            route_s = suppWiRoute del inv
            je : FxEvent
-           je = Fx121 (date fx, h3 fx)           
+           je = Fx121 (date fx) (h3 fx)           
            je_inv : FxEvent
-           je_inv = Fx121 (date fx, MkH121 [] [] (appl $ h3 fx) [] )           
+           je_inv = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] )           
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) route_s
-               Put (MkMK Self (Control Purchase inv) Forecast) je_inv --empty invoice
+               Put (MkRouteKeyRef new_r) (MkMK Self (Control Purchase inv) Forecast) je_inv --empty invoice
                
-               Put (MkMK (Control Purchase inv) (Partner Purchase del) Forecast) je               
+               Put (MkRouteKeyRef new_r) (MkMK (Control Purchase inv) (Partner Purchase del) Forecast) je               
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) route_c           
-               Put (MkMK (Partner Sale del) (Control Sale inv) Forecast) je
-               Put (MkMK (Control Sale inv) Self Forecast) je_inv --empty invoice
+               Put (MkRouteKeyRef new_r) (MkMK (Partner Sale del) (Control Sale inv) Forecast) je
+               Put (MkRouteKeyRef new_r) (MkMK (Control Sale inv) Self Forecast) je_inv --empty invoice
                Pure new_r
 toWhs (Post ref key fx) = do
-      Put key fx
+      Put (MkRouteKeyRef ref) key fx
       Log (MkPost ref key fx)            
 toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       
 toWhs (Allocate entry@(MkAE ledger moves) ) = do       
-       let muf2 : AllocationItem -> WhsEvent (Maybe (Route,Route,FxEvent))
+       let a_cnt = encode entry
+           a_ref : Ref
+           a_ref = (MkAllocationRef (sha256 a_cnt))
+           
+           
+           muf2 : AllocationItem -> WhsEvent (Maybe (Route,Route,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (from ai)
                rt <- GetRoute (to ai)
@@ -574,8 +581,8 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                    
                case (rkx,rky) of
                    (Just jx, Just jy) => do
-                        Put jx fe
-                        Put jy fe
+                        Put a_ref jx fe
+                        Put a_ref jy fe
                    _ => Pure ()
            allocate : List AllocationItem -> WhsEvent ()
            allocate [] = Pure ()
@@ -587,8 +594,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
-       let a_cnt = encode entry
-           a_ref = sha256 a_cnt
+       
        Pure a_ref
        
 toWhs (Show x) = Show x --Pure ()
@@ -641,7 +647,7 @@ interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do
 interpret (GetRoute rk) = do
             (MkSS routes led_map rjm j user_data_map)<-get
             pure (lookup rk routes)
-interpret (Put (MkMK f t ledger) je) = do
+interpret (Put ref (MkMK f t ledger) je) = do
              (MkSS routes led_map rjm j user_data)<-get             
              let key = (MkMK f t ledger)
                  kf : (Location, Ledger)
@@ -662,8 +668,8 @@ interpret (Put (MkMK f t ledger) je) = do
                     led2'' = update_ledger kt (cx h11) led2'
                  
                  je2lm : FxEvent -> LocationMap
-                 je2lm (Fx121 (d,h121) ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
-                 je2lm (Fx11  (d,h11)) = Hom11_2_LM h11
+                 je2lm (Fx121 d h121 ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
+                 je2lm (Fx11  d h11 ) = Hom11_2_LM h11
                  
                  led' : LocationMap
                  led' = je2lm je

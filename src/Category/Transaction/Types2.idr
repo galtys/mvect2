@@ -82,13 +82,11 @@ public export
 AllocationRef : Type
 AllocationRef = String
 
-public export
-data Ref = MkRouteRef RouteRef | MkAllocationRef AllocationRef
-%runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 
 
 public export
-data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) 
+--data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) 
+data FxEvent = Fx121 Date Hom121 | Fx11 Date Hom11 
 %runElab derive "FxEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 public export
@@ -106,6 +104,10 @@ record RouteKey where
   ref : RouteRef
   state : RouteState
 %runElab derive "RouteKey" [Generic, Meta, Eq,Show,Ord, RecordToJSON,RecordFromJSON]  
+
+public export
+data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
+%runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 
 
 public export
@@ -159,7 +161,7 @@ namespace OwnerEventDo
        Open : (fx:FxData) -> OwnerEvent RouteKey
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
        Close: (ref:RouteKey)  -> OwnerEvent ()       
-       Allocate : AllocationEntry -> OwnerEvent AllocationRef
+       Allocate : AllocationEntry -> OwnerEvent Ref
        
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
@@ -183,7 +185,7 @@ namespace WhsEventDo
        CloseRoute : (ref:RouteKey) -> WhsEvent ()  
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
 
-       Put   : MoveKey -> FxEvent -> WhsEvent ()
+       Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
        Get : MoveKey -> WhsEvent (List FxEvent)
        
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
