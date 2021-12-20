@@ -150,6 +150,9 @@ record Hom11 where
    cx:Hom1
 %runElab derive "Hom11" [Generic, Meta, Show,Ord,Eq,RecordToJSON,RecordFromJSON]
 
+public export
+emptyHom11 : Hom11
+emptyHom11 = MkH11 [] []   
 
 
 public export
@@ -159,13 +162,13 @@ record Hom121 where
    bom : List BoM32   
    appl:Hom2
    cx : Hom1
+   h11 : Hom11
    
 %runElab derive "Hom121" [Generic, Meta, Show,Ord,Eq,RecordToJSON,RecordFromJSON]
 
 export
 fromH121 : Hom121 -> Hom11
-fromH121 h121 = (MkH11 (dx h121) (cx h121))
-
+fromH121 h121 = h11 h121 --(MkH11 (dx h121) (cx h121))
 
 
 ------------- THIS WILL BE MOVED

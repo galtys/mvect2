@@ -22,6 +22,7 @@ import Odoo.PG.BoM
 
 
 
+
 {-
 public export
 LocationMap  : Type
@@ -423,14 +424,17 @@ confirm_po = do
      h2 = [ (fst p1, up1 ), 
             (fst p2, up2 ),
             (fst p3, up3 )]
-     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
+     
+     
+     
+     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (applyHom2 h2 h1) emptyHom11) 
      
      h1' : Hom1
      h1' = map (mult_p 10) [p4]
      h2' : Hom2
      h2' = [ (fst p4, toEX20 15.43)]
      fx' : FxData
-     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (applyHom2 h2' h1') ) 
+     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (applyHom2 h2' h1') emptyHom11) 
      
  rew_r <- Open fx
  rew_r' <- Open fx' 
@@ -455,7 +459,7 @@ init_self = do
          h1 = [share]
          
          h121 : Hom121
-         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)
+         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1) emptyHom11
          
          je : FxEvent
          je = Fx121 date h121
@@ -471,15 +475,18 @@ confirm_so = do
  let date = "2021-11-01"
      bom_map = boms user_data
      --h1 = [p1,p2,p3,p4]
-     h1 = qtyFromOrderLine (order_line so_44970)
+     dx = qtyFromOrderLine (order_line so_44970)
      
-     h1_bom = map_to_BoM32 h1 bom_map
+     h1_bom = map_to_BoM32 dx bom_map
      
      h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
      --h1_stock = fromStockMove sp_43747.move_ids
      h2 = priceFromOrderLine (order_line so_44970)
+     
+     cx = (applyHom2 h2 dx)
+     h11 = MkH11 h1_order_stock cx
 
-     fx = MkFx date Sale hilton hilton (MkH121 h1 h1_bom h2 (applyHom2 h2 h1) ) 
+     fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
  rew_r <- Open fx
  --Log rew_r
@@ -577,7 +584,7 @@ toWhs (Open fx) = do
            je : FxEvent
            je = Fx121 (date fx) (h3 fx)           
            je_inv : FxEvent
-           je_inv = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] )           
+           je_inv = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) route_s

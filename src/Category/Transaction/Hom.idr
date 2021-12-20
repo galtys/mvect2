@@ -266,12 +266,9 @@ Num Hom11 where
 
 export
 sumHom11 : List Hom11 -> Hom11
-sumHom11 xs = evalHom11 ret where
-   acc : Hom11
-   acc = MkH11 [] []   
-   
+sumHom11 xs = evalHom11 ret where   
    ret : Hom11
-   ret = foldl (\x,y => (x+y) ) acc xs
+   ret = foldl (\x,y => (x+y) ) emptyHom11 xs
 
 public export
 Neg Hom11 where
