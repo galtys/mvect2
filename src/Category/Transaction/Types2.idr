@@ -114,12 +114,17 @@ record AllocationItem where
   to : RouteKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+{-
+public export
+record 
+-}
 
 public export
 record AllocationEntry where
   constructor MkAE
-  date : Date
-  move : List AllocationItem --(Route,Route,Ledger,FxEvent)
+  --date : Date
+  ledger : Ledger  
+  moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 

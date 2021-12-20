@@ -492,6 +492,10 @@ fillRoute [] fxe = Pure ()
 fillRoute (mk::xs) fxe = do
      Put mk fxe
      fillRoute xs fxe
+
+safeHead : List x -> Maybe x
+safeHead [] = Nothing
+safeHead (y :: xs) = Just y
      
 export
 toWhs : OwnerEvent a -> WhsEvent a
@@ -513,16 +517,13 @@ toWhs (Init route je  user_data) = do
            r_ft_forecast = route2ft route Forecast
        fillRoute r_ft_onhand je       
        fillRoute r_ft_forecast je
-       Pure ref
-       
+       Pure ref       
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
-       Log (MkUserUpdate user_data)
-       
+       Log (MkUserUpdate user_data)       
 toWhs (GetUserData) = do
        ret <- GetUserDataW
-       Pure ret 
-                     
+       Pure ret                      
 toWhs (Open fx) = do
        Log (MkOpen fx)
        let inv : BrowseResPartner.RecordModel
@@ -551,15 +552,18 @@ toWhs (Open fx) = do
                Pure new_r
 toWhs (Post ref key fx) = do
       Put key fx
-      Log (MkPost ref key fx)      
-      
+      Log (MkPost ref key fx)            
 toWhs (Close ref) = do
        CloseRoute ref
-       Log (MkClose ref)
+       Log (MkClose ref)       
+toWhs (Allocate entry@(MkAE ledger moves) ) = do       
        
-toWhs (Allocate entry) = do
        
-       Log (MkAEntry entry)       
+       let muf1 : AllocationItem -> OwnerEvent (Maybe Route,Maybe Route,FxEvent)
+       
+           muf2 : (Maybe Route,Maybe Route,FxEvent) -> OwnerEvent (Maybe (MoveKey,MoveKey,FxEvent))
+           
+       Log (MkAEntry entry)
        
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x

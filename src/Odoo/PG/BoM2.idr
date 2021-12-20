@@ -162,9 +162,6 @@ child_map_RBoM : (List (RBoM, List RBoM) ) ->  SortedMap Bits32 (List RBoM)
 child_map_RBoM [] = empty
 child_map_RBoM (( (MkRBoM product_id product_qty bom_id pk), y) :: xs) = insert product_id y (child_map_RBoM xs)
 
-safeHead : List x -> Maybe x
-safeHead [] = Nothing
-safeHead (y :: xs) = Just y
 
 rbom_to_list : Maybe (List RBoM) -> List (TQty,Bits32)
 rbom_to_list Nothing = []
