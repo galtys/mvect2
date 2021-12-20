@@ -254,12 +254,25 @@ negateHom11 (MkH11 dx cx) = MkH11 (invHom1 dx) (invHom1 cx)
 multHom11 : Hom11 -> Hom11 -> Hom11
 multHom11 x y = MkH11 [] []
 
+export
+evalHom11 : Hom11 -> Hom11
+evalHom11 (MkH11 dx cx) = MkH11 (evalHom1 dx) (evalHom1 cx)
+
 public export
 Num Hom11 where
    (+) = addHom11
    (*) = multHom11
    fromInteger = fromIntegerHom11
+
+export
+sumHom11 : List Hom11 -> Hom11
+sumHom11 xs = evalHom11 ret where
+   acc : Hom11
+   acc = MkH11 [] []   
    
+   ret : Hom11
+   ret = foldl (\x,y => (x+y) ) acc xs
+
 public export
 Neg Hom11 where
    (-) = diffHom11

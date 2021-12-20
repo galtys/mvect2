@@ -181,7 +181,6 @@ record WhsEntry where
    constructor MkWE
    ref : Ref   
    fx : FxEvent
-
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 namespace WhsEventDo
@@ -231,6 +230,7 @@ record SystemState where
    routes : SortedMap RouteKey Route
    led_map : LocationMap
    jm   : RouteJournalMap
+   
    journal : List OwnerJournalEvent
    user_data : UserDataMap
       
