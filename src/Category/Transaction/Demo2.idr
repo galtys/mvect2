@@ -475,23 +475,18 @@ confirm_so = do
  let date = "2021-11-01"
      bom_map = boms user_data
      --h1 = [p1,p2,p3,p4]
-     dx = qtyFromOrderLine (order_line so_44970)
-     
+     dx = qtyFromOrderLine (order_line so_44970)     
      h1_bom = map_to_BoM32 dx bom_map
      
      h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
-     --h1_stock = fromStockMove sp_43747.move_ids
      h2 = priceFromOrderLine (order_line so_44970)
      
-     tax = applyHom2Tax h2 dx
-           
-     cx = (applyHom2 h2 dx) + tax
-     
+     tax = applyHom2Tax h2 dx           
+     cx = (applyHom2 h2 dx) + tax     
      h11 = evalHom11 $ MkH11 h1_order_stock cx
-     
-
      fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
+     --h1_stock = fromStockMove sp_43747.move_ids
  rew_r <- Open fx
  --Log rew_r
  
