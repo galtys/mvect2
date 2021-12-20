@@ -100,9 +100,10 @@ record MoveKey where
 public export
 record AllocationItem where
   constructor MkAI
-  from : Route
-  to : Route
-  ledger : Ledger
+  --from : Route
+  --to : Route
+  --ledger : Ledger
+  key : MoveKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 

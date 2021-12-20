@@ -596,7 +596,7 @@ interpret (Put (MkMK f t ledger) je) = do
              let key = (MkMK f t ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
-                 
+                                  
                  kt : (Location, Ledger)
                  kt = (t,ledger)
              
