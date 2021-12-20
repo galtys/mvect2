@@ -128,8 +128,8 @@ namespace WhsEventDo
   data WhsEvent : Type -> Type where
        NewRoute : Date -> Route -> WhsEvent RouteRef
        CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
-       Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
-
+       --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
+       Put   : MoveKey -> FxEvent -> WhsEvent ()
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
@@ -160,7 +160,7 @@ LocationMap  : Type
 LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
 public export
 RouteJournalMap  : Type
-RouteJournalMap = SortedMap (Location, Location,Ledger) (List FxEvent)
+RouteJournalMap = SortedMap MoveKey (List FxEvent) --MoveKey   -- (Location, Location,Ledger)
 {-
 export
 RouteMap : Type

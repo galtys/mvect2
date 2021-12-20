@@ -483,17 +483,17 @@ suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordMode
 suppWiRoute s i = [Self, Control Purchase i, Partner Purchase s]
 
 export
-route2ft : Route -> List (Location,Location)
-route2ft [] = []
-route2ft (x::[]) = []
-route2ft (x::y::xs) = [(x,y)]++(route2ft xs)
+route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
+route2ft [] l = []
+route2ft (x::[]) l= []
+route2ft (x::y::xs) l = [(MkMK x y l)]++(route2ft xs l)
+
 export
-fillRoute : List (Location,Location) -> Ledger -> FxEvent -> WhsEvent ()
-fillRoute [] l je = Pure ()
-fillRoute (x::xs) ledger je = do
-     let (f,t) = x
-     Put f t ledger je
-     fillRoute xs ledger je
+fillRoute : List MoveKey -> FxEvent -> WhsEvent ()
+fillRoute [] fxe = Pure ()
+fillRoute (mk::xs) fxe = do
+     Put mk fxe
+     fillRoute xs fxe
      
 export
 toWhs : OwnerEvent a -> WhsEvent a
@@ -506,13 +506,15 @@ toWhs (Init route je) = do
            --je2dh (Empty date) = (date , MkH11 [] [])
            ret : (Date,Hom11)
            ret = je2dh je       
+           
        ref <- NewRoute (fst ret) route
        -- todo: use route param to populate it
-       let r_ft = route2ft route
-       fillRoute r_ft OnHand je
-       fillRoute r_ft Forecast je
-       --put route into completed state       
-       Pure ref       
+       let r_ft_onhand = route2ft route OnHand
+           r_ft_forecast = route2ft route Forecast
+       fillRoute r_ft_onhand je       
+       fillRoute r_ft_forecast je
+       Pure ref
+       
 toWhs (Open fx) = do
        Log (MkOpen fx)
        let inv : BrowseResPartner.RecordModel
@@ -530,14 +532,14 @@ toWhs (Open fx) = do
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) route_s
-               Put Self (Control Purchase inv) Forecast je_inv --empty invoice
+               Put (MkMK Self (Control Purchase inv) Forecast) je_inv --empty invoice
                
-               Put (Control Purchase inv) (Partner Purchase del) Forecast je               
+               Put (MkMK (Control Purchase inv) (Partner Purchase del) Forecast) je               
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) route_c           
-               Put (Partner Sale del) (Control Sale inv) Forecast je
-               Put (Control Sale inv) Self Forecast je_inv --empty invoice
+               Put (MkMK (Partner Sale del) (Control Sale inv) Forecast) je
+               Put (MkMK (Control Sale inv) Self Forecast) je_inv --empty invoice
                Pure new_r
 toWhs (Post ref key fx) = do
       Log (MkPost ref key fx)      
@@ -557,7 +559,7 @@ toWhs (Bind x f) = do res <- toWhs x
 export
 interpret : WhsEvent a -> StateT SystemState IO a
 interpret  (NewRoute date route) = do
-             (MkSS routes led_map jm j)<-get             
+             (MkSS routes led_map rjm j)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  r_k : RouteKey --(Date,RouteRef,RouteState)
@@ -566,14 +568,14 @@ interpret  (NewRoute date route) = do
                  routes' : SortedMap RouteKey Route
                  routes' = insert r_k  route routes
                  
-             put (MkSS routes' led_map jm j)
+             put (MkSS routes' led_map rjm j)
              pure route_ref    
                      
 interpret (CloseRoute date route_ref ) = do            
             pure ()             
-interpret (Put f t ledger je) = do
-             (MkSS routes led_map jm j)<-get             
-             let key = (f,t, ledger)
+interpret (Put (MkMK f t ledger) je) = do
+             (MkSS routes led_map rjm j)<-get             
+             let key = (MkMK f t ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
                  
@@ -598,21 +600,21 @@ interpret (Put f t ledger je) = do
                  led' : LocationMap
                  led' = je2lm je
                 
-             case (lookup key jm) of
+             case (lookup key rjm) of
                 Nothing => do
-                   let jm' = insert key [je] jm
-                   put (MkSS routes led' jm' j)
+                   let rjm' = insert key [je] rjm
+                   put (MkSS routes led' rjm' j)
                    
                 Just je_list => do
-                   let jm' = insert key (je::je_list) jm
-                   put (MkSS routes led' jm' j)
+                   let rjm' = insert key (je::je_list) rjm
+                   put (MkSS routes led' rjm' j)
              pure ()                     
 interpret (Log x) = do
-     (MkSS routes led_map jm js)<-get
+     (MkSS routes led_map rjm js)<-get
      let js'= (x::js)
      putStrLn $ show x --pure () --?interpret_rhs_1
      putStrLn ""
-     put (MkSS routes led_map jm js')
+     put (MkSS routes led_map rjm js')
      
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
 interpret (Pure x) = pure x
