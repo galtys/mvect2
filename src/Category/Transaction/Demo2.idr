@@ -516,7 +516,8 @@ toWhs (Init route je  user_data) = do
 toWhs (UpdateUserData user_data) = do
        Log (MkUserUpdate user_data)
 toWhs (GetUserData) = do
-       Pure (userDataToMap emptyUserData)
+       ret <- GetUserDataW
+       Pure ret 
                      
 toWhs (Open fx) = do
        Log (MkOpen fx)
@@ -566,18 +567,21 @@ interpret  (NewRoute date route) = do
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  r_k : RouteKey --(Date,RouteRef,RouteState)
-                 r_k = (MkRK date route_ref Progress)
-                 
+                 r_k = (MkRK date route_ref Progress)                 
                  routes' : SortedMap RouteKey Route
-                 routes' = insert r_k  route routes
-                 
+                 routes' = insert r_k  route routes                
              put (MkSS routes' led_map rjm j user_data)
-             pure route_ref    
+             pure route_ref
+
 interpret (UpdateUserData user_data ) = do
              (MkSS routes led_map rjm j udm)<-get
              let udm' = userDataToMap user_data
              put (MkSS routes led_map rjm j udm')
-
+             
+interpret (GetUserDataW ) = do
+             (MkSS routes led_map rjm j user_data_map)<-get
+             pure user_data_map
+             
 interpret (CloseRoute date route_ref ) = do            
             pure ()             
 interpret (Put (MkMK f t ledger) je) = do

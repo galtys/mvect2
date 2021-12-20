@@ -154,6 +154,7 @@ namespace WhsEventDo
   data WhsEvent : Type -> Type where
        NewRoute : Date -> Route -> WhsEvent RouteRef
        UpdateUserData : UserData -> WhsEvent ()
+       GetUserDataW : WhsEvent UserDataMap
        
        CloseRoute : (date:Date) -> (ref:RouteRef) -> WhsEvent ()       
        --Put   : (from:Location)->(to:Location)->Ledger -> FxEvent -> WhsEvent ()
