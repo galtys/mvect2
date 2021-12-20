@@ -496,6 +496,7 @@ fillRoute (mk::xs) fxe = do
 export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Init route je  user_data) = do  
+       UpdateUserData user_data
        Log (MkUserUpdate user_data)
        Log (MkNewRoute route je)
        
@@ -514,7 +515,9 @@ toWhs (Init route je  user_data) = do
        fillRoute r_ft_forecast je
        Pure ref
 toWhs (UpdateUserData user_data) = do
+       UpdateUserData user_data
        Log (MkUserUpdate user_data)
+       
 toWhs (GetUserData) = do
        ret <- GetUserDataW
        Pure ret 
@@ -546,12 +549,16 @@ toWhs (Open fx) = do
                Put (MkMK (Control Sale inv) Self Forecast) je_inv --empty invoice
                Pure new_r
 toWhs (Post ref key fx) = do
+      Put key fx
       Log (MkPost ref key fx)      
       
-toWhs (Close ref) = do
-       Log (MkClose ref)
+toWhs (Close date ref) = do
+       CloseRoute date ref
+       Log (MkClose date ref)
+       
 toWhs (Allocate entry) = do
        Log (MkAEntry entry)       
+       
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x

@@ -90,6 +90,14 @@ data RouteState = Progress | Completed
 %runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
+record MoveKey where
+  constructor MkMK
+  from : Location
+  to : Location
+  ledger : Ledger
+%runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
 record AllocationItem where
   constructor MkAI
   from : Route
@@ -106,19 +114,11 @@ record AllocationEntry where
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-record MoveKey where
-  constructor MkMK
-  from : Location
-  to : Location
-  ledger : Ledger
-%runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-public export
 data OwnerJournalEvent : Type where
      MkUserUpdate : UserData -> OwnerJournalEvent
      MkNewRoute : Route -> FxEvent -> OwnerJournalEvent
      MkOpen : FxData -> OwnerJournalEvent
-     MkClose : RouteRef -> OwnerJournalEvent
+     MkClose : Date -> RouteRef -> OwnerJournalEvent
      MkError : String -> OwnerJournalEvent
      MkAEntry : AllocationEntry -> OwnerJournalEvent
      MkPost : RouteRef -> MoveKey ->  FxEvent -> OwnerJournalEvent     
@@ -134,7 +134,7 @@ namespace OwnerEventDo
        
        Open : (fx:FxData) -> OwnerEvent RouteRef
        Post : RouteRef -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
-       Close: (ref:RouteRef)  -> OwnerEvent ()       
+       Close: (date:Date) -> (ref:RouteRef)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent ()
        
        Show : (Show ty) => ty -> OwnerEvent ()
