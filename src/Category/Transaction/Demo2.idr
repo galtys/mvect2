@@ -515,16 +515,6 @@ validateDirection (Control Purchase y) (Partner Purchase x) = True
 validateDirection Init Self = True
 validateDirection _ _ = False
 
-
-
-export
-custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
-custWiRoute c i = [Partner Sale c, Control Sale i, Self]
-
-export
-suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
-suppWiRoute s i = [Self, Control Purchase i, Partner Purchase s]
-
 export
 route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
 route2ft [] l = []
@@ -541,9 +531,60 @@ fillRoute ref (mk::xs) fxe = do
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
-     
+
+export
+custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
+custWiRoute c i = [Partner Sale c, Control Sale i, Out c, Self]
+export
+suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
+suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
 export
 toWhs : OwnerEvent a -> WhsEvent a
+toWhs (Open fx) = do
+       Log (MkOpen fx)
+       let inv : BrowseResPartner.RecordModel
+           inv = (invoice fx)
+           del : BrowseResPartner.RecordModel
+           del = (delivery fx)           
+           route_c : Route
+           route_c = custWiRoute del inv           
+           route_s : Route
+           route_s = suppWiRoute del inv
+           fx_ev : FxEvent
+           fx_ev = Fx121 (date fx) (h3 fx)
+           fx_empty : FxEvent
+           fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
+           
+           forecastIn : MoveKey
+           forecastIn = MkMK Self (In del) Forecast           
+           purchaseInvoice : MoveKey
+           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast
+           purchaseOrder : MoveKey
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
+           
+           saleOrder : MoveKey
+           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
+           saleInvoice : MoveKey
+           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --delivery,return,payment,refund
+           saleDemand : MoveKey
+           saleDemand = MkMK (Out del) Self Forecast           
+           
+       case (direction fx) of
+           Purchase => do
+               new_r <- NewRoute (date fx) route_s
+               let route_key = MkRouteKeyRef new_r
+               Put route_key  forecastIn fx_ev               
+               Put route_key  purchaseInvoice fx_empty               
+               Put route_key  purchaseOrder fx_ev
+               Pure new_r
+           Sale => do
+               new_r <- NewRoute (date fx) route_c           
+               let route_key = MkRouteKeyRef new_r               
+               Put route_key saleOrder fx_ev               
+               Put route_key saleInvoice fx_empty
+               Put route_key saleDemand fx_ev               
+               Pure new_r
+               
 toWhs (Init route je  user_data) = do  
        UpdateUserData user_data
        Log (MkUserUpdate user_data)
@@ -562,40 +603,13 @@ toWhs (Init route je  user_data) = do
            
        --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
        fillRoute (MkRouteKeyRef ref) r_ft_forecast je
-       Pure ref       
-       
+       Pure ref              
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)       
 toWhs (GetUserData) = do
        ret <- GetUserDataW
        Pure ret                      
-toWhs (Open fx) = do
-       Log (MkOpen fx)
-       let inv : BrowseResPartner.RecordModel
-           inv = (invoice fx)
-           del : BrowseResPartner.RecordModel
-           del = (delivery fx)           
-           route_c : Route
-           route_c = custWiRoute del inv           
-           route_s : Route
-           route_s = suppWiRoute del inv
-           je : FxEvent
-           je = Fx121 (date fx) (h3 fx)           
-           je_inv : FxEvent
-           je_inv = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
-       case (direction fx) of
-           Purchase => do
-               new_r <- NewRoute (date fx) route_s
-               Put (MkRouteKeyRef new_r) (MkMK Self (Control Purchase inv) Forecast) je_inv --empty invoice
-               
-               Put (MkRouteKeyRef new_r) (MkMK (Control Purchase inv) (Partner Purchase del) Forecast) je               
-               Pure new_r
-           Sale => do
-               new_r <- NewRoute (date fx) route_c           
-               Put (MkRouteKeyRef new_r) (MkMK (Partner Sale del) (Control Sale inv) Forecast) je
-               Put (MkRouteKeyRef new_r) (MkMK (Control Sale inv) Self Forecast) je_inv --empty invoice
-               Pure new_r
 toWhs (Post ref key fx) = do
       Put (MkRouteKeyRef ref) key fx
       Log (MkPost ref key fx)            
