@@ -127,7 +127,9 @@ record AllocationEntry where
   moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-
+public export
+AllocationRef : Type
+AllocationRef = String
 
 public export
 data OwnerJournalEvent : Type where
@@ -150,7 +152,7 @@ namespace OwnerEventDo
        Open : (fx:FxData) -> OwnerEvent RouteKey
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
        Close: (ref:RouteKey)  -> OwnerEvent ()       
-       Allocate : AllocationEntry -> OwnerEvent ()
+       Allocate : AllocationEntry -> OwnerEvent AllocationRef
        
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty

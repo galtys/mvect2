@@ -587,6 +587,9 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
+       let a_cnt = encode entry
+           a_ref = sha256 a_cnt
+       Pure a_ref
        
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
