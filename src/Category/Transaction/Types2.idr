@@ -27,7 +27,7 @@ record UserDataMap where
   constructor MkUDMap
   products : SortedMap Bits32  BrowseProduct.RecordModel
   templates : SortedMap Bits32 BrowseProductTemplate.RecordModel
-  boms : SortedMap Bits32 BrowseBoM.RecordModel
+  boms : SortedMap ProdKey (List BrowseBoM.RecordModel)   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
 
 
@@ -238,24 +238,3 @@ export
 Show SystemState where
    show (MkSS routes led_map jm j user_data) = "system state"
 
-export
-userDataToMap : UserData -> UserDataMap
-userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
-     p_map : SortedMap Bits32  BrowseProduct.RecordModel
-     p_map = (fromList [(pk u, u) | u <- p ])
-     t_map : SortedMap Bits32 BrowseProductTemplate.RecordModel
-     t_map = (fromList [(pk u, u) | u <- t ])
-     b_map : SortedMap Bits32 BrowseBoM.RecordModel
-     b_map = (fromList [(pk u, u) | u <- b ])
-     tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
-     tax_map = (fromList [(pk u, u) | u <- tax ])
-
---(fromList  (fromList []) (fromList []) )
-
-export
-emptyUserData : UserData
-emptyUserData = (MkUD [] [] [] [])
-
-export
-initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty [] (userDataToMap emptyUserData))

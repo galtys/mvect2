@@ -16,6 +16,7 @@ import Crypto.Hash.SHA256
 import Data.Ratio
 import Odoo.Schema.PJBRecDef
 --import Odoo.Schema.PJB
+import Odoo.PG.BoM
 
 %language ElabReflection
 
@@ -41,6 +42,27 @@ record SystemState where
 
 
 -}
+export
+userDataToMap : UserData -> UserDataMap
+userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
+     p_map : SortedMap Bits32  BrowseProduct.RecordModel
+     p_map = (fromList [(pk u, u) | u <- p ])
+     t_map : SortedMap Bits32 BrowseProductTemplate.RecordModel
+     t_map = (fromList [(pk u, u) | u <- t ])
+     b_map : SortedMap ProdKey (List BrowseBoM.RecordModel)    --SortedMap Bits32 BrowseBoM.RecordModel
+     b_map = toBoM_map b  --(fromList [(pk u, u) | u <- b ])
+     tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
+     tax_map = (fromList [(pk u, u) | u <- tax ])
+
+--(fromList  (fromList []) (fromList []) )
+
+export
+emptyUserData : UserData
+emptyUserData = (MkUD [] [] [] [])
+
+export
+initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
+initState = (MkSS empty empty empty [] (userDataToMap emptyUserData))
 
 
 export
@@ -444,22 +466,20 @@ export
 confirm_so : OwnerEvent ()
 confirm_so = do
  iref <- init_self
+ user_data  <- GetUserData 
+ 
  let date = "2021-11-01"
+     bom_map = boms user_data
      --h1 = [p1,p2,p3,p4]
      h1 = qtyFromOrderLine (order_line so_44970)
-     {-
-     up1 = (toEX20 31.73)
-     up2 = (toEX20 15.03)
-     up3 = (toEX20 25.00)
-     up4 = (toEX20 21.00)     
-     h2 = [ (fst p1, up1), 
-             (fst p2, up2),
-            (fst p3, up3),
-            (fst p4, up3) ]
-     -}
+     
+     h1_bom = map_to_BoM32 h1 bom_map
+     
+     h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
+     --h1_stock = fromStockMove sp_43747.move_ids
      h2 = priceFromOrderLine (order_line so_44970)
-            
-     fx = MkFx date Sale hilton hilton (MkH121 h1 [] h2 (applyHom2 h2 h1) ) 
+
+     fx = MkFx date Sale hilton hilton (MkH121 h1 h1_bom h2 (applyHom2 h2 h1) ) 
      
  rew_r <- Open fx
  --Log rew_r
