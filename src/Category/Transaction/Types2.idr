@@ -175,6 +175,14 @@ namespace OwnerEventDo
   (>>) : OwnerEvent () -> OwnerEvent b -> OwnerEvent b
   ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
+
+public export
+record WhsEntry where
+   constructor MkWE
+   fx : FxEvent
+   ref : Ref
+%runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
 namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
@@ -186,8 +194,10 @@ namespace WhsEventDo
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
 
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
+
        Get : MoveKey -> WhsEvent (List FxEvent)
-       
+       --Get : MoveKey -> WhsEvent (List FxEnvent)
+              
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
