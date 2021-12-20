@@ -138,14 +138,15 @@ record SystemState where
    routes : SortedMap RouteKey Route
    led_map : LocationMap
    jm   : RouteJournalMap
-
+   journal : List OwnerJournalEvent
+   
 export
 Show SystemState where
-   show (MkSS routes led_map jm) = "system state"
+   show (MkSS routes led_map jm j) = "system state"
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty)
+initState = (MkSS empty empty empty [])
 
 
 

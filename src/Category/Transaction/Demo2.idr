@@ -410,7 +410,7 @@ confirm_so = do
      up3 = (toEX20 25.00)
      up4 = (toEX20 21.00)     
      h2 = [ (fst p1, up1), 
-            (fst p2, up2),
+             (fst p2, up2),
             (fst p3, up3),
             (fst p4, up3) ]
      -}
@@ -550,7 +550,7 @@ toWhs (Bind x f) = do res <- toWhs x
 export
 interpret : WhsEvent a -> StateT SystemState IO a
 interpret  (NewRoute date route) = do
-             (MkSS routes led_map jm)<-get             
+             (MkSS routes led_map jm j)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
                  r_k : RouteKey --(Date,RouteRef,RouteState)
@@ -559,13 +559,13 @@ interpret  (NewRoute date route) = do
                  routes' : SortedMap RouteKey Route
                  routes' = insert r_k  route routes
                  
-             put (MkSS routes' led_map jm)
+             put (MkSS routes' led_map jm j)
              pure route_ref    
                      
 interpret (CloseRoute date route_ref ) = do            
             pure ()             
 interpret (Put f t ledger je) = do
-             (MkSS routes led_map jm)<-get             
+             (MkSS routes led_map jm j)<-get             
              let key = (f,t, ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
@@ -594,11 +594,11 @@ interpret (Put f t ledger je) = do
              case (lookup key jm) of
                 Nothing => do
                    let jm' = insert key [je] jm
-                   put (MkSS routes led' jm')
+                   put (MkSS routes led' jm' j)
                    
                 Just je_list => do
                    let jm' = insert key (je::je_list) jm
-                   put (MkSS routes led' jm')
+                   put (MkSS routes led' jm' j)
              pure ()                     
 interpret (Log x) = putStrLn $ show x --pure () --?interpret_rhs_1
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
