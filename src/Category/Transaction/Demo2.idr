@@ -18,6 +18,33 @@ import Odoo.Schema.PJBRecDef
 --import Odoo.Schema.PJB
 
 %language ElabReflection
+
+
+
+{-
+public export
+LedgerMap  : Type
+LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
+public export
+JournalMap  : Type
+JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+export
+RouteMap : Type
+RouteMap = SortedMap (Date,RouteRef,RouteState) Route
+
+public export
+record SystemState where
+   constructor MkSS
+   routes : RouteMap
+   led_map : LedgerMap
+   jm   : JournalMap
+
+
+-}
+
+
+
+
 export
 StockMoveMap : Type
 StockMoveMap = SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
@@ -399,19 +426,6 @@ confirm_so = do
 
 
 public export
-LedgerMap  : Type
-LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
-public export
-JournalMap  : Type
-JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
-export
-RouteMap : Type
-RouteMap = SortedMap (Date,RouteRef,RouteState) Route
-
-
-
-
-public export
 update_ledger : (Location, Ledger) -> Hom1 -> LedgerMap -> LedgerMap 
 update_ledger k [] m = m
 update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
@@ -526,20 +540,29 @@ toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
-     
+                      
+
+                      
+     --(RouteMap,LedgerMap,JournalMap)
 export
-interpret : WhsEvent a -> StateT (RouteMap,LedgerMap,JournalMap) IO a
+interpret : WhsEvent a -> StateT SystemState IO a
 interpret  (NewRoute date route) = do
-             (routes,led_map,jm)<-get             
+             (MkSS routes led_map jm)<-get             
              let route_cnt = encode route
                  route_ref = sha256 route_cnt
-                 routes' = insert (date, route_ref,Progress)  route routes
-             put (routes', led_map,jm)
-             pure route_ref            
+                 r_k : RouteKey --(Date,RouteRef,RouteState)
+                 r_k = (MkRK date route_ref Progress)
+                 
+                 routes' : SortedMap RouteKey Route
+                 routes' = insert r_k  route routes
+                 
+             put (MkSS routes' led_map jm)
+             pure route_ref    
+                     
 interpret (CloseRoute date route_ref ) = do            
             pure ()             
 interpret (Put f t ledger je) = do
-             (routes,led_map,jm)<-get             
+             (MkSS routes led_map jm)<-get             
              let key = (f,t, ledger)
                  kf : (Location, Ledger)
                  kf = (f,ledger)
@@ -568,11 +591,11 @@ interpret (Put f t ledger je) = do
              case (lookup key jm) of
                 Nothing => do
                    let jm' = insert key [je] jm
-                   put (routes,led',jm')
+                   put (MkSS routes led' jm')
                    
                 Just je_list => do
                    let jm' = insert key (je::je_list) jm
-                   put (routes,led',jm')
+                   put (MkSS routes led' jm')
              pure ()                     
 interpret (Log x) = putStrLn x --pure () --?interpret_rhs_1
 interpret (Show x) = putStr $ show x --pure () --?interpret_rhs_2
@@ -582,10 +605,10 @@ interpret (Bind x f) = do res <- interpret x
 
 
 
-
 export
 test_demo2 : IO ()
 test_demo2 = do
-  reas <- execStateT (empty,empty,empty) (interpret (toWhs   confirm_so)   )
-  printLn reas
+  
+  reas <- execStateT initState (interpret (toWhs   confirm_so)   )
+  --printLn reas
   pure ()

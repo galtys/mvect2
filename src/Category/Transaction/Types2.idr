@@ -107,3 +107,38 @@ namespace OwnerEventDo
   ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
 
+public export
+record RouteKey where
+  constructor MkRK
+  date : Date
+  ref : RouteRef
+  state : RouteState
+%runElab derive "RouteKey" [Generic, Meta, Eq,Show,Ord, RecordToJSON,RecordFromJSON]  
+
+
+public export
+LedgerMap  : Type
+LedgerMap = SortedMap (Location, Ledger, ProdKey) EQty
+public export
+JournalMap  : Type
+JournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
+{-
+export
+RouteMap : Type
+RouteMap = SortedMap RouteKey Route --(Date,RouteRef,RouteState) Route
+-}
+
+public export
+record SystemState where
+   constructor MkSS
+   routes : SortedMap RouteKey Route
+   led_map : LedgerMap
+   jm   : JournalMap
+
+export
+Show SystemState where
+   show (MkSS routes led_map jm) = "system state"
+
+export
+initState : SystemState --(RouteMap,LedgerMap,JournalMap)
+initState = (MkSS empty empty empty)
