@@ -119,6 +119,34 @@ record MoveKey where
 %runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
+convMovekey : MoveKey -> MoveKey
+convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
+convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
+
+export
+custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
+custWiRoute c i = [Partner Sale c, Control Sale i, Out c, Self]
+export
+suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
+suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
+
+public export
+record CustomerForecastRoute where 
+   constructor MkCFR
+   forecastIn : MoveKey
+   purchaseInvoice : MoveKey
+   purchaseOrder : MoveKey
+%runElab derive "CustomerForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record CustomerOnHandRoute where 
+   constructor MkCOHR
+   allocated : MoveKey
+   onhand : MoveKey
+   transit : MoveKey
+%runElab derive "CustomerOnHandRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+            
+public export
 record AllocationItem where
   constructor MkAI
   --key : MoveKey
@@ -161,7 +189,12 @@ namespace OwnerEventDo
        GetUserData : OwnerEvent UserDataMap
        
        Open : (fx:FxData) -> OwnerEvent RouteKey
-       Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote       
+       GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
+       GetRoute : (key:RouteKey) -> OwnerEvent (Maybe Route)
+       Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote  
+
+            
+       Get : MoveKey -> OwnerEvent Hom11
        Close: (ref:RouteKey)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent Ref
        
@@ -188,11 +221,12 @@ record WhsEntry where
 namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
-       NewRoute : Date -> Route -> WhsEvent RouteKey
+       NewRoute : FxData -> Route -> WhsEvent RouteKey
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap
        
-       CloseRoute : (ref:RouteKey) -> WhsEvent ()  
+       CloseRoute : (ref:RouteKey) -> WhsEvent () 
+       GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
 
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
@@ -229,6 +263,7 @@ RouteMap = SortedMap RouteKey Route --(Date,RouteKey,RouteState) Route
 public export
 record SystemState where
    constructor MkSS
+   fx_map : SortedMap RouteKey FxData
    routes : SortedMap RouteKey Route
    led_map : LocationMap
    jm   : RouteJournalMap
@@ -238,5 +273,5 @@ record SystemState where
       
 export
 Show SystemState where
-   show (MkSS routes led_map jm j user_data) = "system state"
+   show (MkSS fx_map routes led_map jm j user_data) = "system state"
 
