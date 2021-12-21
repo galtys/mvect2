@@ -131,20 +131,22 @@ suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordMode
 suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
 
 public export
-record CustomerForecastRoute where 
-   constructor MkCFR
+record SaleForecastRoute where 
+   constructor MkSFR
+   saleOrder : MoveKey
+   saleInvoice : MoveKey
+   saleDemand : MoveKey   
+%runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record PurchaseForecastRoute where 
+   constructor MkPFR
    forecastIn : MoveKey
    purchaseInvoice : MoveKey
    purchaseOrder : MoveKey
-%runElab derive "CustomerForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+%runElab derive "PurchaseForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-public export
-record CustomerOnHandRoute where 
-   constructor MkCOHR
-   allocated : MoveKey
-   onhand : MoveKey
-   transit : MoveKey
-%runElab derive "CustomerOnHandRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
             
 public export
 record AllocationItem where

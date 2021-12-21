@@ -482,6 +482,36 @@ fillRoute ref [] fxe = Pure ()
 fillRoute ref (mk::xs) fxe = do
      Put ref mk fxe
      fillRoute ref xs fxe
+export           
+soForecastFromFx : FxData -> SaleForecastRoute
+soForecastFromFx fx = ret where
+           inv : BrowseResPartner.RecordModel
+           inv = (invoice fx)
+           del : BrowseResPartner.RecordModel
+           del = (delivery fx)                      
+           saleOrder : MoveKey
+           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
+           saleInvoice : MoveKey
+           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
+           saleDemand : MoveKey
+           saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
+           ret : SaleForecastRoute
+           ret = MkSFR saleOrder saleInvoice saleDemand
+export
+poForecastFromFx : FxData -> PurchaseForecastRoute
+poForecastFromFx fx = ret where
+           inv : BrowseResPartner.RecordModel
+           inv = (invoice fx)
+           del : BrowseResPartner.RecordModel
+           del = (delivery fx)                      
+           forecastIn : MoveKey
+           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route 
+           purchaseInvoice : MoveKey
+           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
+           purchaseOrder : MoveKey
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
+           ret : PurchaseForecastRoute 
+           ret = MkPFR forecastIn purchaseInvoice purchaseOrder
 
 export
 confirm_so : OwnerEvent ()
@@ -512,8 +542,12 @@ confirm_so = do
  case r of
    Nothing => Pure ()
    Just rx => do
-        Show rx --$ safeHead $route2ft rx OnHand    
-        
+        let so: SaleForecastRoute
+            so = soForecastFromFx rx
+        h <- Get (saleOrder so)
+        i <- Get (saleInvoice so)
+        Show h    --$ safeHead $route2ft rx OnHand    
+        Show i
  Show "Sale Demand:"
  --x <- Get saleDemand
  --
@@ -546,6 +580,7 @@ validateDirection Init Self = True
 validateDirection _ _ = False
 -}
 
+
 export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Open fx) = do
@@ -563,34 +598,24 @@ toWhs (Open fx) = do
            fx_empty : FxEvent
            fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
            
-           forecastIn : MoveKey
-           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route 
-           purchaseInvoice : MoveKey
-           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
-           purchaseOrder : MoveKey
-           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
-           
-           saleOrder : MoveKey
-           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
-           saleInvoice : MoveKey
-           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
-           saleDemand : MoveKey
-           saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
-           
+           so : SaleForecastRoute
+           so = soForecastFromFx fx
+           po : PurchaseForecastRoute
+           po = poForecastFromFx fx
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute fx route_s
                let route_key = MkRouteKeyRef new_r
-               Put route_key  forecastIn fx_ev               
-               Put route_key  purchaseInvoice fx_empty               
-               Put route_key  purchaseOrder fx_ev
+               Put route_key  (forecastIn po) fx_ev               
+               Put route_key  (purchaseInvoice po) fx_empty               
+               Put route_key  (purchaseOrder po) fx_ev
                Pure new_r
            Sale => do
                new_r <- NewRoute fx route_c           
                let route_key = MkRouteKeyRef new_r               
-               Put route_key saleOrder fx_ev               
-               Put route_key saleInvoice fx_empty
-               Put route_key saleDemand fx_ev               
+               Put route_key (saleOrder so) fx_ev               
+               Put route_key (saleInvoice so) fx_empty
+               Put route_key (saleDemand so) fx_ev               
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key
