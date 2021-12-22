@@ -131,3 +131,4 @@ record AllocationEntry where
   ledger : Ledger  
   moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+

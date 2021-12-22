@@ -506,21 +506,11 @@ validateDirection _ _ = False
 export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Open fx) = do
-       Log (MkOpen fx)
+       Log (MkOpen fx)       
        let fx_ev : FxEvent
            fx_ev = Fx121 (date fx) (h3 fx)
            fx_empty : FxEvent
            fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
-{-
-           inv : BrowseResPartner.RecordModel
-           inv = (invoice fx)
-           del : BrowseResPartner.RecordModel
-           del = (delivery fx)                      
-           route_c : Route
-           route_c = custWiRoute del inv           
-           route_s : Route
-           route_s = suppWiRoute del inv
-           -}
            
            so : SaleForecastRoute
            so = soForecastFromFx fx
@@ -528,14 +518,16 @@ toWhs (Open fx) = do
            po = poForecastFromFx fx
        case (direction fx) of
            Purchase => do
-               new_r <- NewRoute fx (MkPoR po) --route_s
+               new_r <- NewRoute (date fx) (MkPoR po)
+               SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
                Put route_key  (forecastIn po) fx_ev               
                Put route_key  (purchaseInvoice po) fx_empty               
                Put route_key  (purchaseOrder po) fx_ev
                Pure new_r
            Sale => do
-               new_r <- NewRoute fx (MkSoR so) --route_c           
+               new_r <- NewRoute (date fx) (MkSoR so)
+               SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r               
                Put route_key (saleOrder so) fx_ev               
                Put route_key (saleInvoice so) fx_empty
@@ -552,24 +544,34 @@ toWhs (Init route je  user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)
        Log (MkNewRoute route je)       
+       
+       
        let je2dh : FxEvent -> (Date, Hom11)
            je2dh (Fx121 date h121) = (date, fromH121 h121)
            je2dh (Fx11  date h11) = (date, h11)
+           
            toH121 : FxEvent -> Hom121
            toH121 (Fx121 date h121) = h121
            toH121 (Fx11  date h11) = MkH121 (dx h11) [] [] (cx h11) h11
            
            ret : (Date,Hom11)
            ret = je2dh je       
+           
            fx : FxData
            fx = MkFx (fst ret) Sale self_company self_company (toH121 je)
-           
-       ref <- NewRoute fx route
+         
+       ref_init <- NewRoute InitDate route
+       SetFxData ref_init fx
+       inventory_route <- NewRoute InitDate (MkAl InventoryRoute)
+       tax_route <- NewRoute InitDate (MkReR TaxRoute)
+       bank_route <- NewRoute InitDate (MkReR BankRoute)
+       fx_route <- NewRoute InitDate (MkReR FxRoute)
+       
        --let --r_ft_onhand = route2ft route OnHand
        --    r_ft_forecast = route2ft route Forecast           
        --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
        --fillRoute (MkRouteKeyRef ref) r_ft_forecast je
-       Pure ref
+       Pure ref_init
        
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
@@ -637,27 +639,28 @@ toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x
                       toWhs (f res) --?toWhs_rhs_4
                       
-
-                      
-     --(RouteMap,LocationMap,RouteJournalMap)
+{-
+new_route : Date -> RouteSumT -> WhsEvent RouteKey
+new_rotue d r = NewRoute (date fx) route
+-}
 export
 interpret : WhsEvent a -> StateT SystemState IO a
-interpret  (NewRoute fx route) = do
+interpret  (NewRoute dt route) = do
              (MkSS fx_map routes led_map rjm j user_data)<-get             
-             let dt = date fx
-                 route_cnt = encode route
-                 route_ref = sha256 route_cnt
-                 
-                 r_k : RouteKey --(Date,RouteRef,RouteState)
-                 r_k = (MkRK dt route_ref Progress)                 
-                 
+             let route_ref = routeSha route                 
+                 r_k : RouteKey
+                 r_k = (MkRK dt route_ref Progress)                                                   
                  routes' : SortedMap RouteKey RouteSumT
                  routes' = insert r_k  route routes
-                 fx_map' : SortedMap RouteKey FxData
-                 fx_map' = insert r_k fx fx_map
                  
-             put (MkSS fx_map' routes' led_map rjm j user_data)
-             pure r_k --route_ref
+             put (MkSS fx_map routes' led_map rjm j user_data)
+             pure r_k
+
+interpret  (SetFxData r_k fx) = do
+             (MkSS fx_map routes led_map rjm j user_data)<-get                          
+             let fx_map' : SortedMap RouteKey FxData
+                 fx_map' = insert r_k fx fx_map                 
+             put (MkSS fx_map' routes led_map rjm j user_data)
 
 interpret (UpdateUserData user_data ) = do
              (MkSS fx_map routes led_map rjm j udm)<-get

@@ -80,12 +80,16 @@ namespace WhsEventDo
 
   public export
   data WhsEvent : Type -> Type where
-       NewRoute : FxData -> RouteSumT -> WhsEvent RouteKey
+       --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
+       NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
+       SetFxData : RouteKey -> FxData -> WhsEvent ()
+       GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
+              
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap
        
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
-       GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
+
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
 
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()

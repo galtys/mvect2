@@ -5,13 +5,18 @@ import Category.Transaction.RouteTypes
 import Category.Transaction.Qty
 import Data.SortedMap
 --import Control.Monad.State
---import Crypto.Hash.SHA256
+import Crypto.Hash.SHA256
 import Data.Ratio
 import Generics.Derive
 import JSON
 import Odoo.Schema.PJBRecDef
 
 %language ElabReflection
+
+export
+routeSha : RouteSumT -> RouteRef
+routeSha r = sha256 $ encode r
+
 export
 self_company : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
 self_company = BrowseResPartner.MkRecordModel 
@@ -130,12 +135,21 @@ InitRoute = ret where
      allocation = MkMK (In self_company) Self Forecast
      ret : ReconciliationRoute 
      ret = MkRR reconciliation allocation
+export
+InitDate : Date
+InitDate = "2021-11-01"
+export
+InitRouteRef : Ref
+InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR InitRoute) ) Progress)
 
 export
 InventoryRoute : AllocationRoute
 InventoryRoute = MkAR i where
      i : MoveKey
      i = MkMK (Border self_company) Self Forecast
+export
+InventoryRouteRef : Ref
+InventoryRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkAl InventoryRoute) ) Progress)
      
 export
 TaxRoute : ReconciliationRoute
@@ -146,6 +160,9 @@ TaxRoute = ret where
      a = MkMK (Border self_taxman) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR r a     
+export
+TaxRouteRef : Ref
+TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR TaxRoute) ) Progress)
      
 export
 BankRoute : ReconciliationRoute
@@ -156,6 +173,9 @@ BankRoute = ret where
      a = MkMK (Border self_bank) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR r a
+export
+BankRouteRef : Ref
+BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR BankRoute) ) Progress)
 
 export
 FxRoute : ReconciliationRoute
@@ -166,5 +186,8 @@ FxRoute = ret where
      a = MkMK (In self_fx) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR r a
+export
+FxRouteRef : Ref
+FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR FxRoute) ) Progress)
 
 
