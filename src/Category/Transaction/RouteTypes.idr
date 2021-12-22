@@ -59,10 +59,6 @@ record MoveKey where
 %runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-Route : Type
-Route = List Location
-
-public export
 convMovekey : MoveKey -> MoveKey
 convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
 convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
@@ -98,6 +94,12 @@ record AllocationRoute where --reconcile with 3rd party is not involved
 
 
    
+public export
+Route : Type
+Route = List Location
+
+public export
+data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl AllocationRoute
 
 
 public export
