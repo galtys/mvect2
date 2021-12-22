@@ -494,33 +494,25 @@ confirm_so = do
      h11 = evalHom11 $ MkH11 h1_order_stock cx
      fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
-     --h1_stock = fromStockMove sp_43747.move_ids
+
  new_r <- ConfirmOrder fx
- {-
- Show "Route:"
- r <- GetFxData new_r
- --Show r
+ r <- GetRoute new_r
  case r of
    Nothing => Pure ()
-   Just rx => do
-        let so: SaleForecastRoute
-            so = soForecastFromFx rx
-        h <- Get (saleOrder so)
-        i <- Get (saleInvoice so)
-        Show h    --$ safeHead $route2ft rx OnHand    
-        Show i
- Show "Sale Demand:"
- --x <- Get saleDemand
- --
- -}
+   Just rt => do
+       let al = allocationMove rt
+       x <- Get al
+       Show x
+       x <- Get (convMovekey al)
+       Show x
+       
  ff <- Get $ allocation InitRoute
  aa <- Get $ convMovekey $allocation InitRoute
- 
+ {-
  Show (ff)
  Show (aa)  
  Show $evalHom11 (ff-aa) --to spend
-
- 
+-} 
  Pure ()
 
 
