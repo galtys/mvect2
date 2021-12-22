@@ -127,8 +127,8 @@ export
 initRoute : Route --List Location
 initRoute = [Init, In self_company, Self]
 export   
-InitRoute : ReconciliationRoute 
-InitRoute = ret where
+InitRoute : RouteSumT --ReconciliationRoute 
+InitRoute = MkReR ret where
      reconciliation : MoveKey
      reconciliation = MkMK Init (In self_company) Forecast
      allocation : MoveKey
@@ -140,20 +140,20 @@ InitDate : Date
 InitDate = "2021-11-01"
 export
 InitRouteRef : Ref
-InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR InitRoute) ) Progress)
+InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitRoute ) Progress)
 
 export
-InventoryRoute : AllocationRoute
-InventoryRoute = MkAR i where
+InventoryRoute : RouteSumT --AllocationRoute
+InventoryRoute = MkAl (MkAR i) where
      i : MoveKey
      i = MkMK (Border self_company) Self Forecast
 export
 InventoryRouteRef : Ref
-InventoryRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkAl InventoryRoute) ) Progress)
+InventoryRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InventoryRoute) Progress)
      
 export
-TaxRoute : ReconciliationRoute
-TaxRoute = ret where
+TaxRoute : RouteSumT --ReconciliationRoute
+TaxRoute = MkReR ret where
      r : MoveKey
      r = MkMK (Taxman self_taxman) (Border self_taxman) Forecast
      a : MoveKey
@@ -162,11 +162,11 @@ TaxRoute = ret where
      ret = MkRR r a     
 export
 TaxRouteRef : Ref
-TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR TaxRoute) ) Progress)
+TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha TaxRoute) Progress)
      
 export
-BankRoute : ReconciliationRoute
-BankRoute = ret where
+BankRoute : RouteSumT --ReconciliationRoute
+BankRoute = MkReR ret where
      r : MoveKey
      r = MkMK (Bank self_bank) (Border self_bank) Forecast
      a : MoveKey
@@ -175,11 +175,11 @@ BankRoute = ret where
      ret = MkRR r a
 export
 BankRouteRef : Ref
-BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR BankRoute) ) Progress)
+BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha BankRoute) Progress)
 
 export
-FxRoute : ReconciliationRoute
-FxRoute = ret where
+FxRoute : RouteSumT --ReconciliationRoute
+FxRoute = MkReR ret where
      r : MoveKey
      r = MkMK (Partner Purchase self_fx) (In self_fx) Forecast
      a : MoveKey
@@ -188,6 +188,6 @@ FxRoute = ret where
      ret = MkRR r a
 export
 FxRouteRef : Ref
-FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha (MkReR FxRoute) ) Progress)
+FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha FxRoute ) Progress)
 
 

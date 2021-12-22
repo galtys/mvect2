@@ -419,7 +419,7 @@ init_self = do
          
          je : FxEvent
          je = Fx121 date h121
-     ref <- Init (MkReR InitRoute) je emptyUserData
+     ref <- Init InitRoute je emptyUserData
      Pure ref
 
 export
@@ -516,6 +516,7 @@ toWhs (Open fx) = do
            so = soForecastFromFx fx
            po : PurchaseForecastRoute
            po = poForecastFromFx fx
+           
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) (MkPoR po)
@@ -562,10 +563,10 @@ toWhs (Init route je  user_data) = do
          
        ref_init <- NewRoute InitDate route
        SetFxData ref_init fx
-       inventory_route <- NewRoute InitDate (MkAl InventoryRoute)
-       tax_route <- NewRoute InitDate (MkReR TaxRoute)
-       bank_route <- NewRoute InitDate (MkReR BankRoute)
-       fx_route <- NewRoute InitDate (MkReR FxRoute)
+       inventory_route <- NewRoute InitDate InventoryRoute
+       tax_route <- NewRoute InitDate TaxRoute
+       bank_route <- NewRoute InitDate BankRoute
+       fx_route <- NewRoute InitDate FxRoute
        
        --let --r_ft_onhand = route2ft route OnHand
        --    r_ft_forecast = route2ft route Forecast           
