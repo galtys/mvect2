@@ -395,15 +395,18 @@ confirm_po = do
      fx' : FxData
      fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (applyHom2 h2' h1') emptyHom11) 
      
- rew_r <- Open fx
- rew_r' <- Open fx' 
+ rew_r <- ConfirmOrder fx
+ rew_r' <- ConfirmOrder fx' 
  Pure ()
 
 
 export
-init_self : OwnerEvent RouteKey --RouteRef
+init_self : WhsEvent () --RouteRef
 init_self = do
-     let date = "2010-01-15"
+     UpdateUserData emptyUserData
+     Log (MkUserUpdate emptyUserData)
+
+     let -- InitDate
          price : Product
          price = (toEX20 1000)
          
@@ -418,9 +421,30 @@ init_self = do
          h121 = MkH121 h1 [] h2 (applyHom2 h2 h1) emptyHom11
          
          je : FxEvent
-         je = Fx121 date h121
-     ref <- Init InitRoute je emptyUserData
-     Pure ref
+         je = Fx121 InitDate h121          
+         fx : FxData
+         fx = MkFx InitDate Sale self_company self_company h121
+         
+         fx_empty : FxEvent
+         fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
+         
+     ref_init <- NewRoute InitDate InitRouteT       
+     SetFxData ref_init fx
+     Log (MkNewRoute InitRouteT je)       
+          
+     inventory_route <- NewRoute InitDate InventoryRouteT
+     Log (MkNewRoute InventoryRouteT fx_empty)
+     
+     tax_route <- NewRoute InitDate TaxRouteT
+     Log (MkNewRoute TaxRouteT fx_empty)
+          
+     bank_route <- NewRoute InitDate BankRouteT
+     Log (MkNewRoute BankRouteT fx_empty)
+     
+     fx_route <- NewRoute InitDate FxRouteT
+     Log (MkNewRoute FxRouteT fx_empty)
+       
+     Pure ()
 
 export
 route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
@@ -438,9 +462,10 @@ fillRoute ref (mk::xs) fxe = do
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
- iref <- init_self
- user_data  <- GetUserData 
  
+ 
+ user_data  <- GetUserData 
+
  let date = "2021-11-01"
      bom_map = boms user_data
      --h1 = [p1,p2,p3,p4]
@@ -456,7 +481,7 @@ confirm_so = do
      fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
      --h1_stock = fromStockMove sp_43747.move_ids
- new_r <- Open fx
+ new_r <- ConfirmOrder fx
  
  Show "Route:"
  r <- GetFxData new_r
@@ -505,7 +530,7 @@ validateDirection _ _ = False
 
 export
 toWhs : OwnerEvent a -> WhsEvent a
-toWhs (Open fx) = do
+toWhs (ConfirmOrder fx) = do
        Log (MkOpen fx)       
        let fx_ev : FxEvent
            fx_ev = Fx121 (date fx) (h3 fx)
@@ -541,38 +566,8 @@ toWhs (GetRoute key) = do
        r <- GetRoute key
        Pure r
                       
-toWhs (Init route je  user_data) = do  
-       UpdateUserData user_data
-       Log (MkUserUpdate user_data)
-       Log (MkNewRoute route je)       
-       
-       
-       let je2dh : FxEvent -> (Date, Hom11)
-           je2dh (Fx121 date h121) = (date, fromH121 h121)
-           je2dh (Fx11  date h11) = (date, h11)
-           
-           toH121 : FxEvent -> Hom121
-           toH121 (Fx121 date h121) = h121
-           toH121 (Fx11  date h11) = MkH121 (dx h11) [] [] (cx h11) h11
-           
-           ret : (Date,Hom11)
-           ret = je2dh je       
-           
-           fx : FxData
-           fx = MkFx (fst ret) Sale self_company self_company (toH121 je)
-         
-       ref_init <- NewRoute InitDate route
-       SetFxData ref_init fx
-       inventory_route <- NewRoute InitDate InventoryRoute
-       tax_route <- NewRoute InitDate TaxRoute
-       bank_route <- NewRoute InitDate BankRoute
-       fx_route <- NewRoute InitDate FxRoute
-       
-       --let --r_ft_onhand = route2ft route OnHand
-       --    r_ft_forecast = route2ft route Forecast           
-       --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
-       --fillRoute (MkRouteKeyRef ref) r_ft_forecast je
-       Pure ref_init
+toWhs (Init) = do  
+      init_self                     
        
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
@@ -646,6 +641,7 @@ new_rotue d r = NewRoute (date fx) route
 -}
 export
 interpret : WhsEvent a -> StateT SystemState IO a
+       
 interpret  (NewRoute dt route) = do
              (MkSS fx_map routes led_map rjm j user_data)<-get             
              let route_ref = routeSha route                 

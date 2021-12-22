@@ -44,11 +44,12 @@ data OwnerJournalEvent : Type where
 namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
-       Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
+       --Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
+       Init : OwnerEvent ()
        UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
        
-       Open : (fx:FxData) -> OwnerEvent RouteKey
+       ConfirmOrder : (fx:FxData) -> OwnerEvent RouteKey
        GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
        GetRoute : (key:RouteKey) -> OwnerEvent (Maybe RouteSumT)
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote  
@@ -81,6 +82,7 @@ namespace WhsEventDo
   public export
   data WhsEvent : Type -> Type where
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
+       --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        SetFxData : RouteKey -> FxData -> WhsEvent ()
        GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
