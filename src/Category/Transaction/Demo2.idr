@@ -418,10 +418,17 @@ init_self = do
          h1 = [share]
          
          h121 : Hom121
-         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1) emptyHom11
+         h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)  (MkH11 h1 (applyHom2 h2 h1)   )
          
          je : FxEvent
          je = Fx121 InitDate h121          
+         {-
+         je_cx : FxEvent
+         je_cx = Fx11 InitDate (MkH11 [] (applyHom2 h2 h1))
+         -}
+         je_dx : FxEvent
+         je_dx = Fx11 InitDate (MkH11 h1 [])
+         
          fx : FxData
          fx = MkFx InitDate Sale self_company self_company h121
          
@@ -434,9 +441,10 @@ init_self = do
      --Log (MkNewRoute InitRouteT je)       
      Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
      Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
-
+     --Show je
+     
      Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
-     --Put ref_init (convMovekey $ allocation InitRoute) je 
+     Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je_dx
 
      inventory_route <- NewRoute InitDate InventoryRouteT
      --Log (MkNewRoute InventoryRouteT fx_empty)
@@ -468,7 +476,7 @@ fillRoute ref (mk::xs) fxe = do
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
- 
+ Init
  
  user_data  <- GetUserData 
 
@@ -488,7 +496,7 @@ confirm_so = do
      
      --h1_stock = fromStockMove sp_43747.move_ids
  new_r <- ConfirmOrder fx
- 
+ {-
  Show "Route:"
  r <- GetFxData new_r
  --Show r
@@ -504,8 +512,14 @@ confirm_so = do
  Show "Sale Demand:"
  --x <- Get saleDemand
  --
+ -}
+ ff <- Get $ allocation InitRoute
+ aa <- Get $ convMovekey $allocation InitRoute
  
- --Log rew_r
+ Show (ff)
+ Show (aa)  
+ Show $evalHom11 (ff-aa) --to spend
+
  
  Pure ()
 

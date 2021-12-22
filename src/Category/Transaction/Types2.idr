@@ -32,6 +32,7 @@ record UserDataMap where
 
 public export
 data OwnerJournalEvent : Type where
+     --MkInit : OwnerJournalEvent
      MkUserUpdate : UserData -> OwnerJournalEvent
      MkNewRoute : RouteSumT -> FxEvent -> OwnerJournalEvent
      MkOpen : FxData -> OwnerJournalEvent

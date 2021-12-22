@@ -254,9 +254,16 @@ negateHom11 (MkH11 dx cx) = MkH11 (invHom1 dx) (invHom1 cx)
 multHom11 : Hom11 -> Hom11 -> Hom11
 multHom11 x y = MkH11 [] []
 
+
+export
+filterZero : Hom1 -> Hom1
+filterZero [] = []
+filterZero ((x, y) :: xs) = if (y==0) then (filterZero xs) else [(x,y)]++(filterZero xs)
+
+
 export
 evalHom11 : Hom11 -> Hom11
-evalHom11 (MkH11 dx cx) = MkH11 (evalHom1 dx) (evalHom1 cx)
+evalHom11 (MkH11 dx cx) = MkH11 (filterZero $ evalHom1 dx) (filterZero $evalHom1 cx)
 
 public export
 Num Hom11 where
