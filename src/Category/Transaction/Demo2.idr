@@ -9,6 +9,7 @@ import JSON
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
+import Category.Transaction.RouteTypes
 import Category.Transaction.Types2
 import Category.Transaction.Hom
 import Category.Transaction.Journal

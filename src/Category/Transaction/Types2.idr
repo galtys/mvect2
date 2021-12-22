@@ -1,6 +1,7 @@
 module Category.Transaction.Types2
 
 import Category.Transaction.Types
+import Category.Transaction.RouteTypes
 import Category.Transaction.Qty
 import Data.SortedMap
 --import Control.Monad.State
@@ -30,53 +31,10 @@ record UserDataMap where
   boms : SortedMap ProdKey (List BrowseBoM.RecordModel)   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
 
-
-
-
---import Odoo.PG.BoM
-{-
-
-public export
-data Country = UK | CZ | US | DE | FR
-%runElab derive "Country" [Generic, Meta, Eq, Ord, Show, EnumToJSON,EnumFromJSON]
-
-public export
-record Contact where
-  constructor MkC
-  name : String
-%runElab derive "Contact" [Generic, Meta, Eq, Ord,Show, RecordToJSON,RecordFromJSON]
-
-public export
-record Address where
-  constructor MkA
-  street : String
-  street2 : String
-  city : String
-  zip : String
-  country_id : Country
-  contact: Contact
-%runElab derive "Address" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
--}
 public export
 data Location =  Self | In BrowseResPartner.RecordModel | Out BrowseResPartner.RecordModel | Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
-
-
-public export
-record FxData where
-   constructor MkFx
-   date:Date
-   direction: DirectionTag
-   delivery:BrowseResPartner.RecordModel -- Delivery
-   invoice:BrowseResPartner.RecordModel  -- Invoice
-   h3: Hom121
-   -- origin : Maybe FxRef --list of origins, a PO can have multiple origins
-%runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-public export     
-RouteRef : Type 
-RouteRef = String --where --order reference used in warehouse
 
 public export
 AllocationRef : Type
