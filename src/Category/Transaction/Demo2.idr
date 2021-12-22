@@ -430,6 +430,7 @@ init_self = do
          
      ref_init <- NewRoute InitDate InitRouteT       
      SetFxData ref_init fx
+     Log (MkOpen fx)
      Log (MkNewRoute InitRouteT je)       
           
      inventory_route <- NewRoute InitDate InventoryRouteT
