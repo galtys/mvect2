@@ -429,21 +429,26 @@ init_self = do
          fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
          
      ref_init <- NewRoute InitDate InitRouteT       
-     SetFxData ref_init fx
-     Log (MkOpen fx)
-     Log (MkNewRoute InitRouteT je)       
-          
+     SetFxData (ref_init) fx
+     --Log (MkOpen fx)
+     --Log (MkNewRoute InitRouteT je)       
+     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
+     --Put ref_init (convMovekey $reconciliation InitRoute) je 
+     
+     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
+     --Put ref_init (convMovekey $ reconciliation InitRoute) je 
+               
      inventory_route <- NewRoute InitDate InventoryRouteT
-     Log (MkNewRoute InventoryRouteT fx_empty)
+     --Log (MkNewRoute InventoryRouteT fx_empty)
      
      tax_route <- NewRoute InitDate TaxRouteT
-     Log (MkNewRoute TaxRouteT fx_empty)
+     --Log (MkNewRoute TaxRouteT fx_empty)
           
      bank_route <- NewRoute InitDate BankRouteT
-     Log (MkNewRoute BankRouteT fx_empty)
+     --Log (MkNewRoute BankRouteT fx_empty)
      
      fx_route <- NewRoute InitDate FxRouteT
-     Log (MkNewRoute FxRouteT fx_empty)
+     --Log (MkNewRoute FxRouteT fx_empty)
        
      Pure ()
 
