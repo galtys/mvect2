@@ -432,12 +432,12 @@ init_self = do
      SetFxData (ref_init) fx
      --Log (MkOpen fx)
      --Log (MkNewRoute InitRouteT je)       
+     Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
+     Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
+
      Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
-     --Put ref_init (convMovekey $reconciliation InitRoute) je 
-     
-     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
-     --Put ref_init (convMovekey $ reconciliation InitRoute) je 
-               
+     --Put ref_init (convMovekey $ allocation InitRoute) je 
+
      inventory_route <- NewRoute InitDate InventoryRouteT
      --Log (MkNewRoute InventoryRouteT fx_empty)
      
