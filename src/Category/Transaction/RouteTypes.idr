@@ -100,12 +100,19 @@ Route = List Location
 
 public export
 data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl AllocationRoute
+%runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
+export
+allocationMove : RouteSumT -> MoveKey
+allocationMove (MkSoR (MkSFR saleOrder saleInvoice saleDemand)) = saleDemand
+allocationMove (MkPoR (MkPFR forecastIn purchaseInvoice purchaseOrder)) = forecastIn
+allocationMove (MkReR (MkRR allocation reconcile)) = allocation
+allocationMove (MkAl (MkAR allocation)) = allocation
+
 
 
 public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
 %runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
-
             
 public export
 record AllocationItem where
@@ -117,11 +124,6 @@ record AllocationItem where
   --to : RouteKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-{-
-public export
-record 
--}
-
 public export
 record AllocationEntry where
   constructor MkAE

@@ -419,7 +419,7 @@ init_self = do
          
          je : FxEvent
          je = Fx121 date h121
-     ref <- Init initRoute je emptyUserData
+     ref <- Init (MkReR InitRoute) je emptyUserData
      Pure ref
 
 export
@@ -507,18 +507,20 @@ export
 toWhs : OwnerEvent a -> WhsEvent a
 toWhs (Open fx) = do
        Log (MkOpen fx)
-       let inv : BrowseResPartner.RecordModel
+       let fx_ev : FxEvent
+           fx_ev = Fx121 (date fx) (h3 fx)
+           fx_empty : FxEvent
+           fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
+{-
+           inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
-           del = (delivery fx)           
+           del = (delivery fx)                      
            route_c : Route
            route_c = custWiRoute del inv           
            route_s : Route
            route_s = suppWiRoute del inv
-           fx_ev : FxEvent
-           fx_ev = Fx121 (date fx) (h3 fx)
-           fx_empty : FxEvent
-           fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
+           -}
            
            so : SaleForecastRoute
            so = soForecastFromFx fx
@@ -526,14 +528,14 @@ toWhs (Open fx) = do
            po = poForecastFromFx fx
        case (direction fx) of
            Purchase => do
-               new_r <- NewRoute fx route_s
+               new_r <- NewRoute fx (MkPoR po) --route_s
                let route_key = MkRouteKeyRef new_r
                Put route_key  (forecastIn po) fx_ev               
                Put route_key  (purchaseInvoice po) fx_empty               
                Put route_key  (purchaseOrder po) fx_ev
                Pure new_r
            Sale => do
-               new_r <- NewRoute fx route_c           
+               new_r <- NewRoute fx (MkSoR so) --route_c           
                let route_key = MkRouteKeyRef new_r               
                Put route_key (saleOrder so) fx_ev               
                Put route_key (saleInvoice so) fx_empty
@@ -563,10 +565,10 @@ toWhs (Init route je  user_data) = do
            fx = MkFx (fst ret) Sale self_company self_company (toH121 je)
            
        ref <- NewRoute fx route
-       let r_ft_onhand = route2ft route OnHand
-           r_ft_forecast = route2ft route Forecast           
+       --let --r_ft_onhand = route2ft route OnHand
+       --    r_ft_forecast = route2ft route Forecast           
        --fillRoute (MkRouteKeyRef ref) r_ft_onhand je       
-       fillRoute (MkRouteKeyRef ref) r_ft_forecast je
+       --fillRoute (MkRouteKeyRef ref) r_ft_forecast je
        Pure ref
        
 toWhs (UpdateUserData user_data) = do
@@ -596,8 +598,8 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
            a_ref : Ref
            a_ref = (MkAllocationRef (sha256 a_cnt))
            
-           
-           muf2 : AllocationItem -> WhsEvent (Maybe (Route,Route,FxEvent))
+           {-
+           muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteSumT,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (supplier ai)
                rt <- GetRoute (customer ai)
@@ -605,7 +607,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                   (Just rx, Just ry) => Pure (Just (rx,ry,fx ai))
                   _ => Pure Nothing
                   
-           allocateItem : (Route,Route,FxEvent) -> WhsEvent () -- Maybe (RouteKey, RouteKey, FxEvent)
+           allocateItem : (RouteSumT,RouteSumT,FxEvent) -> WhsEvent () -- Maybe (RouteKey, RouteKey, FxEvent)
            allocateItem (rx,ry,fe) = do
                let rkx : Maybe MoveKey
                    rkx = safeHead $ route2ft (reverse rx) ledger
@@ -627,7 +629,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
-       
+       -}
        Pure a_ref
        
 toWhs (Show x) = Show x --Pure ()
@@ -649,7 +651,7 @@ interpret  (NewRoute fx route) = do
                  r_k : RouteKey --(Date,RouteRef,RouteState)
                  r_k = (MkRK dt route_ref Progress)                 
                  
-                 routes' : SortedMap RouteKey Route
+                 routes' : SortedMap RouteKey RouteSumT
                  routes' = insert r_k  route routes
                  fx_map' : SortedMap RouteKey FxData
                  fx_map' = insert r_k fx fx_map
@@ -673,10 +675,10 @@ interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do
               (Just this) => do
                   let new_ref : RouteKey
                       new_ref = (MkRK date ref Completed)
-                      routes' : SortedMap RouteKey Route
+                      routes' : SortedMap RouteKey RouteSumT
                       routes' = insert new_ref this routes
                       
-                      routes'' : SortedMap RouteKey Route
+                      routes'' : SortedMap RouteKey RouteSumT
                       routes'' = delete route_ref routes'
                   put (MkSS fx_map routes'' led_map rjm j user_data_map)
                   

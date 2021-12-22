@@ -33,7 +33,7 @@ record UserDataMap where
 public export
 data OwnerJournalEvent : Type where
      MkUserUpdate : UserData -> OwnerJournalEvent
-     MkNewRoute : Route -> FxEvent -> OwnerJournalEvent
+     MkNewRoute : RouteSumT -> FxEvent -> OwnerJournalEvent
      MkOpen : FxData -> OwnerJournalEvent
      MkClose : RouteKey -> OwnerJournalEvent
      MkError : String -> OwnerJournalEvent
@@ -44,13 +44,13 @@ data OwnerJournalEvent : Type where
 namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
-       Init : Route ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
+       Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
        UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
        
        Open : (fx:FxData) -> OwnerEvent RouteKey
        GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
-       GetRoute : (key:RouteKey) -> OwnerEvent (Maybe Route)
+       GetRoute : (key:RouteKey) -> OwnerEvent (Maybe RouteSumT)
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote  
             
        Get : MoveKey -> OwnerEvent Hom11
@@ -80,13 +80,13 @@ namespace WhsEventDo
 
   public export
   data WhsEvent : Type -> Type where
-       NewRoute : FxData -> Route -> WhsEvent RouteKey
+       NewRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap
        
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
        GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
-       GetRoute : (ref:RouteKey) -> WhsEvent (Maybe Route)
+       GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
 
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
 
@@ -119,7 +119,7 @@ namespace SystemState
    record SystemState where
       constructor MkSS
       fx_map : SortedMap RouteKey FxData
-      routes : SortedMap RouteKey Route
+      routes : SortedMap RouteKey RouteSumT
       led_map : LocationMap
       jm   : RouteJournalMap
 
