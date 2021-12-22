@@ -22,33 +22,10 @@ import Odoo.PG.BoM
 
 %language ElabReflection
 
-
-
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
 
-
-{-
-public export
-LocationMap  : Type
-LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
-public export
-RouteJournalMap  : Type
-RouteJournalMap = SortedMap (Location, Location,Ledger) (List JournalEvent)
-export
-RouteMap : Type
-RouteMap = SortedMap (Date,RouteRef,RouteState) Route
-
-public export
-record SystemState where
-   constructor MkSS
-   routes : RouteMap
-   led_map : LocationMap
-   jm   : RouteJournalMap
-
-
--}
 export
 userDataToMap : UserData -> UserDataMap
 userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
@@ -60,8 +37,6 @@ userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
      b_map = toBoM_map b  --(fromList [(pk u, u) | u <- b ])
      tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
      tax_map = (fromList [(pk u, u) | u <- tax ])
-
---(fromList  (fromList []) (fromList []) )
 
 export
 emptyUserData : UserData
@@ -89,11 +64,6 @@ moveMap (x:: xs) = do
    --printLn keyx
    put m'
    moveMap xs
-{-
-export   
-runXdd : List BrowseStockMove.RecordModel -> IO StockMoveMap
-runXdd xs = execStateT empty (moveMap xs)
--}
 export
 print_group : List BrowseStockMove.RecordModel -> IO ()    --List ( (Bits32,Bits32), Integer)
 print_group xs = do
@@ -586,8 +556,6 @@ toWhs (Init route je  user_data) = do
            toH121 : FxEvent -> Hom121
            toH121 (Fx121 date h121) = h121
            toH121 (Fx11  date h11) = MkH121 (dx h11) [] [] (cx h11) h11
-           
-           --je2dh (Empty date) = (date , MkH11 [] [])
            
            ret : (Date,Hom11)
            ret = je2dh je       
