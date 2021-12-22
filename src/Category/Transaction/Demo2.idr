@@ -10,6 +10,7 @@ import JSON
 import Category.Transaction.Qty
 import Category.Transaction.Types
 import Category.Transaction.RouteTypes
+import Category.Transaction.Route
 import Category.Transaction.Types2
 import Category.Transaction.Hom
 import Category.Transaction.Journal
@@ -346,23 +347,6 @@ hilton = BrowseResPartner.MkRecordModel
          street2 = Just "Mid Lane" }
          --retail_cust_31587 --MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
 
-export
-self_company : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
-self_company = BrowseResPartner.MkRecordModel 
-       { pk = 31587, 
-         name = "Self Main Company", 
-         use_parent_address = Just False, 
-         active = Just True, 
-         street = Just "Self Street", 
-         contract = Just False, 
-         city = Just "Mid London", 
-         zip = Just "CE6 SS", 
-         country_id = Just 284, 
-         parent_id = Nothing, 
-         child_ids = [], 
-         email = "self@btconnect.com", 
-         street2 = Just "Mid Lane" }
-         --retail_cust_31587 --MkA "Street" "" "London" "SU 4X" UK (MkC "Hilton")
 
 export
 factory1 : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
@@ -445,9 +429,6 @@ confirm_po = do
  rew_r' <- Open fx' 
  Pure ()
 
-export
-initRoute : List Location
-initRoute = [Init, In self_company, Self]
 
 export
 init_self : OwnerEvent RouteKey --RouteRef
@@ -483,36 +464,6 @@ fillRoute ref [] fxe = Pure ()
 fillRoute ref (mk::xs) fxe = do
      Put ref mk fxe
      fillRoute ref xs fxe
-export           
-soForecastFromFx : FxData -> SaleForecastRoute
-soForecastFromFx fx = ret where
-           inv : BrowseResPartner.RecordModel
-           inv = (invoice fx)
-           del : BrowseResPartner.RecordModel
-           del = (delivery fx)                      
-           saleOrder : MoveKey
-           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
-           saleInvoice : MoveKey
-           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
-           saleDemand : MoveKey
-           saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
-           ret : SaleForecastRoute
-           ret = MkSFR saleOrder saleInvoice saleDemand
-export
-poForecastFromFx : FxData -> PurchaseForecastRoute
-poForecastFromFx fx = ret where
-           inv : BrowseResPartner.RecordModel
-           inv = (invoice fx)
-           del : BrowseResPartner.RecordModel
-           del = (delivery fx)                      
-           forecastIn : MoveKey
-           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route 
-           purchaseInvoice : MoveKey
-           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
-           purchaseOrder : MoveKey
-           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
-           ret : PurchaseForecastRoute 
-           ret = MkPFR forecastIn purchaseInvoice purchaseOrder
 
 export
 confirm_so : OwnerEvent ()

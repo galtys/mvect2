@@ -13,7 +13,6 @@ import Odoo.Schema.PJBRecDef
 
 %language ElabReflection
 
-
 public export
 record UserData where
   constructor MkUD
@@ -30,105 +29,6 @@ record UserDataMap where
   templates : SortedMap Bits32 BrowseProductTemplate.RecordModel
   boms : SortedMap ProdKey (List BrowseBoM.RecordModel)   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
-
-public export
-data Location =  Self | In BrowseResPartner.RecordModel | Out BrowseResPartner.RecordModel | Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel
-%runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
-
-
-public export
-AllocationRef : Type
-AllocationRef = String
-
-
-
-public export
---data FxEvent = Fx121 (Date, Hom121) | Fx11 (Date, Hom11) 
-data FxEvent = Fx121 Date Hom121 | Fx11 Date Hom11 
-%runElab derive "FxEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
-
-public export
-Route : Type
-Route = List Location
-
-
-public export
-data RouteState = Progress | Completed
-%runElab derive "RouteState" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
-public export
-record RouteKey where
-  constructor MkRK
-  date : Date
-  ref : RouteRef
-  state : RouteState
-%runElab derive "RouteKey" [Generic, Meta, Eq,Show,Ord, RecordToJSON,RecordFromJSON]  
-
-public export
-data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
-%runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
-
-
-public export
-record MoveKey where
-  constructor MkMK
-  from : Location
-  to : Location
-  ledger : Ledger
-%runElab derive "MoveKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-public export
-convMovekey : MoveKey -> MoveKey
-convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
-convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
-
-export
-custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
-custWiRoute c i = [Partner Sale c, Control Sale i, Out c, Self]
-export
-suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> List Location
-suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
-
-public export
-record SaleForecastRoute where 
-   constructor MkSFR
-   saleOrder : MoveKey
-   saleInvoice : MoveKey
-   saleDemand : MoveKey   
-%runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-public export
-record PurchaseForecastRoute where 
-   constructor MkPFR
-   forecastIn : MoveKey
-   purchaseInvoice : MoveKey
-   purchaseOrder : MoveKey
-%runElab derive "PurchaseForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-
-            
-public export
-record AllocationItem where
-  constructor MkAI
-  --key : MoveKey
-  supplier : RouteKey
-  customer: RouteKey
-  --from : RouteKey
-  --to : RouteKey
-  fx : FxEvent
-%runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-{-
-public export
-record 
--}
-
-public export
-record AllocationEntry where
-  constructor MkAE
-  --date : Date
-  ledger : Ledger  
-  moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
-%runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
 
 public export
 data OwnerJournalEvent : Type where
@@ -152,7 +52,6 @@ namespace OwnerEventDo
        GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
        GetRoute : (key:RouteKey) -> OwnerEvent (Maybe Route)
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote  
-
             
        Get : MoveKey -> OwnerEvent Hom11
        Close: (ref:RouteKey)  -> OwnerEvent ()       
@@ -171,14 +70,14 @@ namespace OwnerEventDo
   ma >> mb = OwnerEventDo.Bind ma (\ _ => mb)
 
 
-public export
-record WhsEntry where
-   constructor MkWE
-   ref : Ref   
-   fx : FxEvent
-%runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
 namespace WhsEventDo
+  public export
+  record WhsEntry where
+     constructor MkWE
+     ref : Ref   
+     fx : FxEvent
+  %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
   public export
   data WhsEvent : Type -> Type where
        NewRoute : FxData -> Route -> WhsEvent RouteKey
@@ -208,30 +107,26 @@ namespace WhsEventDo
   ma >> mb = WhsEventDo.Bind ma (\ _ => mb)
 
 
-public export
-LocationMap  : Type
-LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
-public export
-RouteJournalMap  : Type
-RouteJournalMap = SortedMap MoveKey (List WhsEntry) --MoveKey   -- (Location, Location,Ledger)
-{-
-export
-RouteMap : Type
-RouteMap = SortedMap RouteKey Route --(Date,RouteKey,RouteState) Route
--}
+namespace SystemState
+   public export
+   LocationMap  : Type
+   LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
+   public export
+   RouteJournalMap  : Type
+   RouteJournalMap = SortedMap MoveKey (List WhsEntry) --MoveKey   -- (Location, Location,Ledger)
 
-public export
-record SystemState where
-   constructor MkSS
-   fx_map : SortedMap RouteKey FxData
-   routes : SortedMap RouteKey Route
-   led_map : LocationMap
-   jm   : RouteJournalMap
-   
-   journal : List OwnerJournalEvent
-   user_data : UserDataMap
-      
-export
-Show SystemState where
-   show (MkSS fx_map routes led_map jm j user_data) = "system state"
+   public export
+   record SystemState where
+      constructor MkSS
+      fx_map : SortedMap RouteKey FxData
+      routes : SortedMap RouteKey Route
+      led_map : LocationMap
+      jm   : RouteJournalMap
+
+      journal : List OwnerJournalEvent
+      user_data : UserDataMap
+
+   export
+   Show SystemState where
+      show (MkSS fx_map routes led_map jm j user_data) = "system state"
 
