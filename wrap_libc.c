@@ -68,6 +68,13 @@ char *wrap_strftime( int maxsize, const char *p_format, const struct tm *p_tm )
   return p_ret;
   
 }
+const time_t wrap_mktime(int tm_sec,int tm_min,int tm_hour,int tm_mday,int tm_mon,int tm_year,int tm_wday,int tm_yday,int tm_isdst) {
+  struct tm tm_i = {tm_sec,tm_min,tm_hour,tm_mday,tm_mon,tm_year,tm_wday,tm_yday,tm_isdst};
+  time_t raw;
+
+  raw = mktime( &tm_i);
+  return raw;
+}
 
 const TM_EC *wrap_strptime(const char *p_buf, const char *p_format) {
   char *p_ret;

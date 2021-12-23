@@ -98,7 +98,20 @@ namespace Libc
   
   public export
   %foreign "C:read_gmtime,libmongoose"
-  prim__read_gmtime :  Int -> PrimIO Libc.TmInfo
+  prim__read_gmtime_io :  Int -> PrimIO Libc.TmInfo
+  
+  public export
+  %foreign "C:difftime,libc"
+  prim__difftime : Int -> Int -> Double
+  
+  public export
+  %foreign "C:wrap_mktime,libmongoose"
+  prim_mktime : Int->Int->Int->Int->Int->Int->Int->Int->Int-> Int
+  
+  
+  public export
+  %foreign "C:read_gmtime,libmongoose"
+  prim__read_gmtime :  Int -> Libc.TmInfo
     
   %foreign "C:read_time,libmongoose"
   prim__read_time : PrimIO Int
@@ -119,11 +132,17 @@ namespace Libc
   
   public export
   read_tm : HasIO io=> (Int) -> io Libc.TmInfo
-  read_tm  raw = primIO $Libc.prim__read_gmtime raw
+  read_tm  raw = primIO $Libc.prim__read_gmtime_io raw
 
   export
   time : HasIO io => io Int
   time = primIO Libc.prim__read_time
+  
+  export
+  mktime : Libc.YearDateTime -> Int
+  mktime (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = 
+        prim_mktime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst
+  
   
   export
   toYearDateTime : Libc.TmInfo -> Libc.YearDateTime
@@ -147,9 +166,9 @@ namespace Libc
           err => Left err
           
   public export
-  data DateFormatCode = YDTF | YDF | YMF     
+  data DateFormatCode = YDTF | YDF | YMF | RAWF --| YF
   public export
-  data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode --tbd to Either?
+  data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode | RAW Int --| Year Int --tbd to Either?
  
   export
   fromDateTime : DateTime -> YearDateTime
@@ -157,16 +176,18 @@ namespace Libc
   fromDateTime (YD (MkYearDate tm_mday tm_mon tm_year)) = (MkYearDateTime 0 0 0 tm_mday tm_mon tm_year 0 0 0)
   fromDateTime (YM (MkYearMonth tm_mon tm_year)) = (MkYearDateTime 0 0 0 0 tm_mon tm_year 0 0 0)
   fromDateTime (Err x) = (MkYearDateTime 0 0 0 0 0 0 0 0 0)
+  fromDateTime (RAW x) = toYearDateTime $ prim__read_gmtime x 
   
   export
   fromYearDateTime : DateFormatCode -> YearDateTime -> DateTime
   fromYearDateTime YDTF x = YDT x
   fromYearDateTime YDF (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = YD (MkYearDate tm_mday tm_mon tm_year)
   fromYearDateTime YMF (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = YM (MkYearMonth tm_mon tm_year)
+  fromYearDateTime RAWF x = RAW (mktime x)
   
   export
-  rfDateTime : DateTime -> DateFormatCode -> DateTime
-  rfDateTime x c = (fromYearDateTime c ) (fromDateTime x)
+  rf : DateTime -> DateFormatCode -> DateTime
+  rf x c = (fromYearDateTime c ) (fromDateTime x)
 
   
   export        
@@ -205,20 +226,31 @@ namespace Libc
     t<-Libc.time
     --printLn t
     --let --x:Libc.TmInfo4
+    {-
     p_ti <- Libc.new_tm_info
-    x <- Libc.read_tm t
+
     free_tm_info p_ti
     
     let u:YearDateTime
         u=toYearDateTime x 
+    -}
+    printLn t
     
-    let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x
+    --x <- Libc.read_tm t
+    let x = prim__read_gmtime t
     
+    let s = mktime $ toYearDateTime x
+    printLn (prim__difftime s t)
+    
+    
+    
+    printLn "time test end"
+    {-
+    let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x    
     printLn ret
     
-    let tx =strptime ret "%Y-%m-%d %H:%M:%S"     
-    
+    let tx =strptime ret "%Y-%m-%d %H:%M:%S"         
     printLn tx
-  
+    -}
   
 
