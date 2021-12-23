@@ -5,6 +5,8 @@ import Data.SortedMap
 --import Control.Monad.State
 import Crypto.Hash.SHA256
 import Data.Ratio
+import Libc.Time
+
 import Generics.Derive
 import JSON
 
@@ -12,7 +14,7 @@ import JSON
 
 public export
 Date : Type
-Date = String
+Date = String --DateTime --String
 
 public export
 data TreeB = Leaf String | Node TreeB String TreeB

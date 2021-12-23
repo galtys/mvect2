@@ -168,8 +168,9 @@ namespace Libc
   public export
   data DateFormatCode = YDTF | YDF | YMF | RAWF --| YF
   public export
-  data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode | RAW Int --| Year Int --tbd to Either?
- 
+  data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode | RAW Int --| Year Int --tbd to Either? 
+  %runElab derive "Libc.DateTime" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
+  
   export
   fromDateTime : DateTime -> YearDateTime
   fromDateTime (YDT x) = x
@@ -210,8 +211,14 @@ namespace Libc
   fromOdooDate buf = 
         case strptime buf DEFAULT_SERVER_DATE_FORMAT of
            Left er => Err er
-           Right x => YDT x
-  
+           Right x => rf (YDT x) YDF
+  export
+  FromString DateTime where
+    fromString = fromOdooDate
+    
+    
+  dateTest : DateTime
+  dateTest = "2021-12-23"  
   {-
   export
   strftime : HasIO io => Int -> String -> Libc.TmInfo -> io String
@@ -224,26 +231,25 @@ namespace Libc
   test_libc_time : IO ()
   test_libc_time = do
     t<-Libc.time
-    --printLn t
-    --let --x:Libc.TmInfo4
-    {-
-    p_ti <- Libc.new_tm_info
-
-    free_tm_info p_ti
     
-    let u:YearDateTime
-        u=toYearDateTime x 
-    -}
     printLn t
+    --let s = mktime $ toYearDateTime x
+    --printLn (prim__difftime s t)    
+    let x= prim__read_gmtime t --toYearDateTime $        
+    printLn $toYearDateTime x
+    let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x        
+    printLn ret
     
-    --x <- Libc.read_tm t
-    let x = prim__read_gmtime t
+    let ocas = MkYearDateTime { tm_sec = 0, tm_min = 0, tm_hour = 1, tm_mday = 1, tm_mon = 0, tm_year = 121, tm_wday = 0, tm_yday = 0, tm_isdst = 0 }
+    let t2 =  mktime ocas
     
-    let s = mktime $ toYearDateTime x
-    printLn (prim__difftime s t)
+    let x2= prim__read_gmtime t2 --toYearDateTime $    
+    let ret2= strftime 30 "%Y-%m-%d %H:%M:%S" x2        
+    printLn ret2
     
-    
-    
+    --printLn $ toYearDateTime $ prim__read_gmtime 0
+    printLn $ fromOdooDate "2021-12-23"
+    printLn dateTest
     printLn "time test end"
     {-
     let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x    

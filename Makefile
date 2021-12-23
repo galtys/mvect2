@@ -1,5 +1,5 @@
-#all: pjbgen mvect2 testpjb #libs
-all: mvect2
+all: pjbgen mvect2 testpjb libs
+#all: mvect2
 #mvect2: mvect2.ipkg 
 #	idris2 --codegen node --build mvect2.ipkg
 libs: wrap_libmongoose.c wrap_libc.c sha256.c 
