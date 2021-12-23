@@ -268,7 +268,7 @@ mg_test = do
 
 main : IO ()
 main = do
---  test_libc_time
+  test_libc_time
   --pjb_test
   test_demo2
   --x <- muf_3_bom

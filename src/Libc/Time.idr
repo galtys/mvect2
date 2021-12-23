@@ -9,7 +9,7 @@ import JSON
   -- https://www.tutorialspoint.com/c_standard_library/c_function_strftime.htm
   -- https://man7.org/linux/man-pages/man3/strptime.3.html
   
-  {-                            
+{-
 struct tm {
    int tm_sec;         /* seconds,  range 0 to 59          */
    int tm_min;         /* minutes, range 0 to 59           */
@@ -20,8 +20,9 @@ struct tm {
    int tm_wday;        /* day of the week, range 0 to 6    */
    int tm_yday;        /* day in the year, range 0 to 365  */
    int tm_isdst;       /* daylight saving time             */	
-};  -}                            
-{-
+};
+-} 
+
 namespace Libc
   export
   data ErrorCode = OK | ParsePartial | ParseError |OtherError
@@ -50,8 +51,8 @@ namespace Libc
                                 ("e_code",Bits32)]
 
   public export
-  record DateTime where
-    constructor MkDateTime
+  record YearDateTime where
+    constructor MkYearDateTime
     tm_sec : Int
     tm_min : Int
     tm_hour : Int
@@ -61,22 +62,38 @@ namespace Libc
     tm_wday : Int
     tm_yday : Int
     tm_isdst : Int
+  %runElab derive "Libc.YearDateTime" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
   
-  export
-  toDateTime : Libc.TmInfo -> Libc.DateTime
-  toDateTime x = (MkDateTime (getField x "tm_sec") (getField x "tm_min") (getField x "tm_hour")
-                      (getField x "tm_mday") (getField x "tm_mon") (getField x "tm_year")
-                      (getField x "tm_wday") (getField x "tm_yday") (getField x "tm_isdst"))
+  public export
+  record YearDate where
+    constructor MkYearDate
+    tm_mday : Int
+    tm_mon : Int
+    tm_year : Int
+  %runElab derive "Libc.YearDate" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
   
+  public export
+  record YearMonth where
+    constructor MkYearMonth
+    tm_mon : Int
+    tm_year : Int
+  %runElab derive "Libc.YearMonth" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+  {-
+  public export
+  record YearWeek where
+    constructor MkYearWeek
+    tm_week : Int
+    tm_year : Int
+  %runElab derive "Libc.YearWeek" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
+-}
   
-  %runElab derive "Libc.DateTime" [Generic, Meta, Eq, Ord, Show, RecordToJSON,RecordFromJSON]
                               
   public export
   %foreign "C:new_tm_info,libmongoose"
   prim__new_tm_info : PrimIO (Ptr Libc.TmInfo)
   
   public export
-  %foreign "C:new_tm_info,libmongoose"
+  %foreign "C:free_tm_info,libmongoose"
   prim__free_tm_info : (Ptr Libc.TmInfo) -> PrimIO ()
   
   public export
@@ -109,20 +126,71 @@ namespace Libc
   time = primIO Libc.prim__read_time
   
   export
-  strptime : (buf:String)->(format:String) -> Either Libc.ErrorCode Libc.DateTime
+  toYearDateTime : Libc.TmInfo -> Libc.YearDateTime
+  toYearDateTime x = (MkYearDateTime (getField x "tm_sec") (getField x "tm_min") (getField x "tm_hour")
+                      (getField x "tm_mday") (getField x "tm_mon") (getField x "tm_year")
+                      (getField x "tm_wday") (getField x "tm_yday") (getField x "tm_isdst"))
+  
+  export
+  strptime : (buf:String)->(format:String) -> Either Libc.ErrorCode Libc.YearDateTime
   strptime x y = ret where
        w_ret : Libc.TmInfoEC
        w_ret = wrap_strptime x y
        ec : Libc.ErrorCode
        ec = fromBits32 $getField w_ret "e_code"
-       tm : Libc.DateTime
-       tm = toDateTime $ getField w_ret "tm_info" 
-       ret : Either Libc.ErrorCode Libc.DateTime
+       tm : Libc.YearDateTime
+       tm = toYearDateTime $ getField w_ret "tm_info" 
+       ret : Either Libc.ErrorCode Libc.YearDateTime
        ret = case ec of
           OK => Right tm
           ParsePartial => Right tm
           err => Left err
           
+  public export
+  data DateFormatCode = YDTF | YDF | YMF     
+  public export
+  data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode --tbd to Either?
+ 
+  export
+  fromDateTime : DateTime -> YearDateTime
+  fromDateTime (YDT x) = x
+  fromDateTime (YD (MkYearDate tm_mday tm_mon tm_year)) = (MkYearDateTime 0 0 0 tm_mday tm_mon tm_year 0 0 0)
+  fromDateTime (YM (MkYearMonth tm_mon tm_year)) = (MkYearDateTime 0 0 0 0 tm_mon tm_year 0 0 0)
+  fromDateTime (Err x) = (MkYearDateTime 0 0 0 0 0 0 0 0 0)
+  
+  export
+  fromYearDateTime : DateFormatCode -> YearDateTime -> DateTime
+  fromYearDateTime YDTF x = YDT x
+  fromYearDateTime YDF (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = YD (MkYearDate tm_mday tm_mon tm_year)
+  fromYearDateTime YMF (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = YM (MkYearMonth tm_mon tm_year)
+  
+  export
+  rfDateTime : DateTime -> DateFormatCode -> DateTime
+  rfDateTime x c = (fromYearDateTime c ) (fromDateTime x)
+
+  
+  export        
+  DEFAULT_SERVER_DATE_FORMAT : String
+  DEFAULT_SERVER_DATE_FORMAT = "%Y-%m-%d"
+  export
+  DEFAULT_SERVER_TIME_FORMAT : String 
+  DEFAULT_SERVER_TIME_FORMAT = "%H:%M:%S"
+  
+  DEFAULT_SERVER_DATETIME_FORMAT : String
+  DEFAULT_SERVER_DATETIME_FORMAT = #"\#{DEFAULT_SERVER_DATE_FORMAT} \#{DEFAULT_SERVER_TIME_FORMAT}"#
+  export
+  fromOdooDateTime : String -> DateTime
+  fromOdooDateTime buf = 
+        case strptime buf DEFAULT_SERVER_DATETIME_FORMAT of
+           Left er => Err er
+           Right x => YDT x
+  export         
+  fromOdooDate : String -> DateTime
+  fromOdooDate buf = 
+        case strptime buf DEFAULT_SERVER_DATE_FORMAT of
+           Left er => Err er
+           Right x => YDT x
+  
   {-
   export
   strftime : HasIO io => Int -> String -> Libc.TmInfo -> io String
@@ -141,8 +209,8 @@ namespace Libc
     x <- Libc.read_tm t
     free_tm_info p_ti
     
-    let u:DateTime
-        u=toDateTime x 
+    let u:YearDateTime
+        u=toYearDateTime x 
     
     let ret= strftime 30 "%Y-%m-%d %H:%M:%S" x
     
@@ -153,4 +221,4 @@ namespace Libc
     printLn tx
   
   
--}
+
