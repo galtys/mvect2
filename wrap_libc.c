@@ -68,6 +68,34 @@ char *wrap_strftime( int maxsize, const char *p_format, const struct tm *p_tm )
   return p_ret;
   
 }
+char *wrap_strftime2(int maxsize, const char *p_format, int tm_sec,int tm_min,int tm_hour,int tm_mday,int tm_mon,int tm_year,int tm_wday,int tm_yday,int tm_isdst) {
+  
+  size_t ret_size;
+  char *p_buf;
+  char *p_ret;
+  struct tm tm_i={tm_sec,tm_min,tm_hour,tm_mday,tm_mon,tm_year,tm_wday,tm_yday,tm_isdst};  
+  //  struct tm *p_tm;
+  time_t rawtime;
+       
+  p_buf = malloc( sizeof(char)*maxsize );
+  
+  ret_size = strftime(p_buf, maxsize, p_format, &tm_i);
+  
+  p_ret = malloc( sizeof(char)*(ret_size+1) );
+  
+  for (int i=0; i<ret_size ; i++) {
+    *(p_ret + i)  = *(p_buf + i);
+  }
+  *(p_ret + ret_size) = '\0';
+  
+  free (p_buf);
+  //free (p_tm);
+  return p_ret;
+
+
+}
+
+
 const time_t wrap_mktime(int tm_sec,int tm_min,int tm_hour,int tm_mday,int tm_mon,int tm_year,int tm_wday,int tm_yday,int tm_isdst) {
   struct tm tm_i = {tm_sec,tm_min,tm_hour,tm_mday,tm_mon,tm_year,tm_wday,tm_yday,tm_isdst};
   time_t raw;
