@@ -326,7 +326,8 @@ qtyFromOrderLine [] = []
 qtyFromOrderLine ((MkRecordModel pk price_unit product_uom_qty discount delivery_line order_id product_id tax_ids) :: xs) = 
            case product_id of 
               Nothing => [ (PKUser DX "missing",product_uom_qty) ] ++ (qtyFromOrderLine xs)
-              Just p_id => [ (PK32 DX pk, product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              Just p_id => [ (PK32 DX p_id, product_uom_qty) ] ++ (qtyFromOrderLine xs)
+              --Just p_id => [ (PK32 DX pk, product_uom_qty) ] ++ (qtyFromOrderLine xs)
 export
 fromStockMove : List BrowseStockMove.RecordModel -> Hom1 --List (ProdKey,EQty)
 fromStockMove [] = []

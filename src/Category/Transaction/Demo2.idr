@@ -19,6 +19,7 @@ import Crypto.Hash.SHA256
 import Data.Ratio
 import Odoo.Schema.PJBRecDef
 --import Odoo.Schema.PJB
+import UserData2
 import Odoo.PG.BoM
 
 %language ElabReflection
@@ -495,7 +496,8 @@ confirm_so = do
      h11 = evalHom11 $ MkH11 h1_order_stock cx
      fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
      
-
+ Show h1_order_stock
+ 
  new_r <- ConfirmOrder fx
  r <- GetRoute new_r
  case r of
@@ -766,11 +768,3 @@ interpret (Bind x f) = do res <- interpret x
                           interpret (f res)
 
 
-
-export
-test_demo2 : IO ()
-test_demo2 = do
-  
-  reas <- execStateT initState (interpret (toWhs   confirm_so)   )
-  --printLn reas
-  pure ()

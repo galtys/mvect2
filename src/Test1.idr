@@ -181,6 +181,53 @@ calc_so (so::xs) = do
                 
   calc_so xs
 
+export
+test_demo2 : IO ()
+test_demo2 = do
+  boms <- BrowseBoM.read (True)
+  let bom_map = toBoM_map boms
+      dx = qtyFromOrderLine (order_line so_44970)     
+      h1_bom = map_to_BoM32 dx bom_map
+      h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
+  --printLn  dx      
+  --printLn  h1_order_stock
+  
+  let dx1 : List Bits32
+      dx1 =[735,1042,1064,4085,4089,4095]
+      dx2 : List Bits32
+      dx2= [735,2932,2852,726,2942,3531,733,4085,4089,4095]
+
+
+  let ocas : List Bits32
+      ocas = dx1++dx2 --[735,1042,1064,4085,4089,4095] 
+      
+      ff : Bits32 -> Bool
+      ff x = elemBy (==) x ocas
+  
+  products <- BrowseProduct.read_ids ocas (True)
+  putStrLn "import Libc.Time" 
+  putStrLn "import Data.Ratio" 
+  putStrLn "import Category.Transaction.Types"  
+  putStrLn "import Odoo.Schema.PJBRecDef"
+  putStrLn ""
+  putStrLn "static_products : List BrowseProduct.RecordModel"
+  putStrLn #"static_products = \#{show products}"# 
+
+  
+
+
+  let boms2 = filter (ff . product_id) boms
+  putStrLn ""
+  putStrLn "static_boms : List BrowseBoM.RecordModel"
+  putStrLn #"static_boms = \#{show boms2}"# 
+
+  
+--  reas <- execStateT initState (interpret (toWhs   confirm_so)   )
+  
+--  printLn reas
+  
+  pure ()
+
 
 pjb_test : IO ()
 pjb_test = do
@@ -268,7 +315,7 @@ mg_test = do
 
 main : IO ()
 main = do
-  test_libc_time
+  --test_libc_time
   --pjb_test
   test_demo2
   --x <- muf_3_bom

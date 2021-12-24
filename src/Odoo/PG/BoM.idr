@@ -46,10 +46,15 @@ print_list (x::xs) = do
   --printLn x
   putStrLn x
   print_list xs
+
 export
 toBoM_map : List BrowseBoM.RecordModel -> SortedMap ProdKey (List BrowseBoM.RecordModel)
 toBoM_map [] = empty
 toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (PK32 DX product_id) bom_lines (toBoM_map xs)
+
+
+
+
 export
 toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
 toProduct_map [] = empty
