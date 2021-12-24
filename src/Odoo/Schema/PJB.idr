@@ -15,6 +15,8 @@ import JSON
 import Odoo.PG.Config
 import Control.Monad.Either
 
+import Libc.Time
+
 import Odoo.Schema.PJBRecDef
 
 %language ElabReflection

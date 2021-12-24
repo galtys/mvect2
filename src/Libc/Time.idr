@@ -108,6 +108,10 @@ namespace Libc
   %foreign "C:wrap_mktime,libmongoose"
   prim_mktime : Int->Int->Int->Int->Int->Int->Int->Int->Int-> Int
   
+  public export
+  %foreign "C:wrap_strftime2,libmongoose"
+  prim__strftime2 : Int -> String -> Int->Int->Int->Int->Int->Int->Int->Int->Int-> String
+  
   
   public export
   %foreign "C:read_gmtime,libmongoose"
@@ -143,6 +147,10 @@ namespace Libc
   mktime (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) = 
         prim_mktime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst
   
+  export
+  strftime2 : Int -> String -> Libc.YearDateTime -> String 
+  strftime2 sz f (MkYearDateTime tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst) =
+        prim__strftime2 sz f tm_sec tm_min tm_hour tm_mday tm_mon tm_year tm_wday tm_yday tm_isdst
   
   export
   toYearDateTime : Libc.TmInfo -> Libc.YearDateTime
@@ -170,6 +178,10 @@ namespace Libc
   public export
   data DateTime = YDT YearDateTime| YD YearDate | YM YearMonth | Err Libc.ErrorCode | RAW Int --| Year Int --tbd to Either? 
   %runElab derive "Libc.DateTime" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
+  
+  public export
+  Date : Type
+  Date = DateTime
   
   export
   fromDateTime : DateTime -> YearDateTime
@@ -216,6 +228,13 @@ namespace Libc
   FromString DateTime where
     fromString = fromOdooDate
     
+  export
+  Cast String DateTime where
+     cast = fromOdooDate
+    
+  export
+  Cast DateTime String where
+     cast x = strftime2 100 DEFAULT_SERVER_DATE_FORMAT (fromDateTime x)
     
   dateTest : DateTime
   dateTest = "2021-12-23"  

@@ -9,6 +9,8 @@ import JSON
 import Odoo.PG.Config
 import Control.Monad.Either
 
+import Libc.Time
+
 %language ElabReflection
 
 namespace PrimProductTemplate

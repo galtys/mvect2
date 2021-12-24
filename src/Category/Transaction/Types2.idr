@@ -10,6 +10,7 @@ import Data.Ratio
 import Generics.Derive
 import JSON
 import Odoo.Schema.PJBRecDef
+import Libc.Time
 
 %language ElabReflection
 

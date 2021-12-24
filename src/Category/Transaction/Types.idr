@@ -11,10 +11,11 @@ import Generics.Derive
 import JSON
 
 %language ElabReflection
-
+{-
 public export
 Date : Type
 Date = String --DateTime --String
+-}
 
 public export
 data TreeB = Leaf String | Node TreeB String TreeB
