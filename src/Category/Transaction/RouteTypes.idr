@@ -93,12 +93,12 @@ record AllocationRoute where --reconcile with 3rd party is not involved
    allocation : MoveKey  --allocation only
 %runElab derive "AllocationRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-
+{-
    
 public export
 Route : Type
 Route = List Location
-
+-}
 public export
 data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl AllocationRoute
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   

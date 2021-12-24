@@ -108,25 +108,32 @@ poForecastFromFx fx = ret where
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
            del = (delivery fx)                      
+           {-
            forecastIn : MoveKey
-           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route 
+           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route            
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
+           -}
+           forecastIn : MoveKey
+           forecastIn = MkMK Self (Border self_company) Forecast --OnHand: allocation from supplier route to customer route            
+           purchaseInvoice : MoveKey
+           purchaseInvoice = MkMK (Border self_company) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
+           
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
            ret : PurchaseForecastRoute 
            ret = MkPFR forecastIn purchaseInvoice purchaseOrder
-
+{-
 export
 custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
 custWiRoute c i = [Partner Sale c, Control Sale i, Out c, Self] -- Border p
 export
 suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
 suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
-
 export
 initRoute : Route --List Location
 initRoute = [Init, In self_company, Self]
+-}
 
 export
 InitDate : Date
@@ -153,7 +160,8 @@ export
 InventoryRoute : AllocationRoute
 InventoryRoute = (MkAR i) where
      i : MoveKey
-     i = MkMK (Border self_company) Self Forecast
+     i = MkMK Self (Border self_company) Forecast
+
 export     
 InventoryRouteT : RouteSumT     
 InventoryRouteT =MkAl InventoryRoute

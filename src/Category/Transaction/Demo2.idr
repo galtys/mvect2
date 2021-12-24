@@ -460,7 +460,7 @@ init_self = do
      --Log (MkNewRoute FxRouteT fx_empty)
        
      Pure ()
-
+{-
 export
 route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
 route2ft [] l = []
@@ -473,7 +473,7 @@ fillRoute ref [] fxe = Pure ()
 fillRoute ref (mk::xs) fxe = do
      Put ref mk fxe
      fillRoute ref xs fxe
-
+-}
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
