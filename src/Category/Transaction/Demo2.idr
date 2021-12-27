@@ -31,10 +31,11 @@ safeHead (y :: xs) = Just y
 export
 userDataToMap : UserData -> UserDataMap
 userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
-     p_map : SortedMap Bits32  BrowseProduct.RecordModel
-     p_map = (fromList [(pk u, u) | u <- p ])
-     t_map : SortedMap Bits32 BrowseProductTemplate.RecordModel
-     t_map = (fromList [(pk u, u) | u <- t ])
+     p_map : SortedMap ProdKey  BrowseProduct.RecordModel
+     p_map = (fromList [( PK32 DX (pk u), u) | u <- p ])
+     
+     t_map : SortedMap ProdKey BrowseProductTemplate.RecordModel
+     t_map = (fromList [( PK32 DX (pk u), u) | u <- t ])
      b_map : SortedMap ProdKey (List BrowseBoM.RecordModel)    --SortedMap Bits32 BrowseBoM.RecordModel
      b_map = toBoM_map b  --(fromList [(pk u, u) | u <- b ])
      tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
@@ -48,10 +49,10 @@ export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
 initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData))
 
-
 export
 StockMoveMap : Type
 StockMoveMap = SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
+
 export
 moveMap : List BrowseStockMove.RecordModel -> StateT StockMoveMap IO ()
 moveMap [] = pure ()
@@ -80,48 +81,15 @@ export
 mult_p : EQty -> Product -> Product
 mult_p x (k,q) = (k,x*q)
   
-
-export
-confirm_po : OwnerEvent ()
-confirm_po = do
- let date = "2021-10-01"
- {-
-     h1 = map (mult_p 10) [p1,p2,p3]     
-     up1 = (toEX20 21.73)
-     up2 = (toEX20 11.03)
-     up3 = (toEX20 17.00)     
-     h2 = [ (fst p1, up1 ), 
-            (fst p2, up2 ),
-            (fst p3, up3 )]
-     
-     
-     
-     fx = MkFx date Purchase factory1 factory1 (MkH121 h1 [] h2 (applyHom2 h2 h1) emptyHom11) 
-     
-     h1' : Hom1
-     h1' = map (mult_p 10) [p4]
-     h2' : Hom2
-     h2' = [ (fst p4, toEX20 15.43)]
-     fx' : FxData
-     fx' = MkFx date Purchase factory2 factory2 (MkH121 h1' [] h2' (applyHom2 h2' h1') emptyHom11) 
-     
- rew_r <- ConfirmOrder fx
- rew_r' <- ConfirmOrder fx' 
- -}
- Pure ()
-
-
 export
 init_self : WhsEvent () --RouteRef
 init_self = do
      let user_data = (MkUD static_products [] static_boms [])
      UpdateUserData user_data
      Log (MkUserUpdate user_data)
-
      let -- InitDate
          price : Product
-         price = (toEX20 1000)
-         
+         price = (toEX20 1000)         
          share : Product
          share = ("GTX43",100)
          h2 : Hom2
@@ -139,11 +107,9 @@ init_self = do
          je_cx = Fx11 InitDate (MkH11 [] (applyHom2 h2 h1))
          -}
          je_dx : FxEvent
-         je_dx = Fx11 InitDate (MkH11 h1 [])
-         
+         je_dx = Fx11 InitDate (MkH11 h1 [])         
          fx : FxData
-         fx = MkFx InitDate Sale self_company self_company h121
-         
+         fx = MkFx InitDate Sale self_company self_company h121         
          fx_empty : FxEvent
          fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
          
@@ -153,43 +119,67 @@ init_self = do
      --Log (MkNewRoute InitRouteT je)       
      Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
      Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
-     --Show je
-     
+     --Show je     
      Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
      Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je_dx
-
      inventory_route <- NewRoute InitDate InventoryRouteT
      --Log (MkNewRoute InventoryRouteT fx_empty)
-     
      tax_route <- NewRoute InitDate TaxRouteT
-     --Log (MkNewRoute TaxRouteT fx_empty)
-          
+     --Log (MkNewRoute TaxRouteT fx_empty)          
      bank_route <- NewRoute InitDate BankRouteT
-     --Log (MkNewRoute BankRouteT fx_empty)
-     
+     --Log (MkNewRoute BankRouteT fx_empty)     
      fx_route <- NewRoute InitDate FxRouteT
-     --Log (MkNewRoute FxRouteT fx_empty)
-       
+     --Log (MkNewRoute FxRouteT fx_empty)       
      Pure ()
-{-
-export
-route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
-route2ft [] l = []
-route2ft (x::[]) l= []
-route2ft (x::y::xs) l = [(MkMK x y l)]++(route2ft xs l)
 
 export
-fillRoute : Ref -> List MoveKey -> FxEvent -> WhsEvent ()
-fillRoute ref [] fxe = Pure ()
-fillRoute ref (mk::xs) fxe = do
-     Put ref mk fxe
-     fillRoute ref xs fxe
--}
+confirm_po : OwnerEvent ()
+confirm_po = do
+ Init 
+ user_data  <- GetUserData 
+ let prod_map = products user_data
+     date1 : Date
+     date1 = "2021-10-01"
+     dx1 : Hom1 
+     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
+     
+     h2 : Hom1 -> Hom2
+     h2 dx_' = [ (fst x, mult_p 0.9 (trade_price (lookup (fst x) prod_map)) ) |x <- dx_' ]
+     
+     cx1 : Hom1
+     cx1 = (applyHom2 (h2 dx1) dx1)     
+     h11_1 : Hom11
+     h11_1 = MkH11 dx1 cx1          
+     po1 : FxData
+     po1 = MkFx date1 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
+     
+     date2 : Date
+     date2 = "2021-10-15"
+     dx2 : Hom1 
+     dx2 = (map (mult_p 2) dx1) ++ [ (PK32 DX 7,3) ]
+     cx2 : Hom1
+     cx2 = (applyHom2 (h2 dx2) dx2)     
+     
+     h11_2 : Hom11
+     h11_2 = MkH11 dx2 cx2          
+     po2 : FxData
+     po2 = MkFx date2 Purchase factory2 factory2 (MkH121 dx2 [] (h2 dx1) cx2 h11_1)
+     
+     date3 : Date
+     date3 = "2021-11-05"
+     po3 : FxData
+     po3 = MkFx date3 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
+     
+ rew_r <- ConfirmOrder po1
+ rew_r <- ConfirmOrder po2
+ rew_r <- ConfirmOrder po3
+      
+ Pure ()
+
 export
 confirm_so : OwnerEvent ()
 confirm_so = do
- Init
- 
+
  user_data  <- GetUserData 
 
  let date = "2021-11-01"

@@ -16,6 +16,12 @@ make_prod pk_ name_ price sku = MkRecordModel
            retail = Just (PKPrice CX GBP INC20, price*1.1), 
            contract = Just (PKPrice CX GBP EX20, price*0.9), 
            default_code =sku }
+export           
+trade_price : Maybe BrowseProduct.RecordModel -> Product
+trade_price Nothing = (PKPrice CX GBP EX20, 0)
+trade_price (Just (MkRecordModel pk product_tmpl_id Nothing retail contract default_code)) = (PKPrice CX GBP EX20, 0)
+trade_price (Just (MkRecordModel pk product_tmpl_id (Just x) retail contract default_code)) = x
+
 export
 static_products : List BrowseProduct.RecordModel
 static_products = [make_prod 1 "Na pravdě záleží?" (239/30) "9788090392380",

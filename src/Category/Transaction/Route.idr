@@ -157,8 +157,8 @@ InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitRouteT ) Progress)
 
 export
-InventoryRoute : AllocationRoute
-InventoryRoute = (MkAR i) where
+InventoryRoute : ListRoute
+InventoryRoute = (MkListR i [] Sale) where
      i : MoveKey
      i = MkMK Self (Border self_company) Forecast
 
@@ -218,3 +218,18 @@ FxRouteRef : Ref
 FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha FxRouteT ) Progress)
 
 
+
+{-
+export
+route2ft : Route -> Ledger -> List MoveKey --(Location,Location)
+route2ft [] l = []
+route2ft (x::[]) l= []
+route2ft (x::y::xs) l = [(MkMK x y l)]++(route2ft xs l)
+
+export
+fillRoute : Ref -> List MoveKey -> FxEvent -> WhsEvent ()
+fillRoute ref [] fxe = Pure ()
+fillRoute ref (mk::xs) fxe = do
+     Put ref mk fxe
+     fillRoute ref xs fxe
+-}

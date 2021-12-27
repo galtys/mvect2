@@ -1,5 +1,6 @@
 module Category.Transaction.RouteTypes
 
+import Data.SnocList
 import Category.Transaction.Types
 import Libc.Time
 import Category.Transaction.Qty
@@ -64,6 +65,7 @@ convMovekey : MoveKey -> MoveKey
 convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
 convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
 
+
 public export
 record SaleForecastRoute where 
    constructor MkSFR
@@ -88,26 +90,52 @@ record ReconciliationRoute where --reconcile with 3rd party
 %runElab derive "ReconciliationRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-record AllocationRoute where --reconcile with 3rd party is not involved
-   constructor MkAR
+record ListRoute where --reconcile with 3rd party is not involved
+   constructor MkListR
    allocation : MoveKey  --allocation only
-%runElab derive "AllocationRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+   lst : List MoveKey      
+   direction : DirectionTag 
+%runElab derive "ListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record VectRoute (n:Nat) where --reconcile with 3rd party is not involved
+   constructor MkVectR
+   allocation : MoveKey  --allocation only
+   lst : Vect n MoveKey      
+%runElab derive "VectRoute" [Generic, Meta]      
+--%runElab derive "VectRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 {-
+public export
+record SnocListRoute where --reconcile with 3rd party is not involved
+   constructor MkSnocListR
+   allocation : MoveKey  --allocation only
+   lst : SnocList MoveKey      
+%runElab derive "SnocListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+-}
+
+{-
+public export
+record ListRoute where
+   constructor MkLR
+   allocation : MoveKey  --allocation only
+   lst : List MoveKey   
+
+
    
 public export
 Route : Type
 Route = List Location
 -}
 public export
-data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl AllocationRoute
+data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl ListRoute --| MkLstRoute (List MoveKey)
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
 allocationMove (MkSoR (MkSFR saleOrder saleInvoice saleDemand)) = saleDemand
 allocationMove (MkPoR (MkPFR forecastIn purchaseInvoice purchaseOrder)) = forecastIn
 allocationMove (MkReR (MkRR allocation reconcile)) = allocation
-allocationMove (MkAl (MkAR allocation)) = allocation
+allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
 
 
