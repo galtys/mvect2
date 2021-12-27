@@ -108,17 +108,18 @@ poForecastFromFx fx = ret where
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
            del = (delivery fx)                      
-           {-
+           
            forecastIn : MoveKey
-           forecastIn = MkMK Self (In del) Forecast --OnHand: allocation from supplier route to customer route            
+           forecastIn = MkMK (Border self_company) (In del) Forecast --OnHand: allocation from supplier route to customer route            
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
-           -}
+                      
+           {-
            forecastIn : MoveKey
            forecastIn = MkMK Self (Border self_company) Forecast --OnHand: allocation from supplier route to customer route            
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (Border self_company) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
-           
+           -}
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
            ret : PurchaseForecastRoute 
@@ -138,7 +139,11 @@ initRoute = [Init, In self_company, Self]
 export
 InitDate : Date
 InitDate = "2021-11-01"
-
+export
+InventoryRoute : ListRoute
+InventoryRoute = (MkListR i [] Purchase) where
+     i : MoveKey
+     i = MkMK Self (Border self_company) Forecast
 export   
 InitRoute : ReconciliationRoute 
 InitRoute = ret where
@@ -156,11 +161,6 @@ export
 InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitRouteT ) Progress)
 
-export
-InventoryRoute : ListRoute
-InventoryRoute = (MkListR i [] Sale) where
-     i : MoveKey
-     i = MkMK Self (Border self_company) Forecast
 
 export     
 InventoryRouteT : RouteSumT     

@@ -171,6 +171,8 @@ confirm_po = do
      po3 = MkFx date3 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
      
  new_r <- ConfirmOrder po1
+ new_r <- ConfirmOrder po2
+ new_r <- ConfirmOrder po3
  r <- GetRoute new_r
  case r of
    Nothing => Pure ()
@@ -181,8 +183,6 @@ confirm_po = do
        x <- Get (convMovekey al)
        Show x
  
- new_r <- ConfirmOrder po2
- new_r <- ConfirmOrder po3
       
  Pure ()
 
@@ -320,8 +320,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
        let a_cnt = encode entry
            a_ref : Ref
            a_ref = (MkAllocationRef (sha256 a_cnt))
-           
-           {-
+                      
            muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteSumT,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (supplier ai)
@@ -332,16 +331,15 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                   
            allocateItem : (RouteSumT,RouteSumT,FxEvent) -> WhsEvent () -- Maybe (RouteKey, RouteKey, FxEvent)
            allocateItem (rx,ry,fe) = do
-               let rkx : Maybe MoveKey
-                   rkx = safeHead $ route2ft (reverse rx) ledger
-                   rky : Maybe MoveKey               
-                   rky = safeHead $ route2ft ry ledger
-                   
-               case (rkx,rky) of
-                   (Just jx, Just jy) => do
-                        Put a_ref jx fe
-                        Put a_ref jy fe
-                   _ => Pure ()
+               case ledger of
+                  Forecast => do
+                    Put a_ref (allocationMove rx) fe
+                    Put a_ref (allocationMove ry) fe
+                  OnHand => do
+                    Put a_ref (convMovekey $allocationMove rx) fe
+                    Put a_ref (convMovekey $allocationMove ry) fe
+                           
+           
            allocate : List AllocationItem -> WhsEvent ()
            allocate [] = Pure ()
            allocate (x::xs) = do
@@ -352,7 +350,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
-       -}
+       
        Pure a_ref
        
 toWhs (Show x) = Show x --Pure ()
