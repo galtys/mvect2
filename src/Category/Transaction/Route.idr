@@ -166,8 +166,11 @@ export
 InventoryRouteT : RouteSumT     
 InventoryRouteT =MkAl InventoryRoute
 export
+InventoryRouteKey : RouteKey
+InventoryRouteKey = (MkRK InitDate (routeSha InventoryRouteT) Progress)
+export
 InventoryRouteRef : Ref
-InventoryRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InventoryRouteT) Progress)
+InventoryRouteRef = MkRouteKeyRef InventoryRouteKey
      
 export
 TaxRoute : ReconciliationRoute

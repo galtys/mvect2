@@ -132,17 +132,10 @@ init_self = do
      --Log (MkNewRoute FxRouteT fx_empty)       
      Pure ()
 
-export
-confirm_po : OwnerEvent ()
-confirm_po = do
- Init 
+new_po : Date->Hom1->BrowseResPartner.RecordModel->BrowseResPartner.RecordModel->OwnerEvent ()
+new_po date1 dx1 supp invoice = do
  user_data  <- GetUserData 
  let prod_map = products user_data
-     date1 : Date
-     date1 = "2021-10-01"
-     dx1 : Hom1 
-     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
-     
      h2 : Hom1 -> Hom2
      h2 dx_' = [ (fst x, mult_p 0.9 (trade_price (lookup (fst x) prod_map)) ) |x <- dx_' ]
      
@@ -152,38 +145,45 @@ confirm_po = do
      h11_1 = MkH11 dx1 cx1          
      po1 : FxData
      po1 = MkFx date1 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
-     
+ 
+ new_r <- ConfirmOrder po1
+ r <- GetRoute new_r
+ case r of
+   Nothing => Pure ()
+   Just rt => do       
+       x <- Get $ allocationMove rt
+       --Show "to allocate"
+       --Show x
+       let aitem : AllocationItem
+           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)       
+       aref <- Allocate (MkAE OnHand [aitem])
+       --aref <- Allocate (MkAE Forecast [aitem])
+       
+       x <- Get (convMovekey $allocationMove rt)
+       Show "Can be allocated"
+       Show x
+
+
+export
+confirm_po : OwnerEvent ()
+confirm_po = do
+ Init 
+ let date1 : Date
+     date1 = "2021-10-01"
+     dx1 : Hom1 
+     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
+          
      date2 : Date
      date2 = "2021-10-15"
      dx2 : Hom1 
      dx2 = (map (mult_p 2) dx1) ++ [ (PK32 DX 7,3) ]
-     cx2 : Hom1
-     cx2 = (applyHom2 (h2 dx2) dx2)     
-     
-     h11_2 : Hom11
-     h11_2 = MkH11 dx2 cx2          
-     po2 : FxData
-     po2 = MkFx date2 Purchase factory2 factory2 (MkH121 dx2 [] (h2 dx1) cx2 h11_1)
-     
+          
      date3 : Date
      date3 = "2021-11-05"
-     po3 : FxData
-     po3 = MkFx date3 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
-     
- new_r <- ConfirmOrder po1
- new_r <- ConfirmOrder po2
- new_r <- ConfirmOrder po3
- r <- GetRoute new_r
- case r of
-   Nothing => Pure ()
-   Just rt => do
-       let al = allocationMove rt
-       x <- Get al
-       Show x
-       x <- Get (convMovekey al)
-       Show x
- 
-      
+
+ new_po date1 dx1 factory1 factory1 
+ new_po date2 dx2 factory2 factory2 
+ new_po date3 dx1 factory1 factory1   
  Pure ()
 
 export
