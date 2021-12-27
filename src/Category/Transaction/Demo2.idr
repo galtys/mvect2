@@ -170,9 +170,19 @@ confirm_po = do
      po3 : FxData
      po3 = MkFx date3 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
      
- rew_r <- ConfirmOrder po1
- rew_r <- ConfirmOrder po2
- rew_r <- ConfirmOrder po3
+ new_r <- ConfirmOrder po1
+ r <- GetRoute new_r
+ case r of
+   Nothing => Pure ()
+   Just rt => do
+       let al = allocationMove rt
+       x <- Get al
+       Show x
+       x <- Get (convMovekey al)
+       Show x
+ 
+ new_r <- ConfirmOrder po2
+ new_r <- ConfirmOrder po3
       
  Pure ()
 
