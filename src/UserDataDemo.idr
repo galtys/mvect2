@@ -25,14 +25,14 @@ trade_price (Just (MkRecordModel pk product_tmpl_id (Just x) retail contract def
 export
 static_products : List BrowseProduct.RecordModel
 static_products = [make_prod 1 "Na pravdě záleží?" (239/30) "9788090392380",
-            make_prod 2 "Konflikt" (200/29) "9788090631601",
-            make_prod 3 "Category Theory for Programmers" (34) "9780464243878",
-            make_prod 4 "Type-Driven Development with Idris" (49.99) "9781617293023",
-            make_prod 5 "Zapomenuté příběhy" (250/30) "9788088088998",
-            make_prod 6 "Reality in Advertising" (14.95/1.8) "9780982694145",
-            make_prod 7 "Global Warming Disaster" (44) "9781441110527",
-            make_prod 8 "AD Bundle" (239/30 + 200/29 - 5) "bundle1",
-            make_prod 9 "Programming Bundle" (34 + 49.99 - 4) "bundle2"]
+                   make_prod 2 "Konflikt" (200/29) "9788090631601",
+                   make_prod 3 "Category Theory for Programmers" (34) "9780464243878",
+                   make_prod 4 "Type-Driven Development with Idris" (49.99) "9781617293023",
+                   make_prod 5 "Zapomenuté příběhy" (250/30) "9788088088998",
+                   make_prod 6 "Reality in Advertising" (14.95/1.8) "9780982694145",
+                   make_prod 7 "Global Warming Disaster" (44) "9781441110527",
+                   make_prod 8 "AD Bundle" (239/30 + 200/29 - 5) "bundle1",
+                   make_prod 9 "Programming Bundle" (34 + 49.99 - 4) "bundle2"]
 
 
 

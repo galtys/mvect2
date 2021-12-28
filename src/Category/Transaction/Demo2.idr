@@ -132,7 +132,7 @@ init_self = do
      --Log (MkNewRoute FxRouteT fx_empty)       
      Pure ()
 
-new_po : Date->Hom1->BrowseResPartner.RecordModel->BrowseResPartner.RecordModel->OwnerEvent ()
+new_po : Date->Hom1->BrowseResPartner.RecordModel->BrowseResPartner.RecordModel->OwnerEvent RouteKey --(Maybe RouteSumT)
 new_po date1 dx1 supp invoice = do
  user_data  <- GetUserData 
  let prod_map = products user_data
@@ -152,27 +152,214 @@ new_po date1 dx1 supp invoice = do
    Nothing => Pure ()
    Just rt => do       
        x <- Get $ allocationMove rt
-       --Show "to allocate"
-       --Show x
        let aitem : AllocationItem
            aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)       
-       aref <- Allocate (MkAE OnHand [aitem])
-       --aref <- Allocate (MkAE Forecast [aitem])
-       
+       --aref <- Allocate (MkAE OnHand [aitem])
+       aref <- Allocate (MkAE Forecast [aitem])       
        x <- Get (convMovekey $allocationMove rt)
        Show "Can be allocated"
        Show x
+ Pure new_r
+
+export
+transit_po_full : RouteKey -> Date -> OwnerEvent ()
+transit_po_full rk date1 = do
+ m_rst <- GetRoute rk
+ case m_rst of
+   Nothing => Pure ()
+   Just rt => do
+       case rt of
+          (MkSoR so) => Pure ()
+          (MkPoR po) => do
+               let transit_fcast_key = purchaseOrder po
+                   transit_key  = convMovekey transit_fcast_key  
+               xfc <- Get transit_fcast_key
+               Post rk transit_key (Fx11 date1 xfc)               
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
+export
+receive_po_full : RouteKey -> Date -> OwnerEvent ()
+receive_po_full rk date1 = do
+ m_rst <- GetRoute rk
+ case m_rst of
+   Nothing => Pure ()
+   Just rt => do
+       case rt of
+          (MkSoR so) => Pure ()
+          (MkPoR po) => do
+               let po_invoice_key = purchaseInvoice po
+                   recv_key  = convMovekey po_invoice_key  
+               x <- Get po_invoice_key
+               
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+                   aitem : AllocationItem
+                   aitem = MkAI rk InventoryRouteKey fx11
+               Post rk recv_key fx11
+               aref <- Allocate (MkAE OnHand [aitem])
+               Pure ()
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
+
+export
+reserve_so_full : RouteKey -> Date -> OwnerEvent ()
+reserve_so_full rk date1 = do
+  m_rst <- GetRoute rk
+  case m_rst of
+    Nothing => Pure ()
+    Just rt => do
+       case rt of
+          (MkSoR so) => do 
+               let so_demand_key = saleDemand so
+                   reservation_key  = convMovekey so_demand_key  
+               x <- Get so_demand_key
+                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+                   aitem : AllocationItem
+                   aitem = MkAI rk InventoryRouteKey fx11
+               --Post rk recv_key fx11
+               aref <- Allocate (MkAE OnHand [aitem])               
+               Pure ()          
+          (MkPoR po) => Pure ()
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
+
+export
+deliver_so_full : RouteKey -> Date -> OwnerEvent ()
+deliver_so_full rk date1 = do
+  m_rst <- GetRoute rk
+  case m_rst of
+    Nothing => Pure ()
+    Just rt => do
+       case rt of
+          (MkSoR so) => do 
+               let so_invoice_key = saleInvoice so
+                   so_demand_key = saleDemand so
+                   so_delivery_key  = convMovekey so_invoice_key  
+               x <- Get so_demand_key                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+               Post rk so_delivery_key fx11
+               Pure ()          
+               
+          (MkPoR po) => Pure ()
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
+
+export
+invoice_so_full : RouteKey -> Date -> OwnerEvent ()
+invoice_so_full rk date1 = do
+  m_rst <- GetRoute rk
+  --TODO: Use Fx121
+  case m_rst of
+    Nothing => Pure ()
+    Just rt => do
+       case rt of
+          (MkSoR so) => do 
+               let so_invoice_key = saleInvoice so
+                   so_delivery_key  = convMovekey so_invoice_key  
+               x <- Get so_delivery_key                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+               Post rk so_invoice_key fx11
+               Pure ()          
+               
+          (MkPoR po) => Pure ()
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
+export
+shipping_done_so_full : RouteKey -> Date -> OwnerEvent ()
+shipping_done_so_full rk date1 = do
+  m_rst <- GetRoute rk
+  --TODO: Use Fx121
+  case m_rst of
+    Nothing => Pure ()
+    Just rt => do
+       case rt of
+          (MkSoR so) => do 
+               let so_invoice_key = saleInvoice so
+                   so_delivery_key  = convMovekey so_invoice_key 
+                   so_sale_order_key = saleOrder so
+                   so_shipping_key =  convMovekey so_sale_order_key 
+                   
+               x <- Get so_delivery_key                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+               Post rk so_shipping_key fx11
+               Pure ()          
+               
+          (MkPoR po) => Pure ()
+          (MkReR re) => Pure ()
+          (MkAl lr) => Pure () 
 
 
 export
-confirm_po : OwnerEvent ()
-confirm_po = do
+new_so : Date->Hom1->BrowseResPartner.RecordModel->BrowseResPartner.RecordModel->OwnerEvent RouteKey
+new_so date1 dx1 cust cust_inv = do
+ user_data  <- GetUserData 
+ let --date1 : Date
+     --date1 = "2021-11-01"
+     bom_map : SortedMap ProdKey (List BrowseBoM.RecordModel)
+     bom_map = boms_m user_data
+     
+     prod_map : SortedMap ProdKey  BrowseProduct.RecordModel
+     prod_map = products user_data     
+     h2 : Hom1 -> Hom2
+     h2 dx_' = [ (fst x,  trade_price (lookup (fst x) prod_map)) |x <- dx_' ]
+     
+     dx1 : Hom1 
+     dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]     
+     cx1 : Hom1
+     cx1 = (applyHom2 (h2 dx1) dx1)     
+     h11_1 : Hom11
+     h11_1 = MkH11 dx1 cx1          
+     
+     h1_bom : List BoM32
+     h1_bom = map_to_BoM32 dx1 bom_map
+     tax : Hom1
+     tax = applyHom2Tax (h2 dx1) dx1           
+     cx : Hom1
+     cx = cx1 + tax     
+     fx : FxData
+     fx = MkFx date1 Sale cust cust_inv (MkH121 dx1 h1_bom (h2 dx1) cx h11_1) 
+ 
+ new_r <- ConfirmOrder fx
+ r <- GetRoute new_r
+ case r of
+   Nothing => Pure ()
+   Just rt => do
+       x <- Get $ allocationMove rt
+       let aitem : AllocationItem
+           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)  
+       aref <- Allocate (MkAE Forecast [aitem])                   
+       Show aref
+ ff <- Get $ allocation InitRoute
+ aa <- Get $ convMovekey $allocation InitRoute
+ Pure new_r
+
+export
+run_demo_so : OwnerEvent ()
+run_demo_so = do
+  let date1 : Date
+      date1 = "2021-11-01"
+      dx1 : Hom1 
+      dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]
+  so1 <- new_so date1 dx1 hilton hilton
+  reserve_so_full so1 "2021-11-02"
+  deliver_so_full so1 "2021-11-03"
+  invoice_so_full so1 "2021-11-04"
+  shipping_done_so_full so1 "2021-11-06"
+  Pure ()
+
+export
+demo_po_so : OwnerEvent ()
+demo_po_so = do
  Init 
  let date1 : Date
      date1 = "2021-10-01"
      dx1 : Hom1 
-     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
-          
+     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]          
      date2 : Date
      date2 = "2021-10-15"
      dx2 : Hom1 
@@ -181,54 +368,16 @@ confirm_po = do
      date3 : Date
      date3 = "2021-11-05"
 
- new_po date1 dx1 factory1 factory1 
- new_po date2 dx2 factory2 factory2 
- new_po date3 dx1 factory1 factory1   
- Pure ()
-
-export
-confirm_so : OwnerEvent ()
-confirm_so = do
-
- user_data  <- GetUserData 
-
- let date = "2021-11-01"
-     bom_map = boms user_data
-     --h1 = [p1,p2,p3,p4]
-     dx = qtyFromOrderLine (order_line so_44970)     
-     h1_bom = map_to_BoM32 dx bom_map
-     
-     h1_order_stock = variants_BoM32 $ mult_BoM32 1  h1_bom
-     h2 = priceFromOrderLine (order_line so_44970)
-     
-     tax = applyHom2Tax h2 dx           
-     cx = (applyHom2 h2 dx) + tax     
-     h11 = evalHom11 $ MkH11 h1_order_stock cx
-     fx = MkFx date Sale hilton hilton (MkH121 dx h1_bom h2 cx h11) 
-     
- Show h1_order_stock
+ po1 <- new_po date1 dx1 factory1 factory1 
+ transit_po_full po1 "2021-10-17"
+ receive_po_full po1 "2021-10-25"
  
- new_r <- ConfirmOrder fx
- r <- GetRoute new_r
- case r of
-   Nothing => Pure ()
-   Just rt => do
-       let al = allocationMove rt
-       x <- Get al
-       Show x
-       x <- Get (convMovekey al)
-       Show x
-       
- ff <- Get $ allocation InitRoute
- aa <- Get $ convMovekey $allocation InitRoute
- {-
- Show (ff)
- Show (aa)  
- Show $evalHom11 (ff-aa) --to spend
--} 
+ po2 <- new_po date2 dx2 factory2 factory2 
+ transit_po_full po2 "2021-10-18"
+ 
+ po3 <- new_po date3 dx1 factory1 factory1   
+ run_demo_so
  Pure ()
-
-
 
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LocationMap -> LocationMap 
@@ -241,17 +390,6 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
           ret = case (lookup key m ) of
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
-{-
-export
-validateDirection : (from:Location) -> (to:Location) -> Bool
-validateDirection (Partner Sale y) (Control Sale x) = True
-validateDirection (Control Sale y) Self = True
-validateDirection Self (Control Purchase y) = True
-validateDirection (Control Purchase y) (Partner Purchase x) = True
-validateDirection Init Self = True
-validateDirection _ _ = False
--}
-
 
 export
 toWhs : OwnerEvent a -> WhsEvent a
@@ -272,7 +410,7 @@ toWhs (ConfirmOrder fx) = do
                new_r <- NewRoute (date fx) (MkPoR po)
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
-               Put route_key  (forecastIn po) fx_ev               
+               --Put route_key  (forecastIn po) fx_ev               
                Put route_key  (purchaseInvoice po) fx_empty               
                Put route_key  (purchaseOrder po) fx_ev
                Pure new_r
@@ -282,7 +420,7 @@ toWhs (ConfirmOrder fx) = do
                let route_key = MkRouteKeyRef new_r               
                Put route_key (saleOrder so) fx_ev               
                Put route_key (saleInvoice so) fx_empty
-               Put route_key (saleDemand so) fx_ev               
+               --Put route_key (saleDemand so) fx_ev               
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key

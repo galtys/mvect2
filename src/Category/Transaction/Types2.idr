@@ -28,7 +28,8 @@ record UserDataMap where
   constructor MkUDMap
   products : SortedMap ProdKey  BrowseProduct.RecordModel
   templates : SortedMap ProdKey BrowseProductTemplate.RecordModel
-  boms : SortedMap ProdKey (List BrowseBoM.RecordModel)   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
+  boms_m : SortedMap ProdKey (List BrowseBoM.RecordModel)  
+   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
 
 public export

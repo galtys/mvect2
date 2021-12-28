@@ -216,7 +216,7 @@ test_demo2 = do
   putStrLn "static_boms : List BrowseBoM.RecordModel"
   putStrLn #"static_boms = \#{show boms2}"# 
   -}  
-  reas <- execStateT initState (interpret (toWhs   confirm_po)   )
+  reas <- execStateT initState (interpret (toWhs   demo_po_so)   )
   
 --  printLn reas
   
@@ -236,7 +236,7 @@ pjb_test = do
   print_group mv
   
   
-  --retMvs <- execStateT (empty,empty,empty)  (interpret $ toWhs confirm_po)       ---(moveMap xs) --runXdd xs
+  --retMvs <- execStateT (empty,empty,empty)  (interpret $ toWhs demo_po_so)       ---(moveMap xs) --runXdd xs
   
   --xas <- 
   
