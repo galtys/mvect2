@@ -171,7 +171,7 @@ transit_po_full rk date1 = do
        case rt of
           (MkSoR so) => Pure ()
           (MkPoR po) => do
-               let transit_fcast_key = purchaseOrder po
+               let transit_fcast_key = order po
                    transit_key  = convMovekey transit_fcast_key  
                xfc <- Get transit_fcast_key
                Post rk transit_key (Fx11 date1 xfc)               
@@ -280,7 +280,7 @@ shipping_done_so_full rk date1 = do
           (MkSoR so) => do 
                let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key 
-                   so_sale_order_key = saleOrder so
+                   so_sale_order_key = order so
                    so_shipping_key =  convMovekey so_sale_order_key 
                    
                x <- Get so_delivery_key                             
@@ -410,15 +410,15 @@ toWhs (ConfirmOrder fx) = do
                new_r <- NewRoute (date fx) (MkPoR po)
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
-               --Put route_key  (forecastIn po) fx_ev               
+               --Put route_key  (allocation po) fx_ev               
                Put route_key  (control po) fx_empty               
-               Put route_key  (purchaseOrder po) fx_ev
+               Put route_key  (order po) fx_ev
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) (MkSoR so)
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r               
-               Put route_key (saleOrder so) fx_ev               
+               Put route_key (order so) fx_ev               
                Put route_key (control so) fx_empty
                --Put route_key (allocation so) fx_ev               
                Pure new_r

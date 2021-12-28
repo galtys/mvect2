@@ -69,17 +69,25 @@ convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
 public export
 record SaleForecastRoute where 
    constructor MkSFR
-   saleOrder : MoveKey
+   order : MoveKey
    control : MoveKey
    allocation : MoveKey   --allocation part
 %runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+public export
+record OrderRoute where 
+   constructor MkOR
+   allocation : MoveKey   --allocation part
+   control : MoveKey
+   order : MoveKey   
+   direction : DirectionTag    
+%runElab derive "OrderRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
 record PurchaseForecastRoute where 
    constructor MkPFR
-   forecastIn : MoveKey --allocation part
+   allocation : MoveKey --allocation part
    control : MoveKey
-   purchaseOrder : MoveKey
+   order : MoveKey
 %runElab derive "PurchaseForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
@@ -132,8 +140,8 @@ data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR R
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
-allocationMove (MkSoR (MkSFR saleOrder control allocation)) = allocation
-allocationMove (MkPoR (MkPFR forecastIn control purchaseOrder)) = forecastIn
+allocationMove (MkSoR (MkSFR order control allocation)) = allocation
+allocationMove (MkPoR (MkPFR allocation control order)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
