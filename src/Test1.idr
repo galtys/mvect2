@@ -14,9 +14,7 @@ import Category.Transaction.Hom
 import Category.Transaction.Journal
 import Category.Transaction.Types
 import Category.Transaction.Demo
-import Category.Transaction.Demo2
-import Category.Transaction.Owner
-import Category.Transaction.Warehouse
+
 import Data.Ratio
 --import Data.Zippable
 import Control.Monad.State
@@ -49,6 +47,12 @@ import Odoo.Schema.PJB
 import System.FFI
 import Libc.Time
 import UserDataDemo
+
+import Test2
+import Category.Transaction.Owner
+import Category.Transaction.Warehouse
+import Category.Transaction.Demo2
+import Control.Monad.Either
 
 %ambiguity_depth 10
 
@@ -183,6 +187,7 @@ calc_so (so::xs) = do
                 
   calc_so xs
 
+   
 export
 test_demo2 : IO ()
 test_demo2 = do
@@ -218,7 +223,13 @@ test_demo2 = do
   putStrLn "static_boms : List BrowseBoM.RecordModel"
   putStrLn #"static_boms = \#{show boms2}"# 
   -}  
-  reas <- execStateT initState (interpret (toWhs   demo_po_so)   )
+
+  
+  Right ret <- runEitherT (run_interpret_d {io = EitherT DBError IO})
+            | Left (err) => putStrLn $ show err
+  printLn ret 
+  
+  --reas22 <- execStateT initState (interpret (toWhs   demo_po_so)   )    
   
 --  printLn reas
   
@@ -235,7 +246,7 @@ pjb_test = do
   sp <- BrowseStockPicking.read_ids [43747] (True)
   mv <- BrowseStockMove.read (True)
   printLn "reading Done"
-  print_group mv
+  --print_group mv
   
   
   --retMvs <- execStateT (empty,empty,empty)  (interpret $ toWhs demo_po_so)       ---(moveMap xs) --runXdd xs

@@ -22,7 +22,8 @@ import UserDataDemo
 import Odoo.PG.BoM
 
 import Category.Transaction.Owner
-
+import Category.Transaction.Warehouse
+--import Control.Monad.Either
 --%language ElabReflection
 
 export
@@ -66,4 +67,7 @@ demo_po_so = do
  run_demo_so
  Pure ()
 
+export
+demo_po_so_whs : WhsEvent ()
+demo_po_so_whs = (toWhs   demo_po_so)
 

@@ -23,7 +23,9 @@ import Odoo.Schema.PJBRecDef
 import UserDataDemo
 import Odoo.PG.BoM
 import Config
-
+import Data.HashDB.DataIO
+import Data.HashDB.Types
+import Control.Monad.Either
 --%language ElabReflection
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LocationMap -> LocationMap 
@@ -150,10 +152,34 @@ namespace MemoryMap
    interpret (Bind x f) = do res <- interpret x
                              interpret (f res)
 
-
-namespace DirectoryMap
+{-
+  HCMD_DIR = "/home/jan/github.com/mvect2/data/hcmd/"
+  FX_DIR = "/home/jan/github.com/mvect2/data/fx/"
+  ROUTE_DIR = "/home/jan/github.com/mvect2/data/route/"
+  LED_DIR = "/home/jan/github.com/mvect2/data/led/"
+  ROUTE_JOURNAL_DIR = "/home/jan/github.com/mvect2/data/route_journal/"
+  JOURNAL_DIR = "/home/jan/github.com/mvect2/data/journal/"
+  STATE_DIR = "/home/jan/github.com/mvect2/data/state/"
+-}
+export
+runHCommandST : HasIO io=>MonadError DBError io => HCommand a -> String->StateT SystemState io a
+runHCommandST (Store x) dir = storeHType x dir 
+runHCommandST (Read x) dir = readHType x dir 
+runHCommandST (Log x ) dir= printLn x
+runHCommandST (Show x) dir = printLn $ show x
+runHCommandST (LinkError x) dir = throwError EHashLink
+runHCommandST (DecodeError x) dir= throwError (ErrorJS "Error while decoding JS")
+runHCommandST (Pure val) dir = pure val
+runHCommandST (Bind c f) dir = do 
+                    res <- runHCommandST c dir
+                    runHCommandST (f res) dir
+namespace DirMap
    export
-   interpret_d : WhsEvent a -> StateT SystemState IO a       
+   lt_oje : HType
+   lt_oje = toType "OwnerJournalEvent"
+   
+   export
+   interpret_d : HasIO io=>MonadError DBError io=>WhsEvent a->StateT SystemState io a--io a
    interpret_d  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data)<-get             
                 let route_ref = routeSha route                 
@@ -253,11 +279,142 @@ namespace DirectoryMap
            Nothing => pure []
 
    interpret_d (Log x) = do
+        p_head<-DirectoryMap.lookup "journal_head" STATE_DIR        
+        let --js'= (x::js)
+            app : OwnerJournalEvent->HCommand TypePtr
+            app oje = do
+                let cnt : String
+                    cnt = encode oje
+                head <- Read p_head
+                new_head <- DBListStr.append cnt head lt_oje
+                Pure (ptr new_head)
+        ret <- runHCommandST (app x) JOURNAL_DIR
+        ret<-DirectoryMap.insert "journal_head" ret STATE_DIR
+        pure ()   
+        {-
         (MkSS fx_map routes led_map rjm js user_data)<-get
         let js'= (x::js)
         putStrLn $ show x
         putStrLn ""
         put (MkSS fx_map routes led_map rjm js' user_data)
+        -}
+        
+   interpret_d (Show x) = putStrLn $ show x
+   interpret_d (Pure x) = pure x
+   interpret_d (Bind x f) = do 
+                          res <- interpret_d x
+                          interpret_d (f res)
+   
+   {-
+   interpret_d (Log x) = do
+        --(MkSS fx_map routes led_map rjm js user_data)<-get
+        
+        --putStrLn $ show x
+        --putStrLn ""
+        --put (MkSS fx_map routes led_map rjm js' user_data)
+   
+   interpret_d  (NewRoute dt route) = do
+                --(MkSS fx_map routes led_map rjm j user_data)<-get             
+                let route_ref = routeSha route                 
+                    r_k : RouteKey
+                    r_k = (MkRK dt route_ref Progress)                                                   
+                    routes' : SortedMap RouteKey RouteSumT
+                    routes' = insert r_k  route routes
+
+                --put (MkSS fx_map routes' led_map rjm j user_data)
+                pure r_k
+
+   interpret_d  (SetFxData r_k fx) = do
+                --(MkSS fx_map routes led_map rjm j user_data)<-get                          
+                let fx_map' : SortedMap RouteKey FxData
+                    fx_map' = insert r_k fx fx_map                 
+                --put (MkSS fx_map' routes led_map rjm j user_data)
+                pure ()
+   interpret_d (UpdateUserData user_data ) = do
+                --(MkSS fx_map routes led_map rjm j udm)<-get
+                let udm' = userDataToMap user_data
+                --put (MkSS fx_map routes led_map rjm j udm')
+                pure ()
+   interpret_d (GetUserDataW ) = do
+                --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+                pure ?user_data_map
+
+   interpret_d (CloseRoute route_ref@(MkRK date ref state)   ) = do     
+               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+               case lookup route_ref routes of
+                 Nothing => pure ()
+                 (Just this) => do
+                     let new_ref : RouteKey
+                         new_ref = (MkRK date ref Completed)
+                         routes' : SortedMap RouteKey RouteSumT
+                         routes' = insert new_ref this routes
+
+                         routes'' : SortedMap RouteKey RouteSumT
+                         routes'' = delete route_ref routes'
+                     --put (MkSS fx_map routes'' led_map rjm j user_data_map)
+                     pure ()
+               pure ()
+   interpret_d (GetFxData rk) = do
+               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+               --pure (lookup rk fx_map)
+               pure ?ret
+               
+   interpret_d (GetRoute rk) = do
+               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+               --pure (lookup rk routes)
+               pure ?ret
+   interpret_d (Put ref (MkMK f t ledger) je) = do
+                --(MkSS fx_map routes led_map rjm j user_data)<-get             
+                let whs_e : WhsEntry
+                    whs_e = MkWE ref je
+
+                    key : MoveKey                 
+                    key = (MkMK f t ledger)
+
+                    kf : (Location, Ledger)
+                    kf = (f,ledger)
+
+                    kt : (Location, Ledger)
+                    kt = (t,ledger)
+
+                    Hom11_2_LM : Hom11 -> LocationMap
+                    Hom11_2_LM h11 = led2'' where
+                       led1' : LocationMap
+                       led1' = update_ledger kf ( dx h11) led_map
+                       led1'' : LocationMap
+                       led1'' = update_ledger kf (invHom1 $ cx h11) led1'
+                       led2' : LocationMap
+                       led2' = update_ledger kt (invHom1 $ dx h11) led1''
+                       led2'' : LocationMap
+                       led2'' = update_ledger kt (cx h11) led2'
+
+                    je2lm : FxEvent -> LocationMap
+                    je2lm (Fx121 d h121 ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
+                    je2lm (Fx11  d h11 ) = Hom11_2_LM h11
+
+                    led' : LocationMap
+                    led' = je2lm je
+
+                case (lookup key rjm) of
+                   Nothing => do
+                      let rjm' = insert key [whs_e] rjm
+                      --put (MkSS fx_map routes led' rjm' j user_data)
+                      pure ()
+
+                   Just je_list => do
+                      let rjm' = insert key (whs_e::je_list) rjm
+                      --put (MkSS fx_map routes led' rjm' j user_data)
+                      pure ()
+                pure ()
+
+   interpret_d (Get key) = do 
+        --(MkSS fx_map routes led_map rjm j user_data)<-get
+        let muf1 : Maybe (List WhsEntry)
+            muf1 = (lookup key rjm)
+        case muf1 of
+           Just xs => pure xs
+           Nothing => pure []
+
 
    interpret_d (Show x) = putStrLn $ show x
    interpret_d (Pure x) = pure x
@@ -265,4 +422,4 @@ namespace DirectoryMap
                       res <- interpret_d x
                       interpret_d (f res)
 
-
+-}

@@ -29,3 +29,7 @@ namespace SystemState
   export
   JOURNAL_DIR : String
   JOURNAL_DIR = "/home/jan/github.com/mvect2/data/journal/"
+
+  export
+  STATE_DIR : String
+  STATE_DIR = "/home/jan/github.com/mvect2/data/state/"

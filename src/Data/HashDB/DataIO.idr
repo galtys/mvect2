@@ -395,7 +395,7 @@ db_test_queue2 = do
 -- IO part  
 namespace DirectoryMap
   export
-  insert : ToJSON k=>ToJSON v=>HasIO io=>MonadError DBError io =>k->v->String->io String
+  insert : Show k=>HasIO io=>ToJSON k=>ToJSON v=>MonadError DBError io =>k->v->String->io String
   insert k v dir = do
      let k_e : String
          k_e = encode k
@@ -405,11 +405,19 @@ namespace DirectoryMap
          kh = sha256 k_e
          pth:String
          pth = dir ++ kh
+         jh : String
+         jh = "journal_head"
+         --cmp : Bool
+         --cmp = ( k==jh)
+         
+     --printLn (k,k_e,kh,pth)
+     printLn (length $ sha256 $ encode jh, jh)
+     printLn (length $ sha256 $ encode k, k)
      Right ret <- writeFile pth cnt
        | Left e => throwError (EIO $show e)
      pure dir
   export
-  lookup : ToJSON k=>FromJSON v=>HasIO io=>MonadError DBError io =>k->String->io v
+  lookup : Show k=>HasIO io=>ToJSON k=>FromJSON v=>MonadError DBError io =>k->String->io v
   lookup k dir = do
      let k_e : String
          k_e = encode k
@@ -418,12 +426,12 @@ namespace DirectoryMap
          pth:String
          pth = dir ++ kh
      Right cnt <- readFile pth
-       | Left e => throwError (EIO $show e)
+       | Left e => throwError (ELookup (show k) pth (show e)) --(EIO $show e)
      case (decode cnt) of
        Left e => throwError (ErrorJS $show e)
        Right arg => pure arg
   export
-  remove : ToJSON k=>HasIO io=>MonadError DBError io =>k->String->io ()
+  remove : HasIO io=>ToJSON k=>MonadError DBError io =>k->String->io ()
   remove k dir = do
      let k_e : String
          k_e = encode k
@@ -440,7 +448,7 @@ readHType : HasIO io=>MonadError DBError io => TypePtr -> String -> io HType
 readHType tp dir = do
   let pth = dir ++ tp
   Right cnt <- readFile pth
-    | Left e => throwError (EIO $show e)
+    | Left e => throwError (ERead tp dir (show e)) --(EIO $show e)
   case (decode cnt) of
     Left e => throwError (ErrorJS $show e)
     Right arg => pure (MkHT arg tp)
@@ -451,10 +459,10 @@ storeHType ht dir= do
  let pth = dir ++ (ptr ht)
      cnt = (encode $ val ht)
  Right ret <- writeFile pth cnt
-     | Left e => throwError (EIO $show e)
+     | Left e => throwError (EStore (show ht) dir (show e))--(EIO $show e)
  pure ()
 
-
+export
 runHCommand : HasIO io=>MonadError DBError io => HCommand a -> String->io a
 runHCommand (Store x) dir = storeHType x dir 
 runHCommand (Read x) dir = readHType x dir 
@@ -466,6 +474,7 @@ runHCommand (Pure val) dir = pure val
 runHCommand (Bind c f) dir = do 
                     res <- runHCommand c dir
                     runHCommand (f res) dir
+
 
 export
 db_runc : HasIO io => MonadError DBError io => io (List String)
