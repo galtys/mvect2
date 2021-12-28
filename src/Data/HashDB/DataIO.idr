@@ -374,96 +374,6 @@ db_test_queue = do
   h <- DBQueueStr.head q1
   Show  h
   
-
--- IO part  
-namespace DirectoryMap
-  export
-  insert : ToJSON k=>ToJSON v=>HasIO io=>MonadError DBError io =>k->v->String->io String
-  insert k v dir = do
-     let k_e : String
-         k_e = encode k
-         cnt : String
-         cnt = encode v
-         kh : String
-         kh = sha256 k_e
-         pth:String
-         pth = dir ++ kh
-     Right ret <- writeFile pth cnt
-       | Left e => throwError (EIO $show e)
-     pure dir
-  lookup : ToJSON k=>FromJSON v=>HasIO io=>MonadError DBError io =>k->String->io v
-  lookup k dir = do
-     let k_e : String
-         k_e = encode k
-         kh : String
-         kh = sha256 k_e
-         pth:String
-         pth = dir ++ kh
-     Right cnt <- readFile pth
-       | Left e => throwError (EIO $show e)
-     case (decode cnt) of
-       Left e => throwError (ErrorJS $show e)
-       Right arg => pure arg
-  remove : ToJSON k=>HasIO io=>MonadError DBError io =>k->String->io ()
-  remove k dir = do
-     let k_e : String
-         k_e = encode k
-         kh : String
-         kh = sha256 k_e
-         pth:String
-         pth = dir ++ kh
-     Right x <- removeFile pth
-        | Left e => throwError (EIO $show e)
-     pure x
-
-data_store_dir : String
-data_store_dir = "/home/jan/github.com/mvect2/data/"
-export
-readHType : HasIO io=>MonadError DBError io => TypePtr -> io HType
-readHType tp = do
-  let pth = data_store_dir ++ tp
-  Right cnt <- readFile pth
-    | Left e => throwError (EIO $show e)
-  case (decode cnt) of
-    Left e => throwError (ErrorJS $show e)
-    Right arg => pure (MkHT arg tp)
-
-export
-storeHType: HasIO io=>MonadError DBError io => HType -> io ()
-storeHType ht = do
- let pth = data_store_dir ++ (ptr ht)
-     cnt = (encode $ val ht)
- Right ret <- writeFile pth cnt
-     | Left e => throwError (EIO $show e)
- pure ()
-
-
-runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a --HCommand a -> IO a
-runHCommand (Store x) = storeHType x --putStr (show x)
-runHCommand (Read x)= readHType x --getLine
---runHCommand (Update ref x) = printLn "update"
-runHCommand (Log x )= printLn x
-runHCommand (Show x) = printLn $ show x
-runHCommand (LinkError x) = throwError EHashLink
-runHCommand (DecodeError x) = throwError (ErrorJS "Error while decoding JS")
-runHCommand (Pure val) = pure val
-runHCommand (Bind c f) = do res <- runHCommand c
-                            runHCommand (f res)
-
-export
-db_runc : HasIO io => MonadError DBError io => io (List String)
-db_runc = do
-    runHCommand (db_test_queue >> db_list_test)
-    
-
-export
-db_main : IO ()
-db_main = do
-    
-    Right ret <- runEitherT (db_runc {io = EitherT DBError IO})
-            | Left (err) => pure ()
-    printLn ret 
-    
 export
 db_test_queue2 : HCommand ()
 db_test_queue2 = do
@@ -482,27 +392,93 @@ db_test_queue2 = do
   Show  h
 
 
+-- IO part  
+namespace DirectoryMap
+  export
+  insert : ToJSON k=>ToJSON v=>HasIO io=>MonadError DBError io =>k->v->String->io String
+  insert k v dir = do
+     let k_e : String
+         k_e = encode k
+         cnt : String
+         cnt = encode v
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right ret <- writeFile pth cnt
+       | Left e => throwError (EIO $show e)
+     pure dir
+  export
+  lookup : ToJSON k=>FromJSON v=>HasIO io=>MonadError DBError io =>k->String->io v
+  lookup k dir = do
+     let k_e : String
+         k_e = encode k
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right cnt <- readFile pth
+       | Left e => throwError (EIO $show e)
+     case (decode cnt) of
+       Left e => throwError (ErrorJS $show e)
+       Right arg => pure arg
+  export
+  remove : ToJSON k=>HasIO io=>MonadError DBError io =>k->String->io ()
+  remove k dir = do
+     let k_e : String
+         k_e = encode k
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right x <- removeFile pth
+        | Left e => throwError (EIO $show e)
+     pure x
 
-{-
-  export  
-  L1 : (k:Type) -> Type
-  L1 k = SOP I [[],[k,(L1 k)] ]
-  export
-  S1 : (k:Type) -> Type
-  S1 k = SOP I [[],[(S1 k),k] ]
-  export
-  Q1 : (k:Type) -> Type
-  Q1 k = NP I [(L1 k),(S1 k)]
-  Mus : L1 Int
-  Mus = MkSOP (Z [])
-  Mu1 : (L1 Int)
-  Mu1 = MkSOP (S $ Z [4,Mus])
-  Mu2 : (L1 Int)
-  Mu2 = MkSOP (S $ Z [1,Mu1])
-  --N1 : (k:Type) -> Type
-  --N1 k = Z k --NS I [k]
-  --L1Int : L1 Int
-  --L1Int = MkSOP ()
-  --Q1 : (k:Type) -> Type
-  --Q1 k = SOP I [[],[k,(Q1 k)] ]
--}
+export
+readHType : HasIO io=>MonadError DBError io => TypePtr -> String -> io HType
+readHType tp dir = do
+  let pth = dir ++ tp
+  Right cnt <- readFile pth
+    | Left e => throwError (EIO $show e)
+  case (decode cnt) of
+    Left e => throwError (ErrorJS $show e)
+    Right arg => pure (MkHT arg tp)
+
+export
+storeHType: HasIO io=>MonadError DBError io => HType -> String -> io ()
+storeHType ht dir= do 
+ let pth = dir ++ (ptr ht)
+     cnt = (encode $ val ht)
+ Right ret <- writeFile pth cnt
+     | Left e => throwError (EIO $show e)
+ pure ()
+
+
+runHCommand : HasIO io=>MonadError DBError io => HCommand a -> String->io a --HCommand a -> IO a
+runHCommand (Store x) dir = storeHType x dir 
+runHCommand (Read x) dir = readHType x dir 
+--runHCommand (Update ref x) = printLn "update"
+runHCommand (Log x ) dir= printLn x
+runHCommand (Show x) dir = printLn $ show x
+runHCommand (LinkError x) dir = throwError EHashLink
+runHCommand (DecodeError x) dir= throwError (ErrorJS "Error while decoding JS")
+runHCommand (Pure val) dir = pure val
+runHCommand (Bind c f) dir = do 
+                    res <- runHCommand c dir
+                    runHCommand (f res) dir
+
+export
+db_runc : HasIO io => MonadError DBError io => io (List String)
+db_runc = do
+    let data_store_dir:String
+        data_store_dir="/home/jan/github.com/mvect2/data/"
+    runHCommand (db_test_queue >> db_list_test) data_store_dir
+
+export
+db_main : IO ()
+db_main = do
+    Right ret <- runEitherT (db_runc {io = EitherT DBError IO})
+            | Left (err) => pure ()
+    printLn ret 
+    
