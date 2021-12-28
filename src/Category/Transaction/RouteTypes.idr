@@ -65,7 +65,15 @@ convMovekey : MoveKey -> MoveKey
 convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
 convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
 
-
+public export
+record OrderRoute where 
+   constructor MkORrec
+   allocation : MoveKey   --allocation part
+   control : MoveKey
+   order : MoveKey   
+   direction : DirectionTag    
+%runElab derive "OrderRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+{-
 public export
 record SaleForecastRoute where 
    constructor MkSFR
@@ -75,15 +83,6 @@ record SaleForecastRoute where
    direction : DirectionTag    
 %runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 public export
-record OrderRoute where 
-   constructor MkORrec
-   allocation : MoveKey   --allocation part
-   control : MoveKey
-   order : MoveKey   
-   direction : DirectionTag    
-%runElab derive "OrderRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
-public export
 record PurchaseForecastRoute where 
    constructor MkPFR
    allocation : MoveKey --allocation part
@@ -91,7 +90,7 @@ record PurchaseForecastRoute where
    order : MoveKey
    direction : DirectionTag    
 %runElab derive "PurchaseForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+-}
 public export
 record ReconciliationRoute where --reconcile with 3rd party
    constructor MkRR
@@ -139,12 +138,12 @@ Route : Type
 Route = List Location
 -}
 public export
-data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderRoute
+data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderRoute --MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute |
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
-allocationMove (MkSoR (MkSFR order control allocation d)) = allocation
-allocationMove (MkPoR (MkPFR allocation control order d)) = allocation
+--allocationMove (MkSoR (MkSFR order control allocation d)) = allocation
+--allocationMove (MkPoR (MkPFR allocation control order d)) = allocation
 allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation

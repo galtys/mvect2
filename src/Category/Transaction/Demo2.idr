@@ -169,14 +169,19 @@ transit_po_full rk date1 = do
    Nothing => Pure ()
    Just rt => do
        case rt of
-          (MkSoR so) => Pure ()
+          --(MkSoR so) => Pure ()
           (MkOR (MkORrec allocation control order Sale)) => Pure ()
-          (MkOR (MkORrec allocation control order Purchase)) => Pure ()          
-          (MkPoR po) => do
+          (MkOR (MkORrec allocation control order Purchase)) => do
+               let --transit_fcast_key = order --po
+                   transit_key  = convMovekey order --transit_fcast_key  
+               xfc <- Get order --transit_fcast_key
+               Post rk transit_key (Fx11 date1 xfc)                         
+          --(MkPoR po) => Pure ()
+            {-  do
                let transit_fcast_key = order po
                    transit_key  = convMovekey transit_fcast_key  
                xfc <- Get transit_fcast_key
-               Post rk transit_key (Fx11 date1 xfc)               
+               Post rk transit_key (Fx11 date1 xfc) -}               
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 export
@@ -187,12 +192,10 @@ receive_po_full rk date1 = do
    Nothing => Pure ()
    Just rt => do
        case rt of
-          (MkSoR so) => Pure ()
+          --(MkSoR so) => Pure ()
           (MkOR (MkORrec allocation control order Sale)) => Pure ()
-          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
-          --(MkOR o) => Pure ()
-          (MkPoR po) => do
-               let po_invoice_key = control po
+          (MkOR (MkORrec allocation control order Purchase)) => do
+               let po_invoice_key = control --po
                    recv_key  = convMovekey po_invoice_key  
                x <- Get po_invoice_key
                
@@ -203,6 +206,7 @@ receive_po_full rk date1 = do
                Post rk recv_key fx11
                aref <- Allocate (MkAE OnHand [aitem])
                Pure ()
+          --(MkPoR po) => Pure ()   
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 
@@ -215,13 +219,10 @@ reserve_so_full rk date1 = do
     Just rt => do
        case rt of
           --(MkOR o) => Pure ()
-          (MkOR (MkORrec allocation control order Sale)) => Pure ()
-          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
-          (MkSoR so) => do 
-               let so_demand_key = allocation so
+          (MkOR (MkORrec allocation control order Sale)) => do         
+               let so_demand_key = allocation
                    reservation_key  = convMovekey so_demand_key  
-               x <- Get so_demand_key
-                             
+               x <- Get so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
@@ -229,7 +230,9 @@ reserve_so_full rk date1 = do
                --Post rk recv_key fx11
                aref <- Allocate (MkAE OnHand [aitem])               
                Pure ()          
-          (MkPoR po) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
+          --(MkSoR so) => Pure () 
+          --(MkPoR po) => Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 
@@ -242,19 +245,19 @@ deliver_so_full rk date1 = do
     Just rt => do
        case rt of
           --(MkOR o) => Pure ()
-          (MkOR (MkORrec allocation control order Sale)) => Pure ()
-          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
-          (MkSoR so) => do 
-               let so_invoice_key = control so
-                   so_demand_key = allocation so
+          (MkOR (MkORrec allocation control order Sale)) => do
+               let so_invoice_key = control 
+                   so_demand_key = allocation 
                    so_delivery_key  = convMovekey so_invoice_key  
                x <- Get so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                Post rk so_delivery_key fx11
                Pure ()          
-               
-          (MkPoR po) => Pure ()
+          
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
+          --(MkSoR so) => Pure ()                
+          --(MkPoR po) => Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 
@@ -268,18 +271,18 @@ invoice_so_full rk date1 = do
     Just rt => do
        case rt of
           --(MkOR o) => Pure ()
-          (MkOR (MkORrec allocation control order Sale)) => Pure ()
-          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
-          (MkSoR so) => do 
-               let so_invoice_key = control so
+          (MkOR (MkORrec allocation control order Sale)) => do --Pure ()
+               let so_invoice_key = control --so
                    so_delivery_key  = convMovekey so_invoice_key  
                x <- Get so_delivery_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                Post rk so_invoice_key fx11
-               Pure ()          
+               Pure ()                    
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
+          --(MkSoR so) => Pure () --do 
                
-          (MkPoR po) => Pure ()
+          --(MkPoR po) => Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 export
@@ -292,10 +295,19 @@ shipping_done_so_full rk date1 = do
     Just rt => do
        case rt of
           --(MkOR o) => Pure ()
-          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => do --Pure ()
+               let so_invoice_key = control --so
+                   so_delivery_key  = convMovekey so_invoice_key 
+                   so_sale_order_key = order --so
+                   so_shipping_key =  convMovekey so_sale_order_key                    
+               x <- Get so_delivery_key                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+               Post rk so_shipping_key fx11
+               Pure ()                    
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
-          (MkSoR so) => do 
-               let so_invoice_key = control so
+          --(MkSoR so) => Pure ()-- do 
+{-               let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key 
                    so_sale_order_key = order so
                    so_shipping_key =  convMovekey so_sale_order_key 
@@ -305,8 +317,8 @@ shipping_done_so_full rk date1 = do
                    fx11 =  (Fx11 date1 x)       
                Post rk so_shipping_key fx11
                Pure ()          
-               
-          (MkPoR po) => Pure ()
+  -}             
+          --(MkPoR po) => Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 
@@ -417,14 +429,14 @@ toWhs (ConfirmOrder fx) = do
            fx_empty : FxEvent
            fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
            
-           so : SaleForecastRoute
+           so : OrderRoute --SaleForecastRoute
            so = soForecastFromFx fx
-           po : PurchaseForecastRoute
+           po : OrderRoute --PurchaseForecastRoute
            po = poForecastFromFx fx
            
        case (direction fx) of
            Purchase => do
-               new_r <- NewRoute (date fx) (MkPoR po)
+               new_r <- NewRoute (date fx) (MkOR po)
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
                --Put route_key  (allocation po) fx_ev               
@@ -432,7 +444,7 @@ toWhs (ConfirmOrder fx) = do
                Put route_key  (order po) fx_ev
                Pure new_r
            Sale => do
-               new_r <- NewRoute (date fx) (MkSoR so)
+               new_r <- NewRoute (date fx) (MkOR so)
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r               
                Put route_key (order so) fx_ev               

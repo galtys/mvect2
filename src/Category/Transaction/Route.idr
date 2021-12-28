@@ -87,7 +87,7 @@ self_taxman = BrowseResPartner.MkRecordModel
          street2 = Just "Mid fx Lane" }
 
 export           
-soForecastFromFx : FxData -> SaleForecastRoute
+soForecastFromFx : FxData -> OrderRoute --SaleForecastRoute
 soForecastFromFx fx = ret where
            inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
@@ -99,10 +99,10 @@ soForecastFromFx fx = ret where
            saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
            saleDemand : MoveKey
            saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
-           ret : SaleForecastRoute
-           ret = MkSFR saleOrder saleInvoice saleDemand Sale
+           ret : OrderRoute --SaleForecastRoute
+           ret = MkORrec saleOrder saleInvoice saleDemand Sale
 export
-poForecastFromFx : FxData -> PurchaseForecastRoute
+poForecastFromFx : FxData -> OrderRoute --PurchaseForecastRoute
 poForecastFromFx fx = ret where
            inv : BrowseResPartner.RecordModel
            inv = (invoice fx)
@@ -122,8 +122,8 @@ poForecastFromFx fx = ret where
            -}
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
-           ret : PurchaseForecastRoute 
-           ret = MkPFR forecastIn purchaseInvoice purchaseOrder Purchase
+           ret : OrderRoute --PurchaseForecastRoute 
+           ret = MkORrec forecastIn purchaseInvoice purchaseOrder Purchase
 {-
 export
 custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
