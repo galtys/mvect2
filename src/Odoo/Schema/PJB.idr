@@ -12,7 +12,7 @@ import Generics.Derive
 
 import JSON
 
-import Odoo.PG.Config
+import Config
 import Control.Monad.Either
 
 import Libc.Time

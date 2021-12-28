@@ -18,7 +18,7 @@ import PQ.FFI
 import PQ.Schema
 import PQ.Types
 
-import Odoo.PG.Config
+--import Config
 
 %language ElabReflection
 

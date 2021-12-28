@@ -391,7 +391,6 @@ db_test_queue2 = do
   h <- DBQueueStr.head q1
   Show  h
 
-
 -- IO part  
 namespace DirectoryMap
   export
@@ -455,10 +454,9 @@ storeHType ht dir= do
  pure ()
 
 
-runHCommand : HasIO io=>MonadError DBError io => HCommand a -> String->io a --HCommand a -> IO a
+runHCommand : HasIO io=>MonadError DBError io => HCommand a -> String->io a
 runHCommand (Store x) dir = storeHType x dir 
 runHCommand (Read x) dir = readHType x dir 
---runHCommand (Update ref x) = printLn "update"
 runHCommand (Log x ) dir= printLn x
 runHCommand (Show x) dir = printLn $ show x
 runHCommand (LinkError x) dir = throwError EHashLink
@@ -472,7 +470,7 @@ export
 db_runc : HasIO io => MonadError DBError io => io (List String)
 db_runc = do
     let data_store_dir:String
-        data_store_dir="/home/jan/github.com/mvect2/data/"
+        data_store_dir="/home/jan/github.com/mvect2/data/hcmd"
     runHCommand (db_test_queue >> db_list_test) data_store_dir
 
 export

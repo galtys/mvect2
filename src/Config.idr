@@ -1,4 +1,4 @@
-module Odoo.PG.Config
+module Config
 
 export
 DB_URI : String

@@ -42,8 +42,7 @@ Show HType where
 public export
 data HCommand : Type -> Type where
      Store : HType -> HCommand ()
-     Read : TypePtr -> HCommand HType --String
---     Update : TypePtr -> HType -> HCommand () 
+     Read : TypePtr -> HCommand HType
      Log : String -> HCommand ()
      Show : (Show ty) => ty -> HCommand ()
      LinkError : ty -> HCommand ty
