@@ -8,6 +8,7 @@ import Data.SnocList
 
 import Control.Monad.Either
 import JSON
+import Config
 
 export
 tList : (a:HType) -> HType
@@ -470,7 +471,7 @@ export
 db_runc : HasIO io => MonadError DBError io => io (List String)
 db_runc = do
     let data_store_dir:String
-        data_store_dir="/home/jan/github.com/mvect2/data/hcmd"
+        data_store_dir=HCMD_DIR
     runHCommand (db_test_queue >> db_list_test) data_store_dir
 
 export

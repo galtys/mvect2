@@ -89,19 +89,13 @@ namespace WhsEventDo
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        SetFxData : RouteKey -> FxData -> WhsEvent ()
        GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
-              
+
        UpdateUserData : UserData -> WhsEvent ()
-       GetUserDataW : WhsEvent UserDataMap
-       
+       GetUserDataW : WhsEvent UserDataMap       
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
-
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
-
        Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
-
        Get : MoveKey -> WhsEvent (List WhsEntry)
-       --Get : MoveKey -> WhsEvent (List FxEnvent)
-              
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
@@ -122,7 +116,7 @@ namespace SystemState
    LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
    public export
    RouteJournalMap  : Type
-   RouteJournalMap = SortedMap MoveKey (List WhsEntry) --MoveKey   -- (Location, Location,Ledger)
+   RouteJournalMap = SortedMap MoveKey (List WhsEntry)
 
    public export
    record SystemState where
