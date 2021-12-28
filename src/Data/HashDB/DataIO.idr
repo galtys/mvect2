@@ -1,5 +1,6 @@
 module Data.HashDB.DataIO
 
+import Crypto.Hash.SHA256
 import Data.HashDB.Types
 import System.Directory
 import System.File.ReadWrite
@@ -375,7 +376,46 @@ db_test_queue = do
   
 
 -- IO part  
-      
+namespace DirectoryMap
+  export
+  insert : ToJSON k=>ToJSON v=>HasIO io=>MonadError DBError io =>k->v->String->io String
+  insert k v dir = do
+     let k_e : String
+         k_e = encode k
+         cnt : String
+         cnt = encode v
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right ret <- writeFile pth cnt
+       | Left e => throwError (EIO $show e)
+     pure dir
+  lookup : ToJSON k=>FromJSON v=>HasIO io=>MonadError DBError io =>k->String->io v
+  lookup k dir = do
+     let k_e : String
+         k_e = encode k
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right cnt <- readFile pth
+       | Left e => throwError (EIO $show e)
+     case (decode cnt) of
+       Left e => throwError (ErrorJS $show e)
+       Right arg => pure arg
+  remove : ToJSON k=>HasIO io=>MonadError DBError io =>k->String->io ()
+  remove k dir = do
+     let k_e : String
+         k_e = encode k
+         kh : String
+         kh = sha256 k_e
+         pth:String
+         pth = dir ++ kh
+     Right x <- removeFile pth
+        | Left e => throwError (EIO $show e)
+     pure x
+
 data_store_dir : String
 data_store_dir = "/home/jan/github.com/mvect2/data/"
 export
@@ -396,7 +436,7 @@ storeHType ht = do
  Right ret <- writeFile pth cnt
      | Left e => throwError (EIO $show e)
  pure ()
- 
+
 
 runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a --HCommand a -> IO a
 runHCommand (Store x) = storeHType x --putStr (show x)
