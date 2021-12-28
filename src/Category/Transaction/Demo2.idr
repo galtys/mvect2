@@ -187,7 +187,7 @@ receive_po_full rk date1 = do
        case rt of
           (MkSoR so) => Pure ()
           (MkPoR po) => do
-               let po_invoice_key = purchaseInvoice po
+               let po_invoice_key = control po
                    recv_key  = convMovekey po_invoice_key  
                x <- Get po_invoice_key
                
@@ -210,7 +210,7 @@ reserve_so_full rk date1 = do
     Just rt => do
        case rt of
           (MkSoR so) => do 
-               let so_demand_key = saleDemand so
+               let so_demand_key = allocation so
                    reservation_key  = convMovekey so_demand_key  
                x <- Get so_demand_key
                              
@@ -234,8 +234,8 @@ deliver_so_full rk date1 = do
     Just rt => do
        case rt of
           (MkSoR so) => do 
-               let so_invoice_key = saleInvoice so
-                   so_demand_key = saleDemand so
+               let so_invoice_key = control so
+                   so_demand_key = allocation so
                    so_delivery_key  = convMovekey so_invoice_key  
                x <- Get so_demand_key                             
                let fx11 : FxEvent
@@ -257,7 +257,7 @@ invoice_so_full rk date1 = do
     Just rt => do
        case rt of
           (MkSoR so) => do 
-               let so_invoice_key = saleInvoice so
+               let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key  
                x <- Get so_delivery_key                             
                let fx11 : FxEvent
@@ -278,7 +278,7 @@ shipping_done_so_full rk date1 = do
     Just rt => do
        case rt of
           (MkSoR so) => do 
-               let so_invoice_key = saleInvoice so
+               let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key 
                    so_sale_order_key = saleOrder so
                    so_shipping_key =  convMovekey so_sale_order_key 
@@ -411,7 +411,7 @@ toWhs (ConfirmOrder fx) = do
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
                --Put route_key  (forecastIn po) fx_ev               
-               Put route_key  (purchaseInvoice po) fx_empty               
+               Put route_key  (control po) fx_empty               
                Put route_key  (purchaseOrder po) fx_ev
                Pure new_r
            Sale => do
@@ -419,8 +419,8 @@ toWhs (ConfirmOrder fx) = do
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r               
                Put route_key (saleOrder so) fx_ev               
-               Put route_key (saleInvoice so) fx_empty
-               --Put route_key (saleDemand so) fx_ev               
+               Put route_key (control so) fx_empty
+               --Put route_key (allocation so) fx_ev               
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key
