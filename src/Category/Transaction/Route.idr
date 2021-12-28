@@ -100,7 +100,7 @@ soForecastFromFx fx = ret where
            saleDemand : MoveKey
            saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
            ret : SaleForecastRoute
-           ret = MkSFR saleOrder saleInvoice saleDemand
+           ret = MkSFR saleOrder saleInvoice saleDemand Sale
 export
 poForecastFromFx : FxData -> PurchaseForecastRoute
 poForecastFromFx fx = ret where
@@ -123,7 +123,7 @@ poForecastFromFx fx = ret where
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
            ret : PurchaseForecastRoute 
-           ret = MkPFR forecastIn purchaseInvoice purchaseOrder
+           ret = MkPFR forecastIn purchaseInvoice purchaseOrder Purchase
 {-
 export
 custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
@@ -152,7 +152,7 @@ InitRoute = ret where
      allocation : MoveKey
      allocation = MkMK (In self_company) Self Forecast
      ret : ReconciliationRoute 
-     ret = MkRR reconciliation allocation
+     ret = MkRR reconciliation allocation Sale
      
 export
 InitRouteT : RouteSumT     
@@ -180,7 +180,7 @@ TaxRoute = ret where
      a : MoveKey
      a = MkMK (Border self_taxman) Self Forecast
      ret : ReconciliationRoute
-     ret = MkRR r a     
+     ret = MkRR r a Sale     
 export
 TaxRouteT : RouteSumT
 TaxRouteT = MkReR TaxRoute
@@ -196,7 +196,7 @@ BankRoute =  ret where
      a : MoveKey
      a = MkMK (Border self_bank) Self Forecast
      ret : ReconciliationRoute
-     ret = MkRR r a
+     ret = MkRR r a Sale
 export     
 BankRouteT : RouteSumT
 BankRouteT = MkReR BankRoute
@@ -212,7 +212,7 @@ FxRoute = ret where
      a : MoveKey
      a = MkMK (In self_fx) Self Forecast
      ret : ReconciliationRoute
-     ret = MkRR r a
+     ret = MkRR r a Sale
 export
 FxRouteT : RouteSumT
 FxRouteT = MkReR FxRoute
