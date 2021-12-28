@@ -76,7 +76,7 @@ record SaleForecastRoute where
 %runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 public export
 record OrderRoute where 
-   constructor MkOR
+   constructor MkORrec
    allocation : MoveKey   --allocation part
    control : MoveKey
    order : MoveKey   
@@ -139,12 +139,13 @@ Route : Type
 Route = List Location
 -}
 public export
-data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl ListRoute --| MkLstRoute (List MoveKey)
+data RouteSumT = MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute | MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderRoute
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
 allocationMove (MkSoR (MkSFR order control allocation d)) = allocation
 allocationMove (MkPoR (MkPFR allocation control order d)) = allocation
+allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 

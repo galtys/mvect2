@@ -170,6 +170,8 @@ transit_po_full rk date1 = do
    Just rt => do
        case rt of
           (MkSoR so) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()          
           (MkPoR po) => do
                let transit_fcast_key = order po
                    transit_key  = convMovekey transit_fcast_key  
@@ -186,6 +188,9 @@ receive_po_full rk date1 = do
    Just rt => do
        case rt of
           (MkSoR so) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
+          --(MkOR o) => Pure ()
           (MkPoR po) => do
                let po_invoice_key = control po
                    recv_key  = convMovekey po_invoice_key  
@@ -209,6 +214,9 @@ reserve_so_full rk date1 = do
     Nothing => Pure ()
     Just rt => do
        case rt of
+          --(MkOR o) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkSoR so) => do 
                let so_demand_key = allocation so
                    reservation_key  = convMovekey so_demand_key  
@@ -233,6 +241,9 @@ deliver_so_full rk date1 = do
     Nothing => Pure ()
     Just rt => do
        case rt of
+          --(MkOR o) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkSoR so) => do 
                let so_invoice_key = control so
                    so_demand_key = allocation so
@@ -256,6 +267,9 @@ invoice_so_full rk date1 = do
     Nothing => Pure ()
     Just rt => do
        case rt of
+          --(MkOR o) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkSoR so) => do 
                let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key  
@@ -277,6 +291,9 @@ shipping_done_so_full rk date1 = do
     Nothing => Pure ()
     Just rt => do
        case rt of
+          --(MkOR o) => Pure ()
+          (MkOR (MkORrec allocation control order Sale)) => Pure ()
+          (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkSoR so) => do 
                let so_invoice_key = control so
                    so_delivery_key  = convMovekey so_invoice_key 
