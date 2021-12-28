@@ -6,7 +6,7 @@ import Data.SortedMap
 import Control.Monad.State
 import Libc.Time
 
-import JSON
+--import JSON
 
 import Category.Transaction.Qty
 import Category.Transaction.Types
@@ -46,7 +46,7 @@ demo_po_so = do
  let date1 : Date
      date1 = "2021-10-01"
      dx1 : Hom1 
-     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]          
+     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
      date2 : Date
      date2 = "2021-10-15"
      dx2 : Hom1 

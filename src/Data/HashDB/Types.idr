@@ -43,6 +43,7 @@ public export
 data HCommand : Type -> Type where
      Store : HType -> HCommand ()
      Read : TypePtr -> HCommand HType --String
+--     Update : TypePtr -> HType -> HCommand () 
      Log : String -> HCommand ()
      Show : (Show ty) => ty -> HCommand ()
      LinkError : ty -> HCommand ty
@@ -102,7 +103,7 @@ namespace DBQueueStr--DBQueue
     lt : HType    
     slt : HType
   %runElab derive "DBQueueStr.FR" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
-
+{-
 namespace Subscriber
   public export
   record Rec where
@@ -130,3 +131,4 @@ namespace Observable
     
   %runElab derive "Observable.Rec" [Generic, Meta, Eq, Ord, Show,RecordToJSON,RecordFromJSON]
 
+-}

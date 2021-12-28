@@ -401,6 +401,7 @@ storeHType ht = do
 runHCommand : HasIO io=>MonadError DBError io => HCommand a -> io a --HCommand a -> IO a
 runHCommand (Store x) = storeHType x --putStr (show x)
 runHCommand (Read x)= readHType x --getLine
+--runHCommand (Update ref x) = printLn "update"
 runHCommand (Log x )= printLn x
 runHCommand (Show x) = printLn $ show x
 runHCommand (LinkError x) = throwError EHashLink
