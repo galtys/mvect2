@@ -68,31 +68,13 @@ convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
 public export
 record OrderControlRoute where 
    constructor MkORrec
-   allocation : MoveKey   --allocation part
+   allocation : MoveKey 
    control : MoveKey
    order : MoveKey   
    direction : DirectionTag    
 %runElab derive "OrderControlRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-{-
 public export
-record SaleForecastRoute where 
-   constructor MkSFR
-   order : MoveKey
-   control : MoveKey
-   allocation : MoveKey   --allocation part
-   direction : DirectionTag    
-%runElab derive "SaleForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-public export
-record PurchaseForecastRoute where 
-   constructor MkPFR
-   allocation : MoveKey --allocation part
-   control : MoveKey
-   order : MoveKey
-   direction : DirectionTag    
-%runElab derive "PurchaseForecastRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
--}
-public export
-record ReconciliationRoute where --reconcile with 3rd party
+record ReconciliationRoute where 
    constructor MkRR
    allocation : MoveKey  --allocation
    reconcile : MoveKey
@@ -100,55 +82,28 @@ record ReconciliationRoute where --reconcile with 3rd party
 %runElab derive "ReconciliationRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-record ListRoute where --reconcile with 3rd party is not involved
+record ListRoute where 
    constructor MkListR
-   allocation : MoveKey  --allocation only
+   allocation : MoveKey 
    lst : List MoveKey      
    direction : DirectionTag 
 %runElab derive "ListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 public export
-record VectRoute (n:Nat) where --reconcile with 3rd party is not involved
+record VectRoute (n:Nat) where 
    constructor MkVectR
-   allocation : MoveKey  --allocation only
+   allocation : MoveKey 
    lst : Vect n MoveKey      
 %runElab derive "VectRoute" [Generic, Meta]      
---%runElab derive "VectRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-{-
 public export
-record SnocListRoute where --reconcile with 3rd party is not involved
-   constructor MkSnocListR
-   allocation : MoveKey  --allocation only
-   lst : SnocList MoveKey      
-%runElab derive "SnocListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
--}
-
-{-
-public export
-record ListRoute where
-   constructor MkLR
-   allocation : MoveKey  --allocation only
-   lst : List MoveKey   
-
-
-   
-public export
-Route : Type
-Route = List Location
--}
-public export
-data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderControlRoute --MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute |
+data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderControlRoute 
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
---allocationMove (MkSoR (MkSFR order control allocation d)) = allocation
---allocationMove (MkPoR (MkPFR allocation control order d)) = allocation
 allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
-
-
 
 public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
@@ -157,18 +112,14 @@ data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
 public export
 record AllocationItem where
   constructor MkAI
-  --key : MoveKey
   supplier : RouteKey
   customer: RouteKey
-  --from : RouteKey
-  --to : RouteKey
   fx : FxEvent
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 public export
 record AllocationEntry where
   constructor MkAE
-  --date : Date
   ledger : Ledger  
-  moves : List AllocationItem --(Route,Route,Ledger,FxEvent)
+  moves : List AllocationItem
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
