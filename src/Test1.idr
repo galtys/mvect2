@@ -15,6 +15,8 @@ import Category.Transaction.Journal
 import Category.Transaction.Types
 import Category.Transaction.Demo
 import Category.Transaction.Demo2
+import Category.Transaction.Owner
+import Category.Transaction.Warehouse
 import Data.Ratio
 --import Data.Zippable
 import Control.Monad.State
