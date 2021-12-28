@@ -429,9 +429,9 @@ toWhs (ConfirmOrder fx) = do
            fx_empty : FxEvent
            fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
            
-           so : OrderRoute --SaleForecastRoute
+           so : OrderControlRoute --SaleForecastRoute
            so = soForecastFromFx fx
-           po : OrderRoute --PurchaseForecastRoute
+           po : OrderControlRoute --PurchaseForecastRoute
            po = poForecastFromFx fx
            
        case (direction fx) of

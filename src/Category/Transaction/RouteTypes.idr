@@ -66,13 +66,13 @@ convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
 convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
 
 public export
-record OrderRoute where 
+record OrderControlRoute where 
    constructor MkORrec
    allocation : MoveKey   --allocation part
    control : MoveKey
    order : MoveKey   
    direction : DirectionTag    
-%runElab derive "OrderRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+%runElab derive "OrderControlRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 {-
 public export
 record SaleForecastRoute where 
@@ -138,7 +138,7 @@ Route : Type
 Route = List Location
 -}
 public export
-data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderRoute --MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute |
+data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderControlRoute --MkSoR SaleForecastRoute | MkPoR PurchaseForecastRoute |
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
 export
 allocationMove : RouteSumT -> MoveKey
