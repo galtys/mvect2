@@ -46,19 +46,19 @@ namespace DBListStr
   new : (lt:HType) -> HCommand (TypePtr) --HType
   new lt = do
     let null = tNil lt
-    Store null
+    Store null STORE_TAG
     Pure (ptr null)
  
   export
   append : String->(prev:HType)->(lt:HType)->HCommand HType
   append item prev lt = do
      let new_item = tCons item prev lt
-     Store new_item
+     Store new_item STORE_TAG
      Pure new_item
        
   write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
   write' [] last lt = do  
-    Store last
+    Store last STORE_TAG
     Pure $ ptr last        
   write' (x :: xs) prev lt= do
      newi <- DBListStr.append x prev lt
@@ -156,13 +156,13 @@ namespace DBSnocListStr
   new :(lt:HType)->HCommand (TypePtr) --TypePtr
   new lt = do
     let null = tLin lt
-    Store null
+    Store null STORE_TAG
     Pure (ptr null)  
   export
   append : String->(prev:HType)->(lt:HType)->HCommand HType
   append item prev lt = do
      let new_item = tSnoc item prev lt
-     ok <- Store new_item
+     ok <- Store new_item  STORE_TAG
      Pure new_item
   export
   head : TypePtr -> (lt:HType)->HCommand (Maybe (String,TypePtr))
@@ -177,7 +177,7 @@ namespace DBSnocListStr
      
   write' : List String -> (prev:HType) ->(lt:HType)-> HCommand TypePtr
   write' [] prev lt = do  
-    x <- Store prev
+    x <- Store prev  STORE_TAG
     Pure (ptr prev)      
   write' (x :: xs) prev lt= do
      new <- DBSnocListStr.append x prev lt
@@ -473,7 +473,7 @@ storeHType ht dir= do
 
 export
 runHCommand : HasIO io=>MonadError DBError io => HCommand a -> String->io a
-runHCommand (Store x) dir = storeHType x dir 
+runHCommand (Store x tag) dir = storeHType x dir 
 runHCommand (Read x) dir = readHType x dir 
 runHCommand (Log x ) dir= printLn x
 runHCommand (Show x) dir = printLn $ show x

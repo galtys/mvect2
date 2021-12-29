@@ -154,7 +154,7 @@ namespace MemoryMap
 
 export
 runHCommandST : HasIO io=>MonadError DBError io => HCommand a -> String->StateT SystemState io a
-runHCommandST (Store x) dir = storeHType x dir 
+runHCommandST (Store x tag) dir = storeHType x dir 
 runHCommandST (Read x) dir = readHType x dir 
 runHCommandST (Log x ) dir= printLn x
 runHCommandST (Show x) dir = printLn $ show x
@@ -176,6 +176,11 @@ lookup_fxdata rk = do
 lookup_typeptr : HasIO io=>MonadError DBError io=>MoveKey->io (Maybe TypePtr)
 lookup_typeptr mk = do
      x<-DirectoryMap.lookup mk ROUTE_JOURNAL_DIR
+     pure x
+
+lookup_userdata : HasIO io=>MonadError DBError io=>io (Maybe UserData)
+lookup_userdata = do
+     x<-DirectoryMap.lookup "UserData" STATE_DIR
      pure x
 
 {-
@@ -229,9 +234,8 @@ namespace DirMap
    
    export
    interpret_d : HasIO io=>MonadError DBError io=>WhsEvent a->StateT SystemState io a--io a
-   interpret_d (Put ref mkey@(MkMK f t ledger) je) = do
-   
-                (MkSS fx_map routes led_map rjm j user_data)<-get             
+   interpret_d (Put ref mkey@(MkMK f t ledger) je) = do   
+                --(MkSS fx_map routes led_map rjm j user_data)<-get             
                 let whs_e : WhsEntry
                     whs_e = MkWE ref je
                 
@@ -246,16 +250,6 @@ namespace DirMap
                       ret <- runHCommandST (append_WhsEntry lt_whse p_list whs_e) HCMD_DIR
                       retx<-DirectoryMap.insert mkey ret ROUTE_JOURNAL_DIR
                       pure ()
-                {-
-                case (lookup mkey rjm) of
-                   Nothing => do
-                      let rjm' = insert mkey [whs_e] rjm
-                      put (MkSS fx_map routes led_map rjm' j user_data)
-
-                   Just je_list => do
-                      let rjm' = insert mkey (whs_e::je_list) rjm
-                      put (MkSS fx_map routes led_map rjm' j user_data)
-                -}
                 pure ()
    interpret_d (Get mkey) = do 
         --(MkSS fx_map routes led_map rjm j user_data)<-get
@@ -267,13 +261,6 @@ namespace DirMap
               case ret of
                  Nothing => pure []
                  Just lst => pure lst
-        {-
-        let muf1 : Maybe (List WhsEntry)
-            muf1 = (lookup key rjm)
-        case muf1 of
-           Just xs => pure xs
-           Nothing => pure []
-        -}
    interpret_d (Log x) = do
         p_head<-DirectoryMap.lookup "journal_head" STATE_DIR        
         --let --js'= (x::js)
@@ -285,24 +272,26 @@ namespace DirMap
                pure ()   
    
    interpret_d  (NewRoute dt route) = do
-                (MkSS fx_map routes led_map rjm j user_data)<-get             
+                --(MkSS fx_map routes led_map rjm j user_data)<-get             
                 let route_ref = routeSha route                 
                     r_k : RouteKey
                     r_k = (MkRK dt route_ref Progress)                                                   
-                    routes' : SortedMap RouteKey RouteSumT
-                    routes' = insert r_k  route routes
+                    --routes' : SortedMap RouteKey RouteSumT
+                    --routes' = insert r_k  route routes
                 ret<-DirectoryMap.insert r_k route ROUTE_DIR
-                put (MkSS fx_map routes' led_map rjm j user_data)
+                --put (MkSS fx_map routes' led_map rjm j user_data)
                 pure r_k
 
    interpret_d  (SetFxData r_k fx) = do
-                (MkSS fx_map routes led_map rjm j user_data)<-get                          
-                let fx_map' : SortedMap RouteKey FxData
-                    fx_map' = insert r_k fx fx_map          
+                --(MkSS fx_map routes led_map rjm j user_data)<-get                          
+                --let fx_map' : SortedMap RouteKey FxData
+                --    fx_map' = insert r_k fx fx_map          
                 ret<-DirectoryMap.insert r_k fx FX_DIR           
-                put (MkSS fx_map' routes led_map rjm j user_data)
-
+                --put (MkSS fx_map' routes led_map rjm j user_data)
+                pure ()
    interpret_d (UpdateUserData user_data ) = do
+     ret<-DirectoryMap.insert "UserData" user_data STATE_DIR
+     {-
      p_bom_list <- runHCommandST (DBList.write (boms user_data) lt_bom) BOM_DIR
      p_prod_list <- runHCommandST (DBList.write (products user_data) lt_product) PRODUCT_DIR
                  
@@ -310,13 +299,18 @@ namespace DirMap
      ret<-DirectoryMap.insert "BrowseProduct.RecordModel" p_bom_list STATE_DIR        
      --
      --
-                
+     -}          
      --(MkSS fx_map routes led_map rjm j udm)<-get
      --let udm' = userDataToMap user_data
      --put (MkSS fx_map routes led_map rjm j udm')
      pure ()
    interpret_d (GetUserDataW ) = do
+     ret <- lookup_userdata
+     case ret of
+       Nothing => pure (userDataToMap (MkUD [] [] [] []))
+       Just ud => pure (userDataToMap ud)
      --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+     {-
      mp_bom<-DirectoryMap.lookup "BrowseBoM.RecordModel" STATE_DIR        
      mp_prod<-DirectoryMap.lookup "BrowseProduct.RecordModel" STATE_DIR        
      case (mp_bom,mp_prod) of 
@@ -327,22 +321,8 @@ namespace DirMap
               (Just xb,Just xp) => pure (userDataToMap (MkUD xp [] xb []))
               _ => pure (userDataToMap (MkUD [] [] [] []))
         _ => pure (userDataToMap (MkUD [] [] [] []))
-
+      -}
    interpret_d (CloseRoute route_ref@(MkRK date ref state)   ) = do     
-               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
-               {-
-               case lookup route_ref routes of
-                 Nothing => pure ()
-                 (Just this) => do
-                     let new_ref : RouteKey
-                         new_ref = (MkRK date ref Completed)
-                         routes' : SortedMap RouteKey RouteSumT
-                         routes' = insert new_ref this routes
-
-                         routes'' : SortedMap RouteKey RouteSumT
-                         routes'' = delete route_ref routes'
-                     put (MkSS fx_map routes'' led_map rjm j user_data_map)
-               -}         
                m_r <- lookup_route_st route_ref
                case m_r of
                   Nothing => pure ()
@@ -353,12 +333,10 @@ namespace DirMap
                        ret<-DirectoryMap.delete route_ref ROUTE_DIR                       
                        pure ()
    interpret_d (GetFxData rk) = do
-               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
                ret <- lookup_fxdata rk
                pure ret --(lookup rk fx_map)
 
    interpret_d (GetRoute rk) = do
-               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
                m_r <- lookup_route_st rk
                pure m_r --(lookup rk routes)
                     
@@ -387,7 +365,6 @@ namespace DirMap
                     led' : LocationMap
                     led' = je2lm je
 -}
-
 
    interpret_d (Show x) = putStrLn $ show x
    interpret_d (Pure x) = pure x

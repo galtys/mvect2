@@ -12,6 +12,11 @@ public export
 TypePtr : Type
 TypePtr = String --H256
 
+export
+STORE_TAG : String
+STORE_TAG = ""
+
+
 public export
 data Arg = AType String | AVal String | ACon String | APtr TypePtr | AVar String
 %runElab derive "Arg" [Generic, Meta, Eq, Ord, Show,ToJSON,FromJSON]
@@ -46,7 +51,7 @@ Show HType where
 
 public export
 data HCommand : Type -> Type where
-     Store : HType -> HCommand ()
+     Store : HType -> String -> HCommand ()
      Read : TypePtr -> HCommand HType
      Log : String -> HCommand ()
      Show : (Show ty) => ty -> HCommand ()
@@ -80,7 +85,7 @@ fromArgCmd : List Arg -> HCommand HType
 fromArgCmd x = do
   --let p_x = (getPtr x)
   let ht =MkHT x (getPtr x)
-  Store ht
+  Store ht  STORE_TAG
   Pure ht
 
 export
