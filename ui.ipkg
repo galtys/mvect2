@@ -1,0 +1,61 @@
+package ui
+version = 0.5.0
+authors = "galtys"
+-- maintainers =
+-- license = GPL2
+-- brief =
+-- readme =
+-- homepage =
+-- sourceloc =
+-- bugtracker =
+
+-- packages to add to search path
+
+sourcedir = "src"
+
+depends = base >= 0.5.1
+        , contrib >= 0.5.1
+	, sop >= 0.5.0
+	, elab-util >= 0.5.0
+	, dom >= 0.1.0
+	, json >= 0.5.0
+	, rhone >= 0.0.1
+	, tailrec >= 0.1.0
+	, rhone-js >= 0.0.1
+opts       = "--codegen javascript"
+-- modules to install
+modules = Category.Transaction.Types
+	  , Category.Transaction.Qty
+	  , Data.Ratio	  
+	  , Category.Transaction.Hom	  
+	  , Category.Transaction.Journal
+	  
+-- main file (i.e. file to load at REPL)
+main = MainUI
+
+-- name of executable
+executable = "ui.js"
+
+--opts = "opts = "--codegen node"
+
+
+-- builddir =
+-- outputdir =
+
+-- script to run before building
+-- prebuild =
+
+-- script to run after building
+-- postbuild =
+
+-- script to run after building, before installing
+-- preinstall =
+
+-- script to run after installing
+-- postinstall =
+
+-- script to run before cleaning
+-- preclean =
+
+-- script to run after cleaning
+-- postclean =
