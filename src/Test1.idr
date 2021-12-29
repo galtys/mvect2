@@ -229,7 +229,7 @@ test_demo2 = do
             | Left (err) => putStrLn $ show err
   printLn ret 
   
-  --reas22 <- execStateT initState (interpret (toWhs   demo_po_so)   )    
+  reas22 <- execStateT initState (interpret (toWhs   demo_po_so)   )    
   
 --  printLn reas
   
