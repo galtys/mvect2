@@ -49,18 +49,18 @@ public export
 Show HType where
   show ht = (show $ ptr ht ) ++ "->"++(show $ val ht) 
 
-public export
-data HCommand : Type -> Type where
-     Store : HType -> String -> HCommand ()
-     Read : TypePtr -> HCommand HType
-     Log : String -> HCommand ()
-     Show : (Show ty) => ty -> HCommand ()
-     LinkError : ty -> HCommand ty
-     DecodeError : ty -> HCommand ty
-     Pure : ty -> HCommand ty
-     Bind : HCommand a -> (a -> HCommand b) -> HCommand b
-
 namespace HCommandDo
+  public export
+  data HCommand : Type -> Type where
+       Store : HType -> String -> HCommand ()
+       Read : TypePtr -> HCommand HType
+       Log : String -> HCommand ()
+       Show : (Show ty) => ty -> HCommand ()
+       LinkError : ty -> HCommand ty
+       DecodeError : ty -> HCommand ty
+       Pure : ty -> HCommand ty
+       Bind : HCommand a -> (a -> HCommand b) -> HCommand b
+
   public export
   (>>=) : HCommand a -> (a -> HCommand b) -> HCommand b
   (>>=) = Bind
@@ -69,6 +69,31 @@ namespace HCommandDo
   (>>) : HCommand () -> HCommand b -> HCommand b
   ma >> mb = Bind ma (\ _ => mb)
 
+
+namespace DirectoryMap
+  public export
+  data DMap : Type -> Type where
+       Store : (x:HType) -> (tag:String) -> DMap ()
+       Read : (x:TypePtr) -> (tag:String) -> DMap HType
+       
+       Insert :ToJSON k=>ToJSON v=> (k:Type)->(v:Type)-> DMap ()
+       ListKeys : String -> DMap (List String)
+       Lookup :ToJSON k=>FromJSON v=>(k:Type)->String-> DMap (Maybe v)
+       Delete :ToJSON k=>(k:Type)->String-> DMap ()
+       --Log : String -> DMap ()
+       Show : (Show ty) => ty -> DMap ()
+       LinkError : ty -> DMap ty
+       DecodeError : ty -> DMap ty
+       Pure : ty -> DMap ty
+       Bind : DMap a -> (a -> DMap b) -> DMap b
+
+  public export
+  (>>=) : DMap a -> (a -> DMap b) -> DMap b
+  (>>=) = Bind
+
+  public export
+  (>>) : DMap () -> DMap b -> DMap b
+  ma >> mb = Bind ma (\ _ => mb)
 
 
 

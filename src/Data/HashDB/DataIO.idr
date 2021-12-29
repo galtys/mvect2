@@ -484,6 +484,21 @@ runHCommand (Bind c f) dir = do
                     res <- runHCommand c dir
                     runHCommand (f res) dir
 
+export 
+runDmap : HasIO io=>MonadError DBError io =>DMap a -> (dir:String)->io a
+runDmap (Store x tag) dir = storeHType x dir
+runDmap (Read x tag) dir = readHType x dir
+runDmap (Insert k v) dir = ?runDmap_rhs_2
+runDmap (ListKeys x) dir = ?runDmap_rhs_3
+runDmap (Lookup k x) dir = ?runDmap_rhs_4
+runDmap (Delete k x) dir = ?runDmap_rhs_5
+runDmap (Show x) dir = printLn $ show x
+runDmap (LinkError x) dir = throwError EHashLink
+runDmap (DecodeError x) dir = throwError (ErrorJS "Error while decoding JS")
+runDmap (Pure val) dir = pure val
+runDmap (Bind c f) dir = do 
+                    res <- runDmap c dir
+                    runDmap (f res) dir
 
 export
 db_runc : HasIO io => MonadError DBError io => io (List String)
