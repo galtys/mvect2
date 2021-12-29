@@ -174,7 +174,7 @@ char *test_sha256_abc(char *s_input)
 
   for (int i=0; i< SHA256_BLOCK_SIZE; i++)
     {
-      sprintf(hex_str, "%02X", buf[i] );
+      sprintf(hex_str, "%02x", buf[i] );
       
       //p_hexdigest[i*2] = hex_str[0]; 
       //p_hexdigest[i*2+1] = hex_str[1]; 
