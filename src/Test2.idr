@@ -15,13 +15,7 @@ import Crypto.Hash.SHA256
 export
 run_interpret_d : HasIO io => MonadError DBError io=>io ()
 run_interpret_d = do  
-     let new_list : HCommand TypePtr
-         new_list = do
-             x <- DBListStr.new DirMap.lt_oje
-             Pure x
-     p_nil <- runHCommand new_list JOURNAL_DIR
-     --printLn p_nil
-     --printLn (sha256 $ encode "journal_head")
+     p_nil <- runHCommand (DirMap.new_list DirMap.lt_oje) JOURNAL_DIR
      ret<-DirectoryMap.insert "journal_head" p_nil STATE_DIR
      
      reas <- execStateT initState (interpret_d demo_po_so_whs)

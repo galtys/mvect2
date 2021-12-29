@@ -426,7 +426,7 @@ namespace DirectoryMap
      pure (filter is_key ret)
      
   export
-  lookup : HasIO io=>ToJSON k=>FromJSON v=>MonadError DBError io =>k->String->io v
+  lookup : HasIO io=>ToJSON k=>FromJSON v=>MonadError DBError io =>k->String->io (Maybe v)
   lookup k dir = do
      let k_e : String
          k_e = encode k
@@ -435,13 +435,13 @@ namespace DirectoryMap
          pth:String
          pth = dir ++ kh
      Right cnt <- readFile pth
-       | Left e => throwError (ELookup (k_e) pth (show e)) --(EIO $show e)
+       | Left e => pure Nothing --throwError (ELookup (k_e) pth (show e)) --(EIO $show e)
      case (decode cnt) of
        Left e => throwError (ErrorJS $show e)
        Right arg => pure (arg)
   export
-  remove : HasIO io=>ToJSON k=>MonadError DBError io =>k->String->io ()
-  remove k dir = do
+  delete : HasIO io=>ToJSON k=>MonadError DBError io =>k->String->io ()
+  delete k dir = do
      let k_e : String
          k_e = encode k
          kh : String
