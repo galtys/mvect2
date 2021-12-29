@@ -75,11 +75,17 @@ namespace DirectoryMap
   data DMap : Type -> Type where
        Store : (x:HType) -> (tag:String) -> DMap ()
        Read : (x:TypePtr) -> (tag:String) -> DMap HType
-       
+       {-       
        Insert :ToJSON k=>ToJSON v=> (k:Type)->(v:Type)-> DMap ()
        ListKeys : String -> DMap (List String)
        Lookup :ToJSON k=>FromJSON v=>(k:Type)->String-> DMap (Maybe v)
        Delete :ToJSON k=>(k:Type)->String-> DMap ()
+       -}
+       Insert :(k:String)->(v:String)-> DMap ()
+       ListKeys : String -> DMap (List String)
+       Lookup :(k:String)->String-> DMap (Maybe String)
+       Delete :(k:String)->String-> DMap ()
+       
        --Log : String -> DMap ()
        Show : (Show ty) => ty -> DMap ()
        LinkError : ty -> DMap ty
