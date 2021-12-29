@@ -163,7 +163,7 @@ char *test_sha256_abc(char *s_input)
   BYTE buf[SHA256_BLOCK_SIZE];
   const int HEX_DIGEST_SIZE =  SHA256_BLOCK_SIZE*2 + 1;
   
-  char *hexdigest = malloc(HEX_DIGEST_SIZE);
+  char *p_hexdigest = malloc(HEX_DIGEST_SIZE);
   
   SHA256_CTX ctx;
   char hex_str[3];
@@ -176,12 +176,14 @@ char *test_sha256_abc(char *s_input)
     {
       sprintf(hex_str, "%02X", buf[i] );
       
-      hexdigest[i*2] = hex_str[0]; 
-      hexdigest[i*2+1] = hex_str[1]; 
+      //p_hexdigest[i*2] = hex_str[0]; 
+      //p_hexdigest[i*2+1] = hex_str[1]; 
+      *(p_hexdigest + (i*2)) = hex_str[0]; 
+      *(p_hexdigest +(i*2+1)) = hex_str[1]; 
       
     }
-  hexdigest[HEX_DIGEST_SIZE] = '\0';
+  *(p_hexdigest+(HEX_DIGEST_SIZE-1)) = '\0';
   
-  return hexdigest;
+  return p_hexdigest;
   
 }
