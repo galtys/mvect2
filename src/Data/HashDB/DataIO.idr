@@ -5,6 +5,7 @@ import Data.HashDB.Types
 import System.Directory
 import System.File.ReadWrite
 import Data.SnocList
+import Data.List
 
 import Control.Monad.Either
 import JSON
@@ -392,24 +393,40 @@ db_test_queue2 = do
   h <- DBQueueStr.head q1
   Show  h
 
+     
 -- IO part  
 namespace DirectoryMap
   export
-  insert : Show k=>HasIO io=>ToJSON k=>ToJSON v=>MonadError DBError io =>k->v->String->io String
+  insert : HasIO io=>ToJSON k=>ToJSON v=>MonadError DBError io =>k->v->String->io String
   insert k v dir = do
      let k_e : String
          k_e = encode k
-         cnt : String
+         cnt : String --cnt : (String,String)
          cnt = encode v
+         
          kh : String
          kh = sha256 k_e
          pth:String
          pth = dir ++ kh
+         pth_k:String
+         pth_k = dir ++ "KEY_"++kh
+         
      Right ret <- writeFile pth cnt
+       | Left e => throwError (EIO $show e)
+     Right ret <- writeFile pth_k k_e
        | Left e => throwError (EIO $show e)
      pure dir
   export
-  lookup : Show k=>HasIO io=>ToJSON k=>FromJSON v=>MonadError DBError io =>k->String->io v
+  list_keys : HasIO io=> MonadError DBError io => String -> io (List String)
+  list_keys dir = do
+     let is_key : String -> Bool
+         is_key x = if length x > 64 then True else False         
+     Right ret <- listDir dir
+       | Left e => throwError (EIO $show e)
+     pure (filter is_key ret)
+     
+  export
+  lookup : HasIO io=>ToJSON k=>FromJSON v=>MonadError DBError io =>k->String->io v
   lookup k dir = do
      let k_e : String
          k_e = encode k
@@ -418,10 +435,10 @@ namespace DirectoryMap
          pth:String
          pth = dir ++ kh
      Right cnt <- readFile pth
-       | Left e => throwError (ELookup (show k) pth (show e)) --(EIO $show e)
+       | Left e => throwError (ELookup (k_e) pth (show e)) --(EIO $show e)
      case (decode cnt) of
        Left e => throwError (ErrorJS $show e)
-       Right arg => pure arg
+       Right arg => pure (arg)
   export
   remove : HasIO io=>ToJSON k=>MonadError DBError io =>k->String->io ()
   remove k dir = do
