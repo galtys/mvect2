@@ -405,14 +405,6 @@ namespace DirectoryMap
          kh = sha256 k_e
          pth:String
          pth = dir ++ kh
-         jh : String
-         jh = "journal_head"
-         --cmp : Bool
-         --cmp = ( k==jh)
-         
-     --printLn (k,k_e,kh,pth)
-     printLn (length $ sha256 $ encode jh, jh)
-     printLn (length $ sha256 $ encode k, k)
      Right ret <- writeFile pth cnt
        | Left e => throwError (EIO $show e)
      pure dir

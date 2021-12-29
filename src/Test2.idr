@@ -21,8 +21,8 @@ run_interpret_d = do
              Pure x
      p_nil <- runHCommand new_list JOURNAL_DIR
      --printLn p_nil
-     printLn (sha256 $ encode "journal_head")
+     --printLn (sha256 $ encode "journal_head")
      ret<-DirectoryMap.insert "journal_head" p_nil STATE_DIR
      
-     --reas <- execStateT initState (interpret_d demo_po_so_whs)
+     reas <- execStateT initState (interpret_d demo_po_so_whs)
      pure ()
