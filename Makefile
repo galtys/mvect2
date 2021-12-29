@@ -9,8 +9,8 @@ libs: wrap_libmongoose.c wrap_libc.c sha256.c
 	cc -shared sha256.c -o libsha256.so
 
 mvect2: mvect2.ipkg
-	idris2 --build mvect2.ipkg
 	#idris2 --build ws_client.ipkg
+	idris2 --build mvect2.ipkg
 
 pjbgen: pjbgen.ipkg
 	idris2 --build pjbgen.ipkg
