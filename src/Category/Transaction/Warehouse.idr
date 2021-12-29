@@ -194,6 +194,12 @@ namespace DirMap
    lt_oje = toType "OwnerJournalEvent"
    lt_whse : HType
    lt_whse = toType "WhsEntry"
+   
+   lt_bom : HType
+   lt_bom = toType "BrowseBoM.RecordModel"
+   lt_product : HType 
+   lt_product = toType "BrowseProduct.RecordModel"
+   
    export
    new_list : (lt:HType)->HCommand TypePtr
    new_list lt = do
@@ -215,6 +221,11 @@ namespace DirMap
                 Pure (ptr new_head)
    read_WhsEntry : (lt:HType) -> TypePtr ->HCommand (Maybe (List WhsEntry))
    read_WhsEntry lt pt = DBList.read pt lt
+   
+   read_BoM : (lt:HType) -> TypePtr ->HCommand (Maybe (List BrowseBoM.RecordModel))
+   read_BoM lt pt = DBList.read pt lt 
+   read_Product : (lt:HType) -> TypePtr ->HCommand (Maybe (List BrowseProduct.RecordModel))
+   read_Product lt pt = DBList.read pt lt 
    
    export
    interpret_d : HasIO io=>MonadError DBError io=>WhsEvent a->StateT SystemState io a--io a
@@ -292,16 +303,33 @@ namespace DirMap
                 put (MkSS fx_map' routes led_map rjm j user_data)
 
    interpret_d (UpdateUserData user_data ) = do
-                (MkSS fx_map routes led_map rjm j udm)<-get
-                let udm' = userDataToMap user_data
-                put (MkSS fx_map routes led_map rjm j udm')
-
+     p_bom_list <- runHCommandST (DBList.write (boms user_data) lt_bom) BOM_DIR
+     p_prod_list <- runHCommandST (DBList.write (products user_data) lt_product) PRODUCT_DIR
+                 
+     ret<-DirectoryMap.insert "BrowseBoM.RecordModel" p_bom_list STATE_DIR
+     ret<-DirectoryMap.insert "BrowseProduct.RecordModel" p_bom_list STATE_DIR        
+     --
+     --
+                
+     --(MkSS fx_map routes led_map rjm j udm)<-get
+     --let udm' = userDataToMap user_data
+     --put (MkSS fx_map routes led_map rjm j udm')
+     pure ()
    interpret_d (GetUserDataW ) = do
-                (MkSS fx_map routes led_map rjm j user_data_map)<-get
-                pure user_data_map
+     --(MkSS fx_map routes led_map rjm j user_data_map)<-get
+     mp_bom<-DirectoryMap.lookup "BrowseBoM.RecordModel" STATE_DIR        
+     mp_prod<-DirectoryMap.lookup "BrowseProduct.RecordModel" STATE_DIR        
+     case (mp_bom,mp_prod) of 
+        (Just p_bom,Just p_prod) => do
+           mb <- runHCommandST (read_BoM lt_bom p_bom) BOM_DIR
+           mp <- runHCommandST (read_Product lt_product p_prod) PRODUCT_DIR
+           case (mb,mp) of 
+              (Just xb,Just xp) => pure (userDataToMap (MkUD xp [] xb []))
+              _ => pure (userDataToMap (MkUD [] [] [] []))
+        _ => pure (userDataToMap (MkUD [] [] [] []))
 
    interpret_d (CloseRoute route_ref@(MkRK date ref state)   ) = do     
-               (MkSS fx_map routes led_map rjm j user_data_map)<-get
+               --(MkSS fx_map routes led_map rjm j user_data_map)<-get
                {-
                case lookup route_ref routes of
                  Nothing => pure ()
