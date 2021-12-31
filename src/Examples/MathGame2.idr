@@ -12,8 +12,12 @@ import Rhone.JS
 import System.Random
 import Text.CSS
 
+import Data.Ratio
+import Category.Transaction.Types
+
+
 %language ElabReflection
-%default total
+--%default total
 data Language = EN | DE
 
 %runElab derive "Language" [Generic,Meta,Show,Eq]
@@ -248,3 +252,74 @@ ui = do
   innerHtmlAt exampleDiv (content EN)
   ini <- randomGame EN
   pure (feedback ini (fromState msf), pure ())
+
+
+toDx : String -> String -> Node Ev
+toDx k dx =tr [] [td [] [fromString k], td [] [fromString dx], td [] [] ] 
+toCx : String -> String -> Node Ev
+toCx k cx =tr [] [td [] [fromString k], td [] [], td [] [fromString cx] ] 
+
+f2 : ProdKey -> String -> Node Ev
+f2 ((PKCy DX z)) y= toDx (show z) y
+f2 ((PKCy CX z)) y= toCx (show z) y
+f2 ((PKUser DX z)) y= toDx (show z) y
+f2 ((PKUser CX z)) y= toCx (show z) y
+f2 ((PK32 DX z)) y= toDx (show z) y
+f2 ((PK32 CX z)) y= toCx (show z) y
+f2 ((PKPrice DX z w)) y= toDx (show z++" "++show w) y
+f2 ((PKPrice CX z w)) y= toCx (show z++" "++show w) y
+f2 ((FromInteger DX)) y= toDx "Int" y
+f2 ((FromInteger CX)) y= toCx "Int" y
+
+f : Product  -> Node Ev
+f (k,v) = f2 k (show v)
+
+fProduct2 : Product2 -> Node Ev
+fProduct2 (x, y) = f2 x (show y)
+
+{-
+f ((PKCy DX z), y) = toDx (show z) (show y)
+f ((PKCy CX z), y) = toCx (show z) (show y)
+f ((PKUser DX z), y) = toDx (show z) (show y)
+f ((PKUser CX z), y) = toCx (show z) (show y)
+f ((PK32 DX z), y) = toDx (show z) (show y)
+f ((PK32 CX z), y) = toCx (show z) (show y)
+f ((PKPrice DX z w), y) = toDx (show z++" "++show w) (show y)
+f ((PKPrice CX z w), y) = toCx (show z++" "++show w) (show y)
+f ((FromInteger DX), y) = toDx "Int" (show y)
+f ((FromInteger CX), y) = toCx "Int" (show y)
+-}
+
+muf : Hom1 -> Node Ev
+muf xs = tbody [] (map f xs) 
+
+show_Hom1 : Hom1 -> Node Ev
+show_Hom1 dx1 =
+  table [ class "hover" ]
+        [ thead []
+                [tr [] 
+                   [ th [Str "width" "200"] ["ProdKey"]
+                   , th [Str "width" "50"]  ["DX"] 
+                   , th [Str "width" "50"]  ["CX"] ]]
+        , (muf dx1)                       
+      ]
+dx1 : Hom1 
+dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]
+
+
+export
+ui_t : M (MSF M Ev (), JSIO ())
+ui_t = do
+  innerHtmlAt exampleDiv (content EN)
+  ini <- randomGame EN
+  pure (feedback ini (fromState msf), pure ())
+
+{-
+export
+ui_t : M (MSF M Ev (), JSIO ())
+ui_t = innerHtmlAt exampleDiv (show_Hom1 dx1) $> (msf, pure ())
+-}
+
+-- Local Variables:
+-- idris2-load-packages: ("contrib" "base" "rhone-js" "base" "contrib" "sop" "elab-util" "dom" "json" "rhone" "tailrec")
+-- End:
