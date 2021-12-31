@@ -12,4 +12,4 @@ main = do
    consoleLog "ocas"
    consoleLog $ sha256 "ocas"
    consoleLog $ render content
-   runJS . ignore $ reactimateDomIni "balls" "select" ui
+   runJS . ignore $ reactimateDomIni "table" "select" ui

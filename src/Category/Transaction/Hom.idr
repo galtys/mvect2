@@ -254,6 +254,10 @@ negateHom11 (MkH11 dx cx) = MkH11 (invHom1 dx) (invHom1 cx)
 multHom11 : Hom11 -> Hom11 -> Hom11
 multHom11 x y = MkH11 [] []
 
+export
+toHom1 : Hom11 -> Hom1
+toHom1 (MkH11 dx cx) = dx++cx
+
 
 export
 filterZero : Hom1 -> Hom1

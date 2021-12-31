@@ -51,13 +51,23 @@ upon loading the page.
 export
 allRules : String
 allRules =  fastUnlines . map render
+         $ Balls.css
+         ++ Fractals.css
+         ++ MathGame.css
+         ++ Performance.css
+         ++ Reset.css
+```
+
+export
+allRules : String
+allRules =  fastUnlines . map render
          $  coreCSS
          ++ Balls.css
          ++ Fractals.css
          ++ MathGame.css
          ++ Performance.css
          ++ Reset.css
-```
+
 
 <!-- vi: filetype=idris2
 -->

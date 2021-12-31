@@ -102,18 +102,49 @@ widgetLabel = "widgetlabel"
 --          Rules
 --------------------------------------------------------------------------------
 
+lucida : String
+lucida_grande = "Lucida Grande"
+fx_event : String
+fx_event = "fx_event"
+
+row_hover : Color
+row_hover = rgb 221 221 221  --#ddd
+font_color : Color
+font_color = rgb 64 64 64 --#404040
+bg_color : Color
+bg_color = rgb 238 238 238 --#EEEEEE
+
 export
 coreCSS : List (Rule 1)
 coreCSS =
   [ elem Html !!
-      [ Height          .= perc 100]
-
+      [ Height          .= perc 99]
+       
+  , class fx_event !!
+      [ BorderCollapse .= Collapse
+      , Width          .= perc 100 ]
+  , Pseudo (class fx_event) Hover !!
+      [ BackgroundColor .= row_hover ]
+  , Many [Class fx_event,Elem Td] !!
+      [  Padding         .= All (em 0.2)
+      ,  BorderStyle     .= Bottom Solid
+      ,  BorderWidth     .= Bottom (px 1)
+      ,  BorderColor     .= Bottom row_hover ]
+  , Many [Class fx_event,Elem Th] !!
+      [  Padding         .= Top (em 0.2)
+      ,  Padding         .= Bottom (em 0.2)
+      ,  BackgroundColor .= bg_color
+      ,  TextAlign       .= Left 
+      ,  BorderStyle     .= Bottom Solid
+      ,  BorderWidth     .= Bottom (px 1)
+      ,  BorderColor     .= Bottom bg_color]
+       
   , elem Body !!
-      [ BackgroundColor .= black
+      [ BackgroundColor .= bg_color
       , Color           .= base100
       , Display         .= Flex
       , FlexDirection   .= Column
-      , FontFamily      .= "Helvetica, Arial, sans-serif"
+      , FontFamily      .= "\{show lucida_grande}, Helvetica, Verdana, Arial, sans-serif;"
       , Height          .= perc 100
       , Margin          .= px 0
       ]

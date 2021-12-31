@@ -2,11 +2,29 @@
 <html>
  <head>
    <meta charset='utf-8'>
-   <link rel="stylesheet" href="src/css/border_fix.css">
-  <style id='appstyle'></style>
+<!--   <link rel="stylesheet" href="src/css/border_fix.css"> -->
+   <link rel="stylesheet" href="lib/foundation/css/foundation.css">
+   <link rel="stylesheet" href="lib/foundation/css/app.css">
+   <style id='appstyle'></style>
+   <style>
+     .menu {
+	 background: #333;
+	 li {
+	     background: #333;
+	     &:hover {
+		 background: lighten(#333,10%);
+	     }
+	 }
+	 a {
+	     color: #fff;
+	 }
+     }
+   </style>
+   
  </head>
  <body id='content'>
    <!--<script type='text/javascript' src='js/rhonejs.js'></script> -->
+   
    <script type='text/javascript' src='src/js/sha256.js'></script>
    <script type='text/javascript' src='build/exec/ui.js'></script>
    

@@ -25,7 +25,10 @@
 
 /*.customers tr:nth-child(even){background-color: #f2f2f2;}*/
 
-.customers tr:hover {background-color: #ddd;}
+/* .customers tr:hover {background-color: #dddddd;} */
+.customers tr:hover {
+    background-color: rgb(221,221,221);
+}
 
 .customers th {
   padding-top: 0.2em;
