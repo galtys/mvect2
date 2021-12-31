@@ -18,7 +18,9 @@ stdenv.mkDerivation {
     sass
     nodejs
      (with nodePackages; [
-                    browserify
+       browserify
+       js-beautify
+       
      ])
     #SDL2.dev
     zulip.out

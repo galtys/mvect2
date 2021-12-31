@@ -1,0 +1,77 @@
+html{height: 100%;}
+body{background-color: rgba(0,0,0,100%);color: rgba(230,115,0,100%);display: flex;flex-direction: column;font-family: Helvetica, Arial, sans-serif;height: 100%;margin: 0px;}
+.contentList{align-self: center;background-color: hsla(0,0%,10%,100%);display: flex;flex: 1;flex-direction: column;justify-content: flex-start;padding: 0px 20pt;min-width: 80%;}
+.pageTitle{border-bottom-style: solid;border-bottom-width: 5px;border-bottom-color: rgba(230,138,46,100%);font-size: x-large;padding: 40px 0px;text-align: center;}
+.contentHeader{display: grid;column-gap: 10px;grid-template-columns: 170px 1fr 3fr;border-bottom-style: solid;border-bottom-width: 2px;border-bottom-color: rgba(230,138,46,100%);padding: 30px 10px;}
+.widget{background-color: hsla(0,0%,70%,100%);border-radius: 8px;border-style: solid;border-width: 2px;border-color: rgba(0,115,230,100%);color: hsla(0,0%,10%,100%);font-size: large;padding: 3px;}
+.widget:hover{background-color: hsla(0,0%,90%,100%);border-color: rgba(92,161,230,100%);}
+.widget:active{background-color: hsla(0,0%,90%,100%);border-color: rgba(92,161,230,100%);}
+.widget:focus-visible{background-color: hsla(0,0%,90%,100%);border-color: rgba(92,161,230,100%);}
+.widget:disabled{background-color: hsla(0,0%,50%,100%);border-color: hsla(0,0%,30%,100%);}
+.textin{text-align: end;}
+.selectin{text-align: end;}
+.example_selector{font-size: large;grid-column: 2;}
+.widget:invalid{border-color: rgba(255,0,0,100%);}
+.widgetList{list-style-type: none;display: flex;flex-direction: column;justify-content: flex-start;}
+.widgetline{align-items: flex-start;display: flex;margin-bottom: 5px;}
+.widgetlabel{font-size: large;}
+@media (min-width: 300px){.balls_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content; grid-template-areas: "LNum INum" ". BRun" "LFPS LFPS" "Anim Anim";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+@media (min-width: 800px){.balls_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content 1fr; grid-template-areas: "LNum INum Anim" ". BRun Anim" "LFPS LFPS Anim" ". . Anim";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+.balls_lblcount{grid-area: LNum;}
+#balls_numballs{grid-area: INum;text-align: end;}
+#balls_run{grid-area: BRun;}
+#balls_log{grid-area: LFPS;}
+#balls_out{justify-self: center;grid-area: Anim;max-width: 500px;width: 500px;}
+@media (min-width: 300px){.fractals_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content; grid-template-areas: "LIter IIter" "LDel IDel" ". BRun" "Fract Fract";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+@media (min-width: 800px){.fractals_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content 1fr; grid-template-areas: "LIter IIter Fract" "LDel IDel Fract" ". BRun Fract" ". . Fract";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+.fractals_lbliter{grid-area: LIter;}
+#fractals_iterations{grid-area: IIter;text-align: end;}
+.fractals_lbldelay{grid-area: LDel;}
+#fractals_redrawdelay{grid-area: IDel;text-align: end;}
+#fractals_run{grid-area: BRun;}
+#fractals_out{justify-self: center;grid-area: Fract;border-left-style: solid;border-left-width: 2px;border-left-color: rgba(230,138,46,100%);max-width: 500px;width: 500px;}
+
+
+@media (min-width: 300px){.mathgame_content{display: grid; grid-template-rows: min-content min-content min-content min-content min-content min-content; grid-template-columns: max-content max-content; grid-template-areas: "LLan ILan" "OClc IRes" ". BChk" ". BNew" "ORep ORep" "OPic OPic";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+@media (min-width: 800px){.mathgame_content{display: grid; grid-template-rows: min-content min-content min-content min-content min-content min-content; grid-template-columns: max-content max-content 1fr; grid-template-areas: "LLan ILan OPic" "OClc IRes OPic" ". BChk OPic" ". BNew OPic" "ORep ORep OPic" ". . OPic";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+.mathgame_lbllang{grid-area: LLan;}
+#mathgame_language{grid-area: ILan;font-size: large;text-align: end;}
+#mathgame_calc{grid-area: OClc;font-size: large;text-align: start;}
+#mathgame_input{grid-area: IRes;font-size: large;text-align: end;}
+#mathgame_check_btn{grid-area: BChk;}
+#mathgame_newbtn{grid-area: BNew;}
+#mathgame_out{grid-area: ORep;font-size: large;text-align: start;}
+#mathgame_pic{background-size: 100%;justify-self: center;grid-area: OPic;max-width: 500px;width: 500px;}
+.correct{color: rgba(0,128,0,100%);}
+.wrong{color: rgba(255,0,0,100%);}
+
+
+
+@media (min-width: 300px){.performance_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content 1fr max-content; grid-template-areas: "LBtn NBtn BRun" "LSum OSum OSum" "OTme OTme OTme" "Btns Btns Btns";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+@media (min-width: 800px){.performance_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content max-content 1fr; grid-template-areas: "LBtn NBtn BRun Btns" "LSum OSum OSum Btns" "OTme OTme OTme Btns" ". . . Btns";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+}
+.performance_numbuttonslbl{grid-area: LBtn;}
+#performance_numbuttons{grid-area: NBtn;text-align: end;}
+#performance_run{grid-area: BRun;}
+.performance_sumlbl{grid-area: LSum;}
+#performance_sum{grid-area: OSum;font-size: large;}
+#performance_time{grid-area: OTme;}
+#performance_buttons{grid-area: Btns;border-left-style: solid;border-left-width: 2px;border-left-color: rgba(230,138,46,100%);padding-left: 10px;}
+.performance_grid{display: flex;flex-wrap: wrap;}
+.performance_inc{flex-basis: 5%;font-size: xx-small;}
+.reset_content{display: grid; grid-template-rows: min-content min-content min-content min-content; grid-template-columns: max-content max-content; grid-template-areas: "LRes BRes" "LInc BInc" "LDec BDec" "LCnt OCnt";column-gap: 10px;row-gap: 10px;padding: 20px 10px;}
+.reset_resetlbl{grid-area: LRes;}
+#reset_reset{grid-area: BRes;}
+.reset_inclbl{grid-area: LInc;}
+#reset_inc{grid-area: BInc;}
+.reset_declbl{grid-area: LDec;}
+#reset_dec{grid-area: BDec;}
+.reset_countlbl{grid-area: LCnt;}
+#reset_out{font-size: large;grid-area: OCnt;text-align: end;}
