@@ -66,7 +66,18 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 
 
 public export
-data ProdKey = PKCy DxCx Currency | PKUser DxCx String | PK32 DxCx Bits32 | PKPrice DxCx Currency TaxCode | FromInteger DxCx --|PKAppl ProdKey ProdKey
+data ProdKey : Type where
+   PKCy:   (dcx:DxCx) ->  (cy:Currency) -> ProdKey
+   PKUser: (dcx:DxCx) ->  (u:String)   -> ProdKey
+   PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> ProdKey
+   PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> ProdKey
+   FromInteger: (dcx:DxCx) -> ProdKey
+   
+   --|PKAppl ProdKey Nat --ProdKey
+
+
+
+
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 
