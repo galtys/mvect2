@@ -54,6 +54,12 @@ import Category.Transaction.Warehouse
 import Category.Transaction.Demo2
 import Control.Monad.Either
 
+import Examples.Selector
+import Rhone.JS
+import Crypto.Hash.SHA256
+import Text.Html
+import Examples.CSS
+
 %ambiguity_depth 10
 
 json_result : String
@@ -324,7 +330,9 @@ main : IO ()
 main = do
   --test_libc_time
   --pjb_test
-  test_demo2
+  --test_demo2
+  --putStrLn $ Html.render Selector.content
+  putStrLn CSS.allRules
   --x <- muf_3_bom
   --traverse_ printLn x
   --pjb_test

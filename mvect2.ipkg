@@ -20,6 +20,9 @@ depends = base >= 0.5.1
 	, dom >= 0.1.0
 	, pq >= 0.0.1
 	, json >= 0.5.0
+	, rhone >= 0.0.1
+	, tailrec >= 0.1.0
+	, rhone-js >= 0.0.1
 
 -- modules to install
 modules = Web.Mongoose.Types
