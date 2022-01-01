@@ -164,8 +164,8 @@ toQLine (MkHom12 dx appl) = ret where
   ret = retA ret1
 
 public export
-grpbyQLine : HomQLine -> List (List (List1 QLine))
-grpbyQLine xs = ret3 where
+grpbyQLine : HomQLine -> HomQLine --List (List QLine)
+grpbyQLine xs = concat ret6 where
    eqx : QLine -> QLine -> Bool
    eqx a b = ((dxpk a)==(dxpk b)) && ((cxpk a)==(cxpk b))
    eqp : QLine -> QLine -> Bool
@@ -173,10 +173,33 @@ grpbyQLine xs = ret3 where
    ret : List (List1 QLine)
    ret = groupBy eqx xs
    ret2 : List (List QLine)
-   ret2 = map init ret   
-   ret3 : List (List (List1 QLine))
-   ret3 = map (groupBy eqp) ret2
-
+   ret2 = map init ret
+   {-   
+   ret3 : List (List (List QLine))
+   ret3 = map (  (map init) . (groupBy eqp) ) ret2
+   -}
+   muf1 : List1 QLine -> QLine
+   muf1 xs = addq (head xs) c where
+      c : EQty
+      c = sum (map q xs)
+      addq : QLine -> EQty -> QLine
+      addq (MkQL dxpk q cxpk price) y = (MkQL dxpk (q+y) cxpk price)
+        
+   ret4 : List QLine -> List (Bits8, QLine)
+   ret4 xs = [ (cast x,y) | (x,y) <- (zip [1..(length xs)] xs)]
+   
+   add8 : (Bits8,QLine) -> QLine
+   add8 (y, (MkQL dxpk q cxpk price)) = (MkQL (ProdKey.addBits8 dxpk y) q (ProdKey.addBits8 cxpk y) price)   
+   
+   ret5 : List (Bits8, QLine) -> List QLine
+   ret5 xs = map add8 xs
+   
+   ret3 : List (List QLine)
+   ret3 = map (  (map muf1) . (groupBy eqp) ) ret2
+   
+   ret6 : List (List QLine)
+   ret6 = map (  ret5 . ret4  ) ret3
+      
 public export  
 applyHom2Tax : Hom2 -> Hom1 -> Hom1
 applyHom2Tax h2 p = ret where

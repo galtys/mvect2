@@ -71,10 +71,6 @@ namespace ProdKey
   One : Maybe Bits8
   One = Nothing
   
-  nextPriceVar : Maybe Bits8 -> Maybe Bits8
-  nextPriceVar Nothing = Just 1
-  nextPriceVar (Just x) = Just (x+1)
-  
   public export
   data ProdKey : Type where
      PKCy:   (dcx:DxCx) ->  (cy:Currency) -> (v:Maybe Bits8) -> ProdKey
@@ -83,6 +79,20 @@ namespace ProdKey
      PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> (v:Maybe Bits8)->ProdKey
      FromInteger: (dcx:DxCx) -> (v:Maybe Bits8)->ProdKey
   %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+  
+  addM8 : Maybe Bits8 -> Bits8 -> Maybe Bits8
+  addM8 Nothing y = Just y
+  addM8 (Just x) y = Just (x+y)
+  
+  export
+  addBits8 : ProdKey -> Bits8 -> ProdKey
+  addBits8 (PKCy dcx cy v) y = (PKCy dcx cy (addM8 v y) )
+  addBits8 (PKUser dcx u v) y = (PKUser dcx u (addM8 v y))
+  addBits8 (PK32 dcx pk v) y = (PK32 dcx pk (addM8 v y))
+  addBits8 (PKPrice dcx cy tax v) y = (PKPrice dcx cy tax (addM8 v y))
+  addBits8 (FromInteger dcx v) y = (FromInteger dcx (addM8 v y))
+  
+  
   export
   PKIntOne : ProdKey
   PKIntOne = FromInteger DX One
