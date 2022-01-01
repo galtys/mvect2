@@ -149,6 +149,33 @@ applyHom2 h2 p = ret where
   ret : Hom1
   ret = (ev_ret1 ret1)
 
+public export
+toQLine : Hom12 -> HomQLine
+toQLine (MkHom12 dx appl) = ret where
+  ret1 : List (ProdKey, EQty,Maybe Product)
+  ret1 = [ (fst x, snd x, lookup (fst x) appl) | x <- dx ]
+   
+  retA : List (ProdKey, EQty,Maybe Product) -> HomQLine
+  retA [] = []
+  retA ((x, (y, Nothing)) :: xs) = retA xs
+  retA ((dx, (q, (Just z))) :: xs) = [MkQL dx q (fst z) (snd z)]++(retA xs)
+  
+  ret : HomQLine
+  ret = retA ret1
+
+public export
+grpbyQLine : HomQLine -> List (List (List1 QLine))
+grpbyQLine xs = ret3 where
+   eqx : QLine -> QLine -> Bool
+   eqx a b = ((dxpk a)==(dxpk b)) && ((cxpk a)==(cxpk b))
+   eqp : QLine -> QLine -> Bool
+   eqp a b = ((price a)==(price b))   
+   ret : List (List1 QLine)
+   ret = groupBy eqx xs
+   ret2 : List (List QLine)
+   ret2 = map init ret   
+   ret3 : List (List (List1 QLine))
+   ret3 = map (groupBy eqp) ret2
 
 public export  
 applyHom2Tax : Hom2 -> Hom1 -> Hom1

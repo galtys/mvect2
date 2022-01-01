@@ -68,16 +68,21 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 
 namespace ProdKey
   export
-  One : Bits8
-  One = 1
+  One : Maybe Bits8
+  One = Nothing
+  
+  nextPriceVar : Maybe Bits8 -> Maybe Bits8
+  nextPriceVar Nothing = Just 1
+  nextPriceVar (Just x) = Just (x+1)
   
   public export
   data ProdKey : Type where
-     PKCy:   (dcx:DxCx) ->  (cy:Currency) -> (v:Bits8) -> ProdKey
-     PKUser: (dcx:DxCx) ->  (u:String)   ->  (v:Bits8) -> ProdKey
-     PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> (v:Bits8) -> ProdKey
-     PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> (v:Bits8)->ProdKey
-     FromInteger: (dcx:DxCx) -> (v:Bits8)->ProdKey
+     PKCy:   (dcx:DxCx) ->  (cy:Currency) -> (v:Maybe Bits8) -> ProdKey
+     PKUser: (dcx:DxCx) ->  (u:String)   ->  (v:Maybe Bits8) -> ProdKey
+     PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> (v:Maybe Bits8) -> ProdKey
+     PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> (v:Maybe Bits8)->ProdKey
+     FromInteger: (dcx:DxCx) -> (v:Maybe Bits8)->ProdKey
+  %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
   export
   PKIntOne : ProdKey
   PKIntOne = FromInteger DX One
@@ -101,7 +106,7 @@ namespace ProdKey
   pkPriceTA: Currency -> ProdKey
   pkPriceTA cy = ProdKey.PKPrice CX cy TAXAMOUNT ProdKey.One
   
-%runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+
 
 
 
@@ -139,6 +144,28 @@ data BoM32 : Type where
 public export
 Product : Type
 Product = (ProdKey, EQty)
+public export
+Product2 : Type
+Product2 = (ProdKey, Product) --CurrencyProd)
+
+public export
+record QLine where
+  constructor MkQL
+  dxpk : ProdKey
+  q  : EQty
+  cxpk : ProdKey
+  price : EQty
+%runElab derive "QLine" [Generic, Meta, Show, Eq,Ord,RecordToJSON,RecordFromJSON]
+
+public export
+HomQLine : Type
+HomQLine = List QLine
+
+{-
+public export
+ProductLine : Type
+ProductLine = (QLine,EQty)
+-}
 
 export  
 toINC20 : Double -> Product
@@ -174,9 +201,6 @@ public export
 THom : Type
 THom = List TProduct
 -}
-public export
-Product2 : Type
-Product2 = (ProdKey, Product) --CurrencyProd)
 
 
 public export
@@ -194,6 +218,11 @@ public export
 emptyHom11 : Hom11
 emptyHom11 = MkH11 [] []   
 
+public export
+record Hom12 where
+   constructor MkHom12
+   dx:Hom1
+   appl:Hom2
 
 public export
 record Hom121 where
