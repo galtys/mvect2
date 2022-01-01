@@ -157,9 +157,20 @@ record QLine where
   price : EQty
 %runElab derive "QLine" [Generic, Meta, Show, Eq,Ord,RecordToJSON,RecordFromJSON]
 
+
 public export
 HomQLine : Type
 HomQLine = List QLine
+
+export
+demoQL : HomQLine
+demoQL = ret where
+   muf : ProdKey -> EQty -> EQty -> QLine
+   muf dxpk q p = (MkQL dxpk q (pkPriceEX20 GBP) p)
+   
+   ret : HomQLine
+   ret = [muf (pk32DX 1) 2 10, muf (pk32DX 1) 3 10, muf (pk32DX 1) 7 11, muf (pk32DX 2) 4 9, muf (pk32DX 3) 9 13] 
+
 
 {-
 public export
