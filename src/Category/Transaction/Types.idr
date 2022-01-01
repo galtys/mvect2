@@ -17,6 +17,8 @@ Date : Type
 Date = String --DateTime --String
 -}
 
+
+
 public export
 data TreeB = Leaf String | Node TreeB String TreeB
 %runElab derive "TreeB" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
@@ -64,31 +66,52 @@ toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
 --get_tc_prodkey : List TaxCode -> Currency -> ProdKey
 --get_tc_prodkey xs cy = PKTax cy (concat [(show x) | x <- xs] )
 
-
-public export
-data ProdKey : Type where
-   PKCy:   (dcx:DxCx) ->  (cy:Currency) -> ProdKey
-   PKUser: (dcx:DxCx) ->  (u:String)   -> ProdKey
-   PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> ProdKey
-   PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> ProdKey
-   FromInteger: (dcx:DxCx) -> ProdKey
-   
+namespace ProdKey
+  export
+  One : Bits8
+  One = 1
+  
+  public export
+  data ProdKey : Type where
+     PKCy:   (dcx:DxCx) ->  (cy:Currency) -> (v:Bits8) -> ProdKey
+     PKUser: (dcx:DxCx) ->  (u:String)   ->  (v:Bits8) -> ProdKey
+     PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> (v:Bits8) -> ProdKey
+     PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> (v:Bits8)->ProdKey
+     FromInteger: (dcx:DxCx) -> (v:Bits8)->ProdKey
+  export
+  PKIntOne : ProdKey
+  PKIntOne = FromInteger DX One
+  
    --|PKAppl ProdKey Nat --ProdKey
+  export
+  pkFromInteger : Integer -> List (ProdKey,EQty) --Product
+  pkFromInteger x = ?dss
 
-
-
-
+  export
+  pk32DX : Bits32 -> ProdKey
+  pk32DX x = PK32 DX x ProdKey.One
+  
+  export
+  pkPriceEX20 : Currency -> ProdKey
+  pkPriceEX20 cy = ProdKey.PKPrice CX cy EX20 ProdKey.One
+  export
+  pkPriceINC20 : Currency -> ProdKey
+  pkPriceINC20 cy = ProdKey.PKPrice CX cy INC20 ProdKey.One
+  export
+  pkPriceTA: Currency -> ProdKey
+  pkPriceTA cy = ProdKey.PKPrice CX cy TAXAMOUNT ProdKey.One
+  
 %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
 
 
 
 export
 taxCodeFromKey : ProdKey -> TaxCode
-taxCodeFromKey (PKCy x y) = ERROR
-taxCodeFromKey (PKUser x y) = ERROR
-taxCodeFromKey (PK32 x y) = ERROR
-taxCodeFromKey (PKPrice x y z) = z
-taxCodeFromKey (FromInteger x) = ERROR
+taxCodeFromKey (PKCy x y v) = ERROR
+taxCodeFromKey (PKUser x y v) = ERROR
+taxCodeFromKey (PK32 x y v) = ERROR
+taxCodeFromKey (PKPrice x y z v) = z
+taxCodeFromKey (FromInteger x v) = ERROR
 {-
 export
 currencyFromKey : ProdKey -> Maybe Currency
@@ -100,11 +123,11 @@ currencyFromKey (FromInteger x) = Nothing
 -}
 export
 toTaxAmountKey : ProdKey -> ProdKey
-toTaxAmountKey (PKCy x y) = PKCy x y
-toTaxAmountKey (PKUser x y) = PKUser x y
-toTaxAmountKey (PK32 x y) = PK32 x y
-toTaxAmountKey (PKPrice x y z) = PKPrice x y TAXAMOUNT
-toTaxAmountKey (FromInteger x) = FromInteger x
+toTaxAmountKey (PKCy x y v) = PKCy x y v
+toTaxAmountKey (PKUser x y v) = PKUser x y v
+toTaxAmountKey (PK32 x y v) = PK32 x y v
+toTaxAmountKey (PKPrice x y z v) = PKPrice x y TAXAMOUNT v
+toTaxAmountKey (FromInteger x v) = FromInteger x v
 
 
 public export
@@ -119,16 +142,16 @@ Product = (ProdKey, EQty)
 
 export  
 toINC20 : Double -> Product
-toINC20 x = (PKPrice CX GBP INC20, (cast x))     --MkPrice INC20 (cast x) 
+toINC20 x = (PKPrice CX GBP INC20 One, (cast x))     --MkPrice INC20 (cast x) 
 export
 fromPrice : Product -> Double
 fromPrice (x,y) = cast y   --(MkPrice tax x) = (cast x)
 export
 toEX20 : Double -> Product
-toEX20 x = (PKPrice CX GBP EX20, (cast x))  --MkPrice EX20 (cast x) 
+toEX20 x = (PKPrice CX GBP EX20 One, (cast x))  --MkPrice EX20 (cast x) 
 export
 toTaxA : Double -> Product
-toTaxA x = (PKPrice CX GBP TAXAMOUNT, (cast x))  --MkPrice TAXAMOUNT (cast x) 
+toTaxA x = (PKPrice CX GBP TAXAMOUNT One, (cast x))  --MkPrice TAXAMOUNT (cast x) 
 
 public export
 Cast Product Double where
@@ -140,8 +163,8 @@ Cast Product EQty where
 public export
 FromString ProdKey where
    fromString s = case toCurrency s of
-           Nothing => PKUser DX s
-           Just cy => PKCy CX cy
+           Nothing => PKUser DX s One
+           Just cy => PKCy CX cy One
            
 public export
 Hom1 : Type

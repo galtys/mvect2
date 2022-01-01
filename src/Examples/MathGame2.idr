@@ -260,16 +260,16 @@ toCx : String -> String -> Node Ev
 toCx k cx =tr [] [td [] [fromString k], td [] [], td [] [fromString cx] ] 
 
 f2 : ProdKey -> String -> Node Ev
-f2 ((PKCy DX z)) y= toDx (show z) y
-f2 ((PKCy CX z)) y= toCx (show z) y
-f2 ((PKUser DX z)) y= toDx (show z) y
-f2 ((PKUser CX z)) y= toCx (show z) y
-f2 ((PK32 DX z)) y= toDx (show z) y
-f2 ((PK32 CX z)) y= toCx (show z) y
-f2 ((PKPrice DX z w)) y= toDx (show z++" "++show w) y
-f2 ((PKPrice CX z w)) y= toCx (show z++" "++show w) y
-f2 ((FromInteger DX)) y= toDx "Int" y
-f2 ((FromInteger CX)) y= toCx "Int" y
+f2 ((PKCy DX z v)) y= toDx (show z) y
+f2 ((PKCy CX z v)) y= toCx (show z) y
+f2 ((PKUser DX z v)) y= toDx (show z) y
+f2 ((PKUser CX z v)) y= toCx (show z) y
+f2 ((PK32 DX z v)) y= toDx (show z) y
+f2 ((PK32 CX z v)) y= toCx (show z) y
+f2 ((PKPrice DX z w v)) y= toDx (show z++" "++show w) y
+f2 ((PKPrice CX z w v)) y= toCx (show z++" "++show w) y
+f2 ((FromInteger DX v)) y= toDx "Int" y
+f2 ((FromInteger CX v)) y= toCx "Int" y
 
 f : Product  -> Node Ev
 f (k,v) = f2 k (show v)
@@ -304,7 +304,7 @@ show_Hom1 dx1 =
         , (muf dx1)                       
       ]
 dx1 : Hom1 
-dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]
+dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]
 
 
 export

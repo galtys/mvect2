@@ -11,15 +11,15 @@ make_bom pk_ qty_ boms p_id= MkRecordModel {pk=pk_,product_qty=qty_,bom_id=Nothi
 make_prod : Bits32->String->EQty->String -> BrowseProduct.RecordModel
 make_prod pk_ name_ price sku = MkRecordModel 
           {pk=pk_,
-           product_tmpl_id=[MkRecordModel {pk=pk_,name=name_,list_price = Just (PKPrice CX GBP INC20, price)}], 
-           trade = Just (PKPrice CX GBP EX20, price*0.7), 
-           retail = Just (PKPrice CX GBP INC20, price*1.1), 
-           contract = Just (PKPrice CX GBP EX20, price*0.9), 
+           product_tmpl_id=[MkRecordModel {pk=pk_,name=name_,list_price = Just (pkPriceINC20 GBP, price)}], 
+           trade = Just (pkPriceEX20 GBP, price*0.7), 
+           retail = Just (pkPriceINC20 GBP, price*1.1), 
+           contract = Just (pkPriceEX20 GBP, price*0.9), 
            default_code =sku }
 export           
 trade_price : Maybe BrowseProduct.RecordModel -> Product
-trade_price Nothing = (PKPrice CX GBP EX20, 0)
-trade_price (Just (MkRecordModel pk product_tmpl_id Nothing retail contract default_code)) = (PKPrice CX GBP EX20, 0)
+trade_price Nothing = (pkPriceEX20 GBP, 0)
+trade_price (Just (MkRecordModel pk product_tmpl_id Nothing retail contract default_code)) = (pkPriceEX20 GBP, 0)
 trade_price (Just (MkRecordModel pk product_tmpl_id (Just x) retail contract default_code)) = x
 
 export
@@ -74,11 +74,11 @@ make_order pk_ d_ lines de_ = ret where
          order_policy = "manual", 
          date_order = d_,--"2021-11-18", 
          partner_id = 1, 
-         amount_tax = (PKPrice CX GBP TAXAMOUNT,833), --MkPrice { tax = TAXAMOUNT, price = 833 }, 
+         amount_tax = (pkPriceTA GBP,833), --MkPrice { tax = TAXAMOUNT, price = 833 }, 
          state = "manual", 
          partner_invoice_id = 1, 
-         amount_untaxed = (PKPrice CX GBP EX20, 4165), --MkPrice { tax = EX20, price = 4165 }, 
-         amount_total = (PKPrice CX GBP INC20, 4998), --MkPrice { tax = INC20, price = 4998 }, 
+         amount_untaxed = (pkPriceEX20 GBP, 4165), --MkPrice { tax = EX20, price = 4165 }, 
+         amount_total = (pkPriceINC20 GBP, 4998), --MkPrice { tax = INC20, price = 4998 }, 
          name = #"XO000\#{show pk_}"#, 
          partner_shipping_id = 1, 
          picking_policy = "direct", 
@@ -94,11 +94,11 @@ so_44970 = BrowseOrder.MkRecordModel
          order_policy = "manual", 
          date_order = "2021-11-18", 
          partner_id = 31587, 
-         amount_tax = (PKPrice CX GBP TAXAMOUNT,833), --MkPrice { tax = TAXAMOUNT, price = 833 }, 
+         amount_tax = (pkPriceTA GBP,833), --MkPrice { tax = TAXAMOUNT, price = 833 }, 
          state = "manual", 
          partner_invoice_id = 31587, 
-         amount_untaxed = (PKPrice CX GBP EX20, 4165), --MkPrice { tax = EX20, price = 4165 }, 
-         amount_total = (PKPrice CX GBP INC20, 4998), --MkPrice { tax = INC20, price = 4998 }, 
+         amount_untaxed = (pkPriceEX20 GBP, 4165), --MkPrice { tax = EX20, price = 4165 }, 
+         amount_total = (pkPriceINC20 GBP, 4998), --MkPrice { tax = INC20, price = 4998 }, 
          name = "SO44907", 
          partner_shipping_id = 31587, 
          picking_policy = "direct", 

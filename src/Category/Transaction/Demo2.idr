@@ -32,7 +32,7 @@ run_demo_so = do
   let date1 : Date
       date1 = "2021-11-01"
       dx1 : Hom1 
-      dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]
+      dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]
   so1 <- new_so date1 dx1 hilton hilton
   reserve_so_full so1 "2021-11-02"
   deliver_so_full so1 "2021-11-03"
@@ -47,11 +47,11 @@ demo_po_so = do
  let date1 : Date
      date1 = "2021-10-01"
      dx1 : Hom1 
-     dx1 = [ (PK32 DX 1, 10), (PK32 DX 3, 15), (PK32 DX 4, 5), (PK32 DX 5, 1), (PK32 DX 6,2)]
+     dx1 = [ (pk32DX 1, 10), (pk32DX 3, 15), (pk32DX 4, 5), (pk32DX 5, 1), (pk32DX 6,2)]
      date2 : Date
      date2 = "2021-10-15"
      dx2 : Hom1 
-     dx2 = (map (mult_p 2) dx1) ++ [ (PK32 DX 7,3) ]
+     dx2 = (map (mult_p 2) dx1) ++ [ (pk32DX 7,3) ]
           
      date3 : Date
      date3 = "2021-11-05"

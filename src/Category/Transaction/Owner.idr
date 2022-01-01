@@ -32,10 +32,10 @@ export
 userDataToMap : UserData -> UserDataMap
 userDataToMap (MkUD p t b tax) = (MkUDMap p_map t_map b_map tax_map) where
      p_map : SortedMap ProdKey  BrowseProduct.RecordModel
-     p_map = (fromList [( PK32 DX (pk u), u) | u <- p ])
+     p_map = (fromList [( pk32DX (pk u), u) | u <- p ])
      
      t_map : SortedMap ProdKey BrowseProductTemplate.RecordModel
-     t_map = (fromList [( PK32 DX (pk u), u) | u <- t ])
+     t_map = (fromList [( pk32DX (pk u), u) | u <- t ])
      b_map : SortedMap ProdKey (List BrowseBoM.RecordModel)    --SortedMap Bits32 BrowseBoM.RecordModel
      b_map = toBoM_map b  --(fromList [(pk u, u) | u <- b ])
      tax_map : SortedMap Bits32 BrowseOrderTax.RecordModel
@@ -245,7 +245,7 @@ new_so date1 dx1 cust cust_inv = do
      h2 dx_' = [ (fst x,  trade_price (lookup (fst x) prod_map)) |x <- dx_' ]
      
      dx1 : Hom1 
-     dx1 = [ (PK32 DX 1, 1), (PK32 DX 3, 1), (PK32 DX 4, 2)]     
+     dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]     
      cx1 : Hom1
      cx1 = (applyHom2 (h2 dx1) dx1)     
      h11_1 : Hom11
