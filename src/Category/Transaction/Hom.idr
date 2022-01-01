@@ -105,15 +105,6 @@ Num Hom1 where
    (*) = multHom1 -- tbd?
    fromInteger x = ProdKey.pkFromInteger x
 
-  {-
- r where
-   q : EQty
-   q = Category.Transaction.Hom.fromInteger x
-   ret : Product
-   ret = (ProdKey.PKIntOne, q)
-   r : Hom1
-   r = [ret]
-   -}
 public export
 Neg Hom1 where
    (-) = evDiffHom1

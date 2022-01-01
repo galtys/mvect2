@@ -85,7 +85,7 @@ namespace ProdKey
    --|PKAppl ProdKey Nat --ProdKey
   export
   pkFromInteger : Integer -> List (ProdKey,EQty) --Product
-  pkFromInteger x = ?dss
+  pkFromInteger x = [(PKIntOne, (fromInteger x))]
 
   export
   pk32DX : Bits32 -> ProdKey
