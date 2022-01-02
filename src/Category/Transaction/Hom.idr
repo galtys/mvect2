@@ -164,16 +164,20 @@ toQLine (MkHom12 dx appl) = ret where
   ret = retA ret1
 
 public export
-grpbyQLine : HomQLine -> HomQLine --List (List QLine)
-grpbyQLine xs = concat ret6 where
+colimQLine : HomQLine -> HomQLine --List (List QLine)
+colimQLine xs = concat ret6 where
+
+
    eqx : QLine -> QLine -> Bool
    eqx a b = ((dxpk a)==(dxpk b)) && ((cxpk a)==(cxpk b))
    eqp : QLine -> QLine -> Bool
    eqp a b = ((price a)==(price b))   
+   
    ret : List (List1 QLine)
    ret = groupBy eqx xs
+   
    ret2 : List (List QLine)
-   ret2 = map init ret
+   ret2 = map toList ret
    {-   
    ret3 : List (List (List QLine))
    ret3 = map (  (map init) . (groupBy eqp) ) ret2
@@ -181,7 +185,7 @@ grpbyQLine xs = concat ret6 where
    muf1 : List1 QLine -> QLine
    muf1 xs = addq (head xs) c where
       c : EQty
-      c = sum (map q xs)
+      c = sum (map q (tail xs))
       addq : QLine -> EQty -> QLine
       addq (MkQL dxpk q cxpk price) y = (MkQL dxpk (q+y) cxpk price)
         

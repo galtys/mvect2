@@ -78,7 +78,23 @@ namespace ProdKey
      PK32:   (dcx:DxCx) ->  (pk:Bits32)   -> (v:Maybe Bits8) -> ProdKey
      PKPrice: (dcx:DxCx) -> (cy:Currency) -> (tax:TaxCode) -> (v:Maybe Bits8)->ProdKey
      FromInteger: (dcx:DxCx) -> (v:Maybe Bits8)->ProdKey
-  %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,Show, ToJSON,FromJSON]
+  %runElab derive "ProdKey" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
+  
+  show_v : Maybe Bits8 -> String
+  show_v Nothing = ""
+  show_v (Just x) = "^\{show x}"
+  
+  
+  show_pk : ProdKey -> String
+  show_pk (PKCy dcx cy v) = "\{show cy}\{show_v v}"
+  show_pk (PKUser dcx u v) ="\{show u}\{show_v v}"
+  show_pk (PK32 dcx pk v) = "pk\{show pk}\{show_v v}"
+  show_pk (PKPrice dcx cy tax v) = "\{show cy}\{show_v v} \{show tax}"
+  show_pk (FromInteger dcx v) = "\{show dcx}\{show_v v}"
+  
+  export
+  Show ProdKey where
+    show = show_pk
   
   addM8 : Maybe Bits8 -> Bits8 -> Maybe Bits8
   addM8 Nothing y = Just y

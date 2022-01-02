@@ -157,7 +157,7 @@ dispState gs =
 
 renderGame : LiftJSIO m => GameState -> m ()
 renderGame gs =
-  render $ MkCanvas pic (cast wcanvas) (cast wcanvas) (dispState gs)
+  render $ MkCanvas pic (cast wcanvas) (castwcanvas) (dispState gs)
 upperBound : Int32
 upperBound = 100
 

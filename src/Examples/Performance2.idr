@@ -84,7 +84,7 @@ count =    getInput Validate validate natIn
        >>> observeWith (isLeft ^>> disabledAt btnRun)
 
 msf : MSF MI Ev ()
-msf =   fan [count, is Reload]
+msf =   fan [count, Data.MSF.Util.is Reload]
     >>> rightOnEvent
     ?>> arrM (ignore . reactimateInDomIni 0 . btnsSF)
 
