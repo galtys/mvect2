@@ -195,7 +195,13 @@ demoQL = ret where
    muf dxpk q p = (MkQL dxpk q (pkPriceEX20 GBP) p)
    
    ret : HomQLine
-   ret = [muf (pk32DX 1) 2 10, muf (pk32DX 1) 3 10, muf (pk32DX 1) 7 11, muf (pk32DX 2) 4 9, muf (pk32DX 3) 9 13] 
+   ret = [muf (pk32DX 1) 2 10, 
+          muf (pk32DX 1) 3 10, 
+          muf (pk32DX 1) 7 11, 
+          muf (pk32DX 2) 4 9, 
+          muf (pk32DX 3) 9 13,
+          muf (pk32DX 1) 5 10, 
+          muf (pk32DX 1) 2 12] 
 
 
 {-
