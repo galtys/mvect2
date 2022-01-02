@@ -87,7 +87,7 @@ namespace ProdKey
   
   show_pk : ProdKey -> String
   show_pk (PKCy dcx cy v) = "\{show cy}\{show_v v}"
-  show_pk (PKUser dcx u v) ="\{show u}\{show_v v}"
+  show_pk (PKUser dcx u v) ="\{u}\{show_v v}"
   show_pk (PK32 dcx pk v) = "pk\{show pk}\{show_v v}"
   show_pk (PKPrice dcx cy tax v) = "\{show cy}\{show_v v} \{show tax}"
   show_pk (FromInteger dcx v) = "\{show dcx}\{show_v v}"
@@ -133,6 +133,11 @@ namespace ProdKey
   pkPriceTA cy = ProdKey.PKPrice CX cy TAXAMOUNT ProdKey.One
   
 
+  public export
+  FromString ProdKey where
+     fromString s = case toCurrency s of
+           Nothing => PKUser DX s One
+           Just cy => PKCy CX cy One
 
 
 
@@ -195,13 +200,13 @@ demoQL = ret where
    muf dxpk q p = (MkQL dxpk q (pkPriceEX20 GBP) p)
    
    ret : HomQLine
-   ret = [muf (pk32DX 1) 2 10, 
-          muf (pk32DX 1) 3 10, 
-          muf (pk32DX 1) 7 11, 
-          muf (pk32DX 2) 4 9, 
-          muf (pk32DX 3) 9 13,
-          muf (pk32DX 1) 5 10, 
-          muf (pk32DX 1) 2 12] 
+   ret = [muf "sku1" 2 10, 
+          muf "sku1" 3 10, 
+          muf "sku1" 7 11, 
+          muf "sku2" 4 9, 
+          muf "sku3" 9 13,
+          muf "sku1" 5 10, 
+          muf "sku1" 2 12] 
 
 
 {-
@@ -230,11 +235,6 @@ public export
 Cast Product EQty where
   cast (x,y) = y
   
-public export
-FromString ProdKey where
-   fromString s = case toCurrency s of
-           Nothing => PKUser DX s One
-           Just cy => PKCy CX cy One
            
 public export
 Hom1 : Type
