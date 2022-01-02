@@ -196,8 +196,11 @@ colimQLine xs = concat ret6 where
    add8 (y, (MkQL dxpk q cxpk price)) = (MkQL (ProdKey.addBits8 dxpk y) q (ProdKey.addBits8 cxpk y) price)   
    
    ret5 : List (Bits8, QLine) -> List QLine
-   ret5 xs = map add8 xs
-   
+   ret5 [] = []
+   ret5 lx@(x::xs) = case (length lx) of 
+         1 => [snd x]
+         _ => map add8 lx
+         
    ret3 : List (List QLine)
    ret3 = map (  (map muf1) . (groupBy eqp) ) ret2
    
