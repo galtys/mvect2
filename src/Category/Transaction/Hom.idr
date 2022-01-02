@@ -158,7 +158,7 @@ toQLine (MkHom12 dx appl) = ret where
   retA : List (ProdKey, EQty,Maybe Product) -> HomQLine
   retA [] = []
   retA ((x, (y, Nothing)) :: xs) = retA xs
-  retA ((dx, (q, (Just z))) :: xs) = [MkQL dx q (fst z) (snd z)]++(retA xs)
+  retA ((dx, (q, (Just z))) :: xs) = [MkQL dx Nothing q (fst z) (snd z)]++(retA xs)
   
   ret : HomQLine
   ret = retA ret1
@@ -187,13 +187,13 @@ colimQLine xs = concat ret6 where
       c : EQty
       c = sum (map q (tail xs))
       addq : QLine -> EQty -> QLine
-      addq (MkQL dxpk q cxpk price) y = (MkQL dxpk (q+y) cxpk price)
+      addq (MkQL dxpk bom q cxpk price) y = (MkQL dxpk bom (q+y) cxpk price)
         
    ret4 : List QLine -> List (Bits8, QLine)
    ret4 xs = [ (cast x,y) | (x,y) <- (zip [1..(length xs)] xs)]
    
    add8 : (Bits8,QLine) -> QLine
-   add8 (y, (MkQL dxpk q cxpk price)) = (MkQL (ProdKey.addBits8 dxpk y) q (ProdKey.addBits8 cxpk y) price)   
+   add8 (y, (MkQL dxpk bom q cxpk price)) = (MkQL (ProdKey.addBits8 dxpk y) bom q (ProdKey.addBits8 cxpk y) price)   
    
    ret5 : List (Bits8, QLine) -> List QLine
    ret5 [] = []

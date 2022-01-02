@@ -91,7 +91,7 @@ show_Hom1 dx1 =
         , (muf dx1)                       
       ]
 fql : QLine -> Node Ev
-fql (MkQL dxpk q cxpk price) = tr [] [td [] [fromString $show dxpk],
+fql (MkQL dxpk bom q cxpk price) = tr [] [td [] [fromString $show dxpk],
                                       td [] [fromString $show q],
                                       td [] [fromString $show cxpk],
                                       td [] [fromString $show price]]
