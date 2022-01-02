@@ -165,7 +165,7 @@ toQLine (MkHom12 dx appl) = ret where
 
 public export
 colimQLine : HomQLine -> HomQLine --List (List QLine)
-colimQLine xs = concat ret6 where
+colimQLine xs_in = concat ret6 where
 
 
    eqx : QLine -> QLine -> Bool
@@ -174,7 +174,7 @@ colimQLine xs = concat ret6 where
    eqp a b = ((price a)==(price b))   
    
    ret : List (List1 QLine)
-   ret = groupBy eqx xs
+   ret = groupBy eqx (sortBy (\a,b=> compare (dxpk a,cxpk a,price a) (dxpk b,cxpk a,price b) ) xs_in)
    
    ret2 : List (List QLine)
    ret2 = map toList ret
