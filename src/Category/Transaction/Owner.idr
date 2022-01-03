@@ -275,6 +275,32 @@ new_so date1 dx1 cust cust_inv = do
  Pure new_r
 
 export
+get_hom : RouteKey -> OwnerEvent HomQLine
+get_hom rk  = do
+  m_rst <- GetRoute rk
+  case m_rst of
+    Nothing => Pure []
+    Just rt => do
+       case rt of
+          (MkOR (MkORrec allocation control order Sale)) => do 
+               {-
+               let so_demand_key = allocation
+                   reservation_key  = convMovekey so_demand_key  
+               x <- Get so_demand_key                             
+               let fx11 : FxEvent
+                   fx11 =  (Fx11 date1 x)       
+                   aitem : AllocationItem
+                   aitem = MkAI rk InventoryRouteKey fx11
+               aref <- Allocate (MkAE OnHand [aitem])
+               -}               
+               Pure []          
+          (MkOR (MkORrec allocation control order Purchase)) => Pure []                    
+          (MkReR re) => Pure []
+          (MkAl lr) => Pure []
+          
+          
+
+export
 init_self : WhsEvent () 
 init_self = do
      let user_data = (MkUD static_products [] static_boms [])
@@ -369,6 +395,11 @@ toWhs (GetUserData) = do
 toWhs (Post ref key fx) = do
       Put (MkRouteKeyRef ref) key fx
       Log (MkPost ref key fx)
+
+toWhs (GetWhs key)= do
+      ret <- Get key
+      Pure ret
+
 toWhs (Get key) = do
       whs_xs <- Get key
       let xs = (map fx whs_xs)
@@ -378,7 +409,7 @@ toWhs (Get key) = do
           sum_ : Hom11
           sum_ = sumHom11 $ map fxToH11 xs
       Pure sum_
-      
+
 toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       

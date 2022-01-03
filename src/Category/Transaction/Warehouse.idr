@@ -43,7 +43,7 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
 
 namespace MemoryMap
    export
-   interpret : WhsEvent a -> StateT SystemState IO a       
+   interpret : HasIO io => WhsEvent a -> StateT SystemState io a       
    interpret  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data)<-get             
                 let route_ref = routeSha route                 
@@ -133,6 +133,7 @@ namespace MemoryMap
                       let rjm' = insert key (whs_e::je_list) rjm
                       put (MkSS fx_map routes led' rjm' j user_data)
                 pure ()
+   --interpret Get = Get
 
    interpret (Get key) = do 
         (MkSS fx_map routes led_map rjm j user_data)<-get
@@ -151,8 +152,8 @@ namespace MemoryMap
 
    interpret (Show x) = putStrLn $ show x
    interpret (Pure x) = pure x
-   interpret (Bind x f) = do res <- interpret x
-                             interpret (f res)
+   interpret (Bind x f) = do res <- MemoryMap.interpret x
+                             MemoryMap.interpret (f res)
 
 
 

@@ -33,11 +33,13 @@ run_demo_so = do
       date1 = "2021-11-01"
       dx1 : Hom1 
       dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]
-  so1 <- new_so date1 dx1 hilton hilton
+  so1 <- new_so date1 dx1 hilton hilton --RouteKey
   reserve_so_full so1 "2021-11-02"
   deliver_so_full so1 "2021-11-03"
   invoice_so_full so1 "2021-11-04"
   shipping_done_so_full so1 "2021-11-06"
+  
+  
   Pure ()
 
 export
