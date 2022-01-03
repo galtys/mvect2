@@ -16,6 +16,7 @@ import Odoo.Schema.PJBRecDef
 
 public export
 data Location =  Self | In BrowseResPartner.RecordModel | Out BrowseResPartner.RecordModel | Border BrowseResPartner.RecordModel |Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel | Taxman BrowseResPartner.RecordModel | Bank BrowseResPartner.RecordModel
+
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
 public export

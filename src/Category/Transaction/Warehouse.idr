@@ -26,6 +26,8 @@ import Config
 import Data.HashDB.DataIO
 import Data.HashDB.Types
 import Control.Monad.Either
+
+
 --%language ElabReflection
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LocationMap -> LocationMap 
@@ -151,6 +153,9 @@ namespace MemoryMap
    interpret (Pure x) = pure x
    interpret (Bind x f) = do res <- interpret x
                              interpret (f res)
+
+
+
 
 export
 runHCommandST : HasIO io=>MonadError DBError io => HCommand a -> String->StateT SystemState io a

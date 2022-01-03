@@ -15,11 +15,15 @@ stdenv.mkDerivation {
     postgresql_10
     gmp
     yarn
+    yarn2nix
     sass
     nodejs
      (with nodePackages; [
        browserify
        js-beautify
+       #foundation-sites
+       bower
+       gulp
        
      ])
     #SDL2.dev

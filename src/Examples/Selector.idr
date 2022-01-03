@@ -55,7 +55,7 @@ msf : MSF MSel String ()
 msf = feedback (pure ()) ( par [arrM cleanup, arrM select] >>> swap )
   where select : String -> MSel (JSIO ())
         select "reset"       = reactimateInDomIni (const (-8)) Reset2.ui
-        select "table"       = reactimateInDomIni (const 0) Reset2.ui_t        
+        select "table"       = reactimateInDomIni (const 0) Reset2.ui2        
         select "performance" = reactimateInDom Performance2.ui
         select "fractals"    = reactimateInDom Fractals.ui
         select "balls"       = reactimateInDom Balls.ui

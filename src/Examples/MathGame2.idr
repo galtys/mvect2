@@ -14,7 +14,7 @@ import Text.CSS
 
 
 %language ElabReflection
-%default total
+--%default total
 data Language = EN | DE
 
 %runElab derive "Language" [Generic,Meta,Show,Eq]
@@ -228,8 +228,8 @@ newGame = Trans.get >>> lang ^>> randomGame !>- [setPic, put]
 
 adjLang : MSF (StateT GameState M) Ev ()
 adjLang = readLang ^>> ifJust (
-            arrM ( \l => innerHtmlAt exampleDiv (content l)
-                      >> modify (record { lang = l }) )
+            arrM $ \l => innerHtmlAt exampleDiv (content l)
+                      >> modify (record { lang = l })
           )
   where readLang : Ev -> Maybe Language
         readLang (Lang "en") = Just EN
@@ -240,7 +240,7 @@ msf : MSF (StateT GameState M) Ev ()
 msf =  fan_ [ ifIs NewGame newGame
             , ifIs Check check
             , adjLang
-            , Trans.get >>> dispGame
+            , get >>> dispGame
             ]
 
 export
@@ -248,6 +248,9 @@ ui : M (MSF M Ev (), JSIO ())
 ui = do
   innerHtmlAt exampleDiv (content EN)
   ini <- randomGame EN
+  
+  --reas22 <- execStateT initState (interpret (toWhs   demo_po_so)   ) 
+  
   pure (feedback ini (fromState msf), pure ())
 
 

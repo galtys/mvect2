@@ -41,7 +41,7 @@ run_demo_so = do
   Pure ()
 
 export
-demo_po_so : OwnerEvent ()
+demo_po_so : OwnerEvent Hom1
 demo_po_so = do
  Init 
  let date1 : Date
@@ -65,9 +65,9 @@ demo_po_so = do
  
  po3 <- new_po date3 dx1 factory1 factory1   
  run_demo_so
- Pure ()
+ Pure dx1
 
 export
-demo_po_so_whs : WhsEvent ()
+demo_po_so_whs : WhsEvent Hom1
 demo_po_so_whs = (toWhs   demo_po_so)
 
