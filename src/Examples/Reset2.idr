@@ -159,19 +159,23 @@ show_Hom1 dx1 =
       ]
 fql : QLine -> Node Ev
 fql (MkQL dxpk bom q cxpk price) = tr [] [td [] [fromString $show dxpk],
-                                      td [] [fromString $show q],
-                                      td [] [fromString $show cxpk],
-                                      td [] [fromString $show price]]
+                                          td [] [fromString $show q],
+                                          
+                                          td [] [fromString $show price],
+                                          td [] [fromString $show (q*price)],
+                                          td [] [fromString $show cxpk]]
 
 show_HomQLine : HomQLine -> Node Ev
 show_HomQLine xs = div [] [
   table [ class "unstriped hover" ]
         [  thead []
                 [tr [] 
-                   [ th [Str "width" "200"] ["DX Key"]
+                   [ th [Str "width" "190"] ["DX Key"]
                    , th [Str "width" "50"]  ["Qty"] 
-                   , th [Str "width" "50"] [""]
-                   , th [Str "width" "50"] ["Price"] ]
+                
+                   , th [Str "width" "40"]  ["Price"]
+                   , th [Str "width" "40"]  ["Subtotal"]
+                   , th [Str "width" "60"]  [""] ]
                 ]
          , tbody [] (map fql (colimQLine xs) )        
         ]
