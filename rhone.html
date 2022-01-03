@@ -1,14 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html class="no-js" lang="en" >
  <head>
    <meta charset='utf-8'>
-<!--   <link rel="stylesheet" href="src/css/border_fix.css"> -->
-   <link rel="stylesheet" href="lib/foundation/css/foundation.css">
-   <link rel="stylesheet" href="lib/foundation/css/app.css">
-   <style id='appstyle'></style>
-   <style>
-     .menu {
-	 background: #333;
+   <meta name="viewport" content="width=device-width, initial-scale=1.0" />   
+<!--   <link rel="stylesheet" href="src/css/border_fix.css"> 
 	 li {
 	     background: #333;
 	     &:hover {
@@ -18,15 +13,34 @@
 	 a {
 	     color: #fff;
 	 }
-     }
+
+
+   <link rel="stylesheet" href="lib/foundation/css/foundation.css">
+   <link rel="stylesheet" href="lib/foundation/css/app.css">
+-->   
+   <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
+   
+   <style id='appstyle'></style>
+   <style>
+     .top-bar { background: #333;}
+     .top-bar-left { background: #333;}
+     .menu { background: #333;}
+
+     /*.menu li {background: #333;}*/
+     .menu:hover li:hover {background: #777; }
+
+     
+     .menu a {color: #fff;}
+     
    </style>
    
  </head>
  <body id='content'>
    <!--<script type='text/javascript' src='js/rhonejs.js'></script> -->
-   
    <script type='text/javascript' src='src/js/sha256.js'></script>
    <script type='text/javascript' src='build/exec/ui.js'></script>
+   
+   
    
  </body>
 </html>

@@ -35,33 +35,18 @@ content1 =
 export
 content : Node String
 content =
-  div [ class contentList ]
-      [ h3 [class pageTitle] ["rhone-js: Examples"]
-      
-      , ul [class "menu"] 
+ div [] [
+    div [] [
+       ul [class "menu"] 
          [ li [] [a [href "#",onClick "reset"]["Counting Clicks"]]
          , li [] [a [href "#",onClick "table"]["Table"]]
          , li [] [a [href "#",onClick "performance"]["Performance"]]
          , li [] [a [href "#",onClick "fractals"]["Fractals"]]
          , li [] [a [href "#",onClick "balls"]["Balls"]]
          , li [] [a [href "#",onClick "math"]["Math Game"]] ]
-              
-      {-
-      , div [class contentHeader]
-          [ label [class widgetLabel] ["Choose an Example"]
-          , select
-              [ classes [widget, selectIn, exampleSelector], onChange id]
-              [ option [ value "reset", selected True ] ["Counting Clicks"]
-              , option [ value "performance" ] ["Performance"]
-              , option [ value "fractals" ] ["Fractals"]
-              , option [ value "balls" ] ["Bouncing Balls"]
-              , option [ value "math" ] ["Math Game"]
-              ]
-          ]
-      -}    
-      , div [ref exampleDiv] []
-      ]
-      
+    ]
+ ,div [ref exampleDiv] []
+ ]
 cleanup : LiftJSIO io => (clean : JSIO ()) -> io ()
 cleanup = liftJSIO
 
