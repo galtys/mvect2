@@ -176,30 +176,65 @@ show_HomQLine xs = div [] [
          , tbody [] (map fql (colimQLine xs) )        
         ]
    ]
-      
---dx1 : Hom1 
---dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]
+{-      
+dx1 : Hom1 
+dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]
+-}
+{-
+show_fxevent : FxEvent -> Node Ev
+show_fxevent (Fx121 x y) = div [class "callout"] [
+                                p  [] [fromString x]
+                                ,h4 [] ["Target"] 
+                                ,(show_HomQLine $ toQLine $ toHom12 y)
+                               ]  
+show_fxevent (Fx11 x y) =  div [class "callout"] [
+                                p  [] [fromString x]
+                                ,h4 [] ["Target"] 
+                                ,(show_HomQLine demoQL)
+                               ]
+-}
+asdk : Ref -> Node Ev
+asdk (MkAllocationRef x) = ?asdk_rhs_0
+asdk (MkRouteKeyRef (MkRK date ref state)) = ?asdk_rhs_2
 
 
+show_whsentry : WhsEntry -> Node Ev
+show_whsentry (MkWE ref (Fx121 x y)) = div [class "callout"] [
+                                p  [] [fromString x]
+                                ,h4 [] ["Target"] 
+                                ,(show_HomQLine $ toQLine $ toHom12 y)
+                                , hr [] []
+                               ]
+show_whsentry (MkWE ref (Fx11 x y)) = div [class "callout"] [
+                                p  [] [fromString x]
+                                ,h4 [] ["Target"] 
+                                ,(show_Hom1 $ toHom1 y)
+                                , hr [] []                                
+                               ]
 
-show_hom : Hom1 -> Node Ev
-show_hom dx1 = div [class "grid-x grid-padding-x"] [
+
+show_hom : List WhsEntry -> Node Ev
+show_hom wxs = div [class "grid-x grid-padding-x"] [
   
   div [class "medium-4 cell"] [
     h4 [] ["Deliver to:"]
   ]
     
-  ,div [class "medium-5 cell"] [
+  ,div [class "medium-5 cell"] (map show_whsentry wxs)
+    --h4 [] ["Target"] 
+    --,(map show_whsentry wxs)
+    {-
     div [class "callout primary"] [
       h4 [] ["Target"] 
       ,(show_HomQLine demoQL )
-    ]  
-  ]  
+    ] 
+    -} 
+  --]  
   
   ,div [class "medium-3 cell"] [
     div [class "callout secondary"] [
       h4 [] ["Transit"] 
-      ,(show_Hom1 dx1 )
+      ,(show_Hom1 [] )
     ]
   ]
   ,hr [] []
@@ -236,9 +271,9 @@ export
 ui2 : M (MSF M Ev (), JSIO ())
 ui2 = do
   --innerHtmlAt exampleDiv (content EN)
-  (reas22,h1) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   ) 
+  (reas22,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   ) 
     
-  innerHtmlAt exampleDiv (show_hom h1)
+  innerHtmlAt exampleDiv (show_hom we)
   --ini <- randomGame EN
   
 

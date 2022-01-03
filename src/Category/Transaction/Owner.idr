@@ -275,7 +275,7 @@ new_so date1 dx1 cust cust_inv = do
  Pure new_r
 
 export
-get_hom : RouteKey -> OwnerEvent HomQLine
+get_hom : RouteKey -> OwnerEvent (List WhsEntry) --HomQLine
 get_hom rk  = do
   m_rst <- GetRoute rk
   case m_rst of
@@ -292,8 +292,9 @@ get_hom rk  = do
                    aitem : AllocationItem
                    aitem = MkAI rk InventoryRouteKey fx11
                aref <- Allocate (MkAE OnHand [aitem])
-               -}               
-               Pure []          
+               -}
+               x <- GetWhs order                
+               Pure x     
           (MkOR (MkORrec allocation control order Purchase)) => Pure []                    
           (MkReR re) => Pure []
           (MkAl lr) => Pure []
