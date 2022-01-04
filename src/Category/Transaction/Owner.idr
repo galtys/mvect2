@@ -23,10 +23,13 @@ import UserDataDemo
 import Odoo.PG.BoM
 
 --%language ElabReflection
-
+{-
 safeHead : List x -> Maybe x
 safeHead [] = Nothing
 safeHead (y :: xs) = Just y
+-}
+safeHead : List x -> Maybe x
+safeHead = head'
 
 export
 userDataToMap : UserData -> UserDataMap
@@ -275,31 +278,44 @@ new_so date1 dx1 cust cust_inv = do
  Pure new_r
 
 export
-get_hom : RouteKey -> OwnerEvent (List WhsEntry) --HomQLine
+get_hom : RouteKey -> OwnerEvent RouteData --(List WhsEntry) --HomQLine
 get_hom rk  = do
+  let rl : MoveKey -> List WhsEntry -> RouteLine
+      rl mk lwe = MkRL mk lwe
+
   m_rst <- GetRoute rk
   case m_rst of
-    Nothing => Pure []
+    Nothing => Pure (MkRD rk Sale []) --tbd: error
     Just rt => do
        case rt of
-          (MkOR (MkORrec allocation control order Sale)) => do 
-               {-
-               let so_demand_key = allocation
-                   reservation_key  = convMovekey so_demand_key  
-               x <- Get so_demand_key                             
-               let fx11 : FxEvent
-                   fx11 =  (Fx11 date1 x)       
-                   aitem : AllocationItem
-                   aitem = MkAI rk InventoryRouteKey fx11
-               aref <- Allocate (MkAE OnHand [aitem])
-               -}
-               x <- GetWhs order                
-               Pure x     
-          (MkOR (MkORrec allocation control order Purchase)) => Pure []                    
-          (MkReR re) => Pure []
-          (MkAl lr) => Pure []
-          
-          
+          (MkOR (MkORrec allocation control order dir)) => do 
+               o_t <- GetWhs order                
+               o_oh <- GetWhs $ convMovekey order                
+               c_t <- GetWhs control
+               c_oh <- GetWhs $ convMovekey control
+               a_t <- GetWhs allocation
+               a_oh <- GetWhs $ convMovekey allocation
+               let ret1 : RouteData
+                   ret1 = MkRD rk dir [rl order o_t,
+                                       rl (convMovekey order) o_oh,
+                                       rl control c_t,
+                                       rl (convMovekey control) c_oh,
+                                       rl allocation a_t,
+                                       rl (convMovekey allocation) a_oh]
+               Pure  ret1
+          --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
+          (MkReR (MkRR allocation reconcile direction)) => do
+               a_t <- GetWhs allocation
+               a_oh <- GetWhs $ convMovekey allocation
+               r_t <- GetWhs reconcile
+               r_oh <- GetWhs $ convMovekey reconcile
+               let ret2 : RouteData
+                   ret2 = MkRD rk direction [rl allocation a_t,
+                                            rl (convMovekey allocation) a_oh,
+                                            rl reconcile r_t,
+                                            rl (convMovekey reconcile) r_oh]
+               Pure ret2
+          (MkAl (MkListR allocation lst direction)) => Pure (MkRD rk direction [])
 
 export
 init_self : WhsEvent () 

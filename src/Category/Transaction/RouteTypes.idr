@@ -65,7 +65,7 @@ public export
 convMovekey : MoveKey -> MoveKey
 convMovekey (MkMK from to OnHand) = (MkMK from to Forecast)
 convMovekey (MkMK from to Forecast) = (MkMK from to OnHand)
-
+   
 public export
 record OrderControlRoute where 
    constructor MkORrec
@@ -124,3 +124,43 @@ record AllocationEntry where
   moves : List AllocationItem
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
+
+
+public export
+record WhsEntry where
+     constructor MkWE
+     ref : Ref   
+     fx : FxEvent
+%runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record RouteMetaKey where
+   constructor MkRMK
+   --move : MoveKey
+   --ui_info   : List (DxCx,(DrCr,String) )
+   --location : Location
+   --dir : DirectionTag
+   --ledger : Ledger
+   move : MoveKey
+   dxcx : DxCx
+   drcr : DrCr
+   --doc : String
+   --whse : List WhsEntry
+%runElab derive "RouteMetaKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record RouteLine where
+   constructor MkRL
+   move : MoveKey
+   whse : List WhsEntry
+   --forecast : RouteDataLine
+   --onhand : RouteDataLine
+%runElab derive "RouteLine" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
+public export
+record RouteData where
+   constructor MkRD
+   key : RouteKey   
+   dir : DirectionTag
+   lines : List RouteLine 
+%runElab derive "RouteData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   

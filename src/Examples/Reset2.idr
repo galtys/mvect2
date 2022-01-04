@@ -217,14 +217,14 @@ show_whsentry (MkWE ref (Fx11 x y)) = div [class "callout"] [
                                ]
 
 
-show_hom : List WhsEntry -> Node Ev
+show_hom : RouteData -> Node Ev
 show_hom wxs = div [class "grid-x grid-padding-x"] [
   
   div [class "medium-4 cell"] [
     h4 [] ["Deliver to:"]
   ]
     
-  ,div [class "medium-5 cell"] (map show_whsentry wxs)
+  ,div [class "medium-5 cell"] (map show_whsentry [])
     --h4 [] ["Target"] 
     --,(map show_whsentry wxs)
     {-

@@ -1,7 +1,7 @@
 module Examples.Selector
 
 import Examples.CSS
-import Examples.Balls
+import Examples.Balls2
 import Examples.Fractals
 import Examples.MathGame2
 import Examples.Performance2
@@ -58,7 +58,7 @@ msf = feedback (pure ()) ( par [arrM cleanup, arrM select] >>> swap )
         select "table"       = reactimateInDomIni (const 0) Reset2.ui2        
         select "performance" = reactimateInDom Performance2.ui
         select "fractals"    = reactimateInDom Fractals.ui
-        select "balls"       = reactimateInDom Balls.ui
+        select "balls"       = reactimateInDom Balls2.ui
         select "math"        = reactimateInDomIni NewGame MathGame2.ui
         select _             = pure (pure ())
 

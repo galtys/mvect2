@@ -44,6 +44,9 @@ data Currency = GBP | EUR | CZK | USD
 public export
 data DxCx = DX | CX
 %runElab derive "DxCx" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
+public export
+data DrCr = Dr | Cr
+%runElab derive "DrCr" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
 
 export
 currencyAll : List Currency

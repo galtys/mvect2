@@ -44,12 +44,6 @@ data OwnerJournalEvent : Type where
      MkPost : RouteKey -> MoveKey ->  FxEvent -> OwnerJournalEvent     
 %runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
-public export
-record WhsEntry where
-     constructor MkWE
-     ref : Ref   
-     fx : FxEvent
-%runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 
 namespace OwnerEventDo

@@ -27,7 +27,7 @@ import Category.Transaction.Warehouse
 --%language ElabReflection
 
 export
-run_demo_so : OwnerEvent (List WhsEntry)
+run_demo_so : OwnerEvent RouteData --(List WhsEntry)
 run_demo_so = do
   let date1 : Date
       date1 = "2021-11-01"
@@ -43,7 +43,7 @@ run_demo_so = do
   Pure w
 
 export
-demo_po_so : OwnerEvent (List WhsEntry) --Hom1
+demo_po_so : OwnerEvent RouteData --(List WhsEntry) --Hom1
 demo_po_so = do
  Init 
  let date1 : Date
@@ -70,6 +70,6 @@ demo_po_so = do
  Pure w
 
 export
-demo_po_so_whs : WhsEvent (List WhsEntry)
+demo_po_so_whs : WhsEvent RouteData --(List WhsEntry)
 demo_po_so_whs = (toWhs   demo_po_so)
 
