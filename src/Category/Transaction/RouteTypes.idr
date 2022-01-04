@@ -152,10 +152,12 @@ public export
 record RouteLine where
    constructor MkRL
    move : MoveKey
-   whse : List WhsEntry
+   whse_f : List WhsEntry
+   whse_oh : List WhsEntry
    --forecast : RouteDataLine
    --onhand : RouteDataLine
 %runElab derive "RouteLine" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
+
 
 public export
 record RouteData where

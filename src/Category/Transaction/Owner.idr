@@ -280,8 +280,8 @@ new_so date1 dx1 cust cust_inv = do
 export
 get_hom : RouteKey -> OwnerEvent RouteData --(List WhsEntry) --HomQLine
 get_hom rk  = do
-  let rl : MoveKey -> List WhsEntry -> RouteLine
-      rl mk lwe = MkRL mk lwe
+  let rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
+      rl mk f oh = MkRL mk f oh
 
   m_rst <- GetRoute rk
   case m_rst of
@@ -295,6 +295,7 @@ get_hom rk  = do
                c_oh <- GetWhs $ convMovekey control
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
+               {-
                let ret1 : RouteData
                    ret1 = MkRD rk dir [rl order o_t,
                                        rl (convMovekey order) o_oh,
@@ -302,6 +303,12 @@ get_hom rk  = do
                                        rl (convMovekey control) c_oh,
                                        rl allocation a_t,
                                        rl (convMovekey allocation) a_oh]
+               -}
+               let ret1 : RouteData
+                   ret1 = MkRD rk dir [rl order o_t o_oh,
+                                       rl control c_t c_oh,
+                                       rl allocation a_t a_oh]
+               
                Pure  ret1
           --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
           (MkReR (MkRR allocation reconcile direction)) => do
@@ -309,11 +316,17 @@ get_hom rk  = do
                a_oh <- GetWhs $ convMovekey allocation
                r_t <- GetWhs reconcile
                r_oh <- GetWhs $ convMovekey reconcile
+               {-
                let ret2 : RouteData
                    ret2 = MkRD rk direction [rl allocation a_t,
                                             rl (convMovekey allocation) a_oh,
                                             rl reconcile r_t,
                                             rl (convMovekey reconcile) r_oh]
+               -}
+               let ret2 : RouteData
+                   ret2 = MkRD rk direction [rl allocation a_t a_oh,
+                                            rl reconcile r_t r_oh]
+               
                Pure ret2
           (MkAl (MkListR allocation lst direction)) => Pure (MkRD rk direction [])
 

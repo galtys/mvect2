@@ -203,46 +203,51 @@ asdk (MkRouteKeyRef (MkRK date ref state)) = ?asdk_rhs_2
 
 
 show_whsentry : WhsEntry -> Node Ev
-show_whsentry (MkWE ref (Fx121 x y)) = div [class "callout"] [
+show_whsentry (MkWE ref (Fx121 x y)) = 
+                         div [class "callout"] [
                                 p  [] [fromString x]
                                 ,h4 [] ["Target"] 
                                 ,(show_HomQLine $ toQLine $ toHom12 y)
                                 , hr [] []
-                               ]
-show_whsentry (MkWE ref (Fx11 x y)) = div [class "callout"] [
+                         ]
+show_whsentry (MkWE ref (Fx11 x y)) = 
+                         div [class "callout"] [
                                 p  [] [fromString x]
                                 ,h4 [] ["Target"] 
                                 ,(show_Hom1 $ toHom1 y)
                                 , hr [] []                                
-                               ]
+                         ]
 
+
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry)
+
+route_grid_items : (List RouteLine) -> List RouteLineGridItem
+route_grid_items [] = []
+route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
+
+
+show_route_grid_item : RouteLineGridItem -> Node Ev
+show_route_grid_item (MkLoc x) = (show_Location x)
+show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
 
 show_hom : RouteData -> Node Ev
-show_hom wxs = div [class "grid-x grid-padding-x"] [
+show_hom (MkRD key dir lines) = 
+  div [class "grid-y grid-padding-y"] [
   
-  div [class "medium-4 cell"] [
-    h4 [] ["Deliver to:"]
-  ]
-    
-  ,div [class "medium-5 cell"] (map show_whsentry [])
-    --h4 [] ["Target"] 
-    --,(map show_whsentry wxs)
-    {-
-    div [class "callout primary"] [
-      h4 [] ["Target"] 
-      ,(show_HomQLine demoQL )
-    ] 
-    -} 
-  --]  
-  
-  ,div [class "medium-3 cell"] [
-    div [class "callout secondary"] [
-      h4 [] ["Transit"] 
-      ,(show_Hom1 [] )
+    div [class "large-1 cell"] [
+      h4 [] ["Deliver to:"]
     ]
-  ]
-  ,hr [] []
-  
+    
+    ,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items lines) )
+{-  
+    ,div [class "medium-3 cell"] [
+      div [class "callout secondary"] [
+        h4 [] ["Transit"] 
+        ,(show_Hom1 [] )
+      ]
+    ]
+    ,hr [] []
+-}  
   ]
 {-
 export
