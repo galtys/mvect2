@@ -160,7 +160,8 @@ reserve_so_full rk date1 = do
        case rt of
           (MkOR (MkORrec allocation control order Sale)) => do         
                let so_demand_key = allocation
-                   reservation_key  = convMovekey so_demand_key  
+                   reservation_key  = convMovekey so_demand_key
+                     
                x <- Get so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
@@ -271,10 +272,13 @@ new_so date1 dx1 cust cust_inv = do
        x <- Get $ allocationMove rt
        let aitem : AllocationItem
            aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)  
-       aref <- Allocate (MkAE Forecast [aitem])                   
-       Show aref
+       --aref <- Allocate (MkAE Forecast [aitem])                   
+       --Show aref
+       Pure ()
+ {-
  ff <- Get $ allocation InitRoute
  aa <- Get $ convMovekey $allocation InitRoute
+ -}
  Pure new_r
 
 export
@@ -291,8 +295,10 @@ get_hom rk  = do
           (MkOR (MkORrec allocation control order dir)) => do 
                o_t <- GetWhs order                
                o_oh <- GetWhs $ convMovekey order                
+               
                c_t <- GetWhs control
                c_oh <- GetWhs $ convMovekey control
+               
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                {-
@@ -404,7 +410,8 @@ toWhs (ConfirmOrder fx) = do
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r               
                Put route_key (order so) fx_ev               
-               Put route_key (control so) fx_empty
+               Put route_key (allocation so) fx_ev               
+               --Put route_key (control so) fx_empty
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key

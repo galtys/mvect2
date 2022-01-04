@@ -99,8 +99,9 @@ soForecastFromFx fx = ret where
            saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
            saleDemand : MoveKey
            saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
+           
            ret : OrderControlRoute --SaleForecastRoute
-           ret = MkORrec saleOrder saleInvoice saleDemand Sale
+           ret = MkORrec saleDemand saleInvoice saleOrder Sale
 export
 poForecastFromFx : FxData -> OrderControlRoute --PurchaseForecastRoute
 poForecastFromFx fx = ret where

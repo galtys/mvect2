@@ -87,7 +87,7 @@ show_ResPartner x Nothing = div [class "callout"] [
         h4 [] [fromString x]
      ]
 show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = div [class "callout"] [
-        h4 [] [fromString x]
+        h6 [] [fromString x]
         ,h4 [] [fromString name]
         ,p [] [fromString $unMaybe street]
         ,p [] [fromString $unMaybe street2]
@@ -225,20 +225,24 @@ route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
 route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
 
+--route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkLoc (to move),MkWE f,MkWE oh]++(route_grid_items xs)
+
 
 show_route_grid_item : RouteLineGridItem -> Node Ev
 show_route_grid_item (MkLoc x) = (show_Location x)
 show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
 
 show_hom : RouteData -> Node Ev
-show_hom (MkRD key dir lines) = 
+show_hom rk@(MkRD (MkRK date ref state) dir lines) = 
   div [class "grid-y grid-padding-y"] [
   
     div [class "large-1 cell"] [
-      h4 [] ["Deliver to:"]
+      h5 [] [fromString "\{show dir} Route"]
+      ,p [] [fromString "Date: \{date}, Ref: \{ref}, State: \{show state}"]
     ]
     
-    ,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items lines) )
+    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
+    ,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items lines) )    
 {-  
     ,div [class "medium-3 cell"] [
       div [class "callout secondary"] [
