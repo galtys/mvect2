@@ -186,6 +186,7 @@ public export
 record QLine where
   constructor MkQL
   dxpk : ProdKey
+  --dxname : String
   bom : Maybe BoM32
   q  : EQty
   cxpk : ProdKey
@@ -201,7 +202,7 @@ export
 demoQL : HomQLine
 demoQL = ret where
    muf : ProdKey -> EQty -> EQty -> QLine
-   muf dxpk q p = (MkQL dxpk Nothing q (pkPriceEX20 GBP) p)
+   muf dxpk q p = (MkQL dxpk  Nothing q (pkPriceEX20 GBP) p)
    
    ret : HomQLine
    ret = [muf "sku1" 2 10, 

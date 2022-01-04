@@ -144,41 +144,67 @@ export
 ui : M (MSF M Ev (), JSIO ())
 ui = innerHtmlAt exampleDiv content $> (msf, pure ())
 
-f : Product  -> Node Ev
-f (k,v) = tr [] [ td [] [fromString $show k],
-                  td [] [fromString $show v] ] --f2 k (show v)
+fdsa : Maybe BrowseProduct.RecordModel -> String
+fdsa Nothing = ""
+fdsa (Just x) = "[\{default_code x}] \{name_}" where
+    get_name : List PrimProductTemplate.RecordModel -> String
+    get_name [] = ""
+    get_name  (x::xs) = name x
+    name_ : String
+    name_ = "\{get_name $product_tmpl_id x}"
 
-show_Hom1 : Hom1 -> Node Ev
-show_Hom1 dx1 =
+fql : UserDataMap  -> QLine -> Node Ev
+fql udm (MkQL dxpk bom q cxpk price) = tr [] [td [] [fromString $show dxpk],
+                                              td [] [fromString $ fdsa $ lookup dxpk (products udm) ], --unMaybe
+                                              td [] [fromString $show q],
+                                          
+                                              td [] [fromString $show price],
+                                              td [] [fromString $show (q*price)],
+                                              td [] [fromString $show cxpk]]
+
+f : UserDataMap -> Product  -> Node Ev
+f udm (k,v) = tr [] [ td [] [fromString $show k],
+                      td [] [fromString $ fdsa $ lookup k (products udm) ],
+                      td [] [fromString $show v] ] --f2 k (show v)
+
+show_Hom1 : UserDataMap  -> Hom1 -> Node Ev
+show_Hom1 udm dx1 =
   table [ class "unstriped hover" ]
         [ thead []
                 [tr [] 
-                   [ th [Str "width" "100"] ["ProdKey"]
-                   , th [Str "width" "50"]  ["Qty"] 
+                   [ th [] ["ProdKey"]
+                   , th [] ["Description"]
+                   , th []  ["Qty"] 
                     ]]
-        ,tbody [] (map f dx1)                       
+        ,tbody [] (map (f udm) dx1)                       
       ]
-fql : QLine -> Node Ev
-fql (MkQL dxpk bom q cxpk price) = tr [] [td [] [fromString $show dxpk],
-                                          td [] [fromString $show q],
-                                          
-                                          td [] [fromString $show price],
-                                          td [] [fromString $show (q*price)],
-                                          td [] [fromString $show cxpk]]
 
-show_HomQLine : HomQLine -> Node Ev
-show_HomQLine xs = div [] [
+
+show_HomQLine : UserDataMap -> HomQLine -> Node Ev
+show_HomQLine udm xs = div [] [
   table [ class "unstriped hover" ]
         [  thead []
                 [tr [] 
-                   [ th [Str "width" "190"] ["DX Key"]
+                   [ th [] [""]
+                   , th [] ["Description"]
+                   , th []  ["Qty"] 
+                
+                   , th []  ["Price"]
+                   , th []  ["Subtotal"]
+                   , th []  [""] ]
+                ]
+                {-
+                [tr [] 
+                   [ th [Str "width" "20"] [""]
+                   , th [Str "width" "210"] ["Description"]
                    , th [Str "width" "50"]  ["Qty"] 
                 
                    , th [Str "width" "40"]  ["Price"]
                    , th [Str "width" "40"]  ["Subtotal"]
                    , th [Str "width" "60"]  [""] ]
                 ]
-         , tbody [] (map fql (colimQLine xs) )        
+                -}
+         , tbody [] (map (fql udm) (colimQLine xs) )        
         ]
    ]
 {-      
@@ -206,21 +232,21 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : (WhsEntry,RouteTypes.DocumentType) -> Node Ev
-show_whsentry (MkWE ref (Fx121 date y), dt) = 
-                         div [class "callout primary"] [
+show_whsentry : UserDataMap -> (WhsEntry,RouteTypes.DocumentType) -> Node Ev
+show_whsentry udm (MkWE ref (Fx121 date y), dt) = 
+                         div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
                                 ,h4 [] [fromString $ show dt] 
-                                ,(show_HomQLine $ toQLine $ toHom12 y)
+                                ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
                                 --, hr [] []
                          ]
-show_whsentry (MkWE ref (Fx11 date y),dt) = 
+show_whsentry udm (MkWE ref (Fx11 date y),dt) = 
                          div [class "callout"] [
                                 span  [] [fromString date]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
                                 ,h4 [] [fromString $ show dt] 
-                                ,(show_Hom1 $ toHom1 y)
+                                ,((show_Hom1 udm) $ toHom1 y)
                                 --, hr [] []                                
                          ]
 
@@ -234,13 +260,13 @@ route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(r
 --route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkLoc (to move),MkWE f,MkWE oh]++(route_grid_items xs)
 
 
-show_route_grid_item : RouteLineGridItem -> Node Ev
-show_route_grid_item (MkLoc x) = (show_Location x)
-show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
+show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
+show_route_grid_item udm (MkLoc x) = (show_Location x)
+show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
 
 
-show_hom : RouteData -> Node Ev
-show_hom (MkRD  rk dir lines) = 
+show_hom : (RouteData,UserDataMap) -> Node Ev
+show_hom ((MkRD  rk dir lines), udm) = 
   div [class "grid-y"] [ -- grid-padding-y
   
     div [class "large-1 cell"] [
@@ -249,7 +275,7 @@ show_hom (MkRD  rk dir lines) =
     ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
-    ,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items lines) )    
+    ,div [class "route-data large-12 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
 {-  
     ,div [class "medium-3 cell"] [
       div [class "callout secondary"] [

@@ -46,7 +46,7 @@ namespace MemoryMap
    interpret : HasIO io => WhsEvent a -> StateT SystemState io a       
    interpret  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data)<-get             
-                let route_ref = routeSha route                 
+                let route_ref = routeSha dt route                 
                     r_k : RouteKey
                     r_k = (MkRK dt route_ref Progress)                                                   
                     routes' : SortedMap RouteKey RouteSumT
@@ -279,7 +279,7 @@ namespace DirMap
    
    interpret_d  (NewRoute dt route) = do
 
-                let route_ref = routeSha route                 
+                let route_ref = routeSha dt route                 
                     r_k : RouteKey
                     r_k = (MkRK dt route_ref Progress)
                 ret<-DirectoryMap.insert r_k route ROUTE_DIR

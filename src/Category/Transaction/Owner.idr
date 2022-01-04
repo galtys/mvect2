@@ -238,7 +238,7 @@ shipping_done_so_full rk date1 = do
 
 export
 new_so : Date->Hom1->BrowseResPartner.RecordModel->BrowseResPartner.RecordModel->OwnerEvent RouteKey
-new_so date1 dx1 cust cust_inv = do
+new_so date1 dx cust cust_inv = do
  user_data  <- GetUserData      
  let bom_map : SortedMap ProdKey (List BrowseBoM.RecordModel)
      bom_map = boms_m user_data
@@ -249,7 +249,9 @@ new_so date1 dx1 cust cust_inv = do
      h2 dx_' = [ (fst x,  trade_price (lookup (fst x) prod_map)) |x <- dx_' ]
      
      dx1 : Hom1 
-     dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]     
+     dx1 = dx --[ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2)]     
+     
+     
      cx1 : Hom1
      cx1 = (applyHom2 (h2 dx1) dx1)     
      h11_1 : Hom11
@@ -282,7 +284,7 @@ new_so date1 dx1 cust cust_inv = do
  Pure new_r
 
 export
-get_hom : RouteKey -> OwnerEvent RouteData --(List WhsEntry) --HomQLine
+get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --HomQLine
 get_hom rk  = do
 
   let add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
@@ -292,8 +294,9 @@ get_hom rk  = do
       rl df doh mk f oh = MkRL mk (add_doct df f) (add_doct doh oh)
 
   m_rst <- GetRoute rk
+  user_data_map <- GetUserData
   case m_rst of
-    Nothing => Pure (MkRD rk Sale []) --tbd: error
+    Nothing => Pure ((MkRD rk Sale []),user_data_map) --tbd: error
     Just rt => do
        case rt of
           (MkOR (MkORrec allocation control order dir)) => do 
@@ -310,7 +313,7 @@ get_hom rk  = do
                                        rl Invoice Delivery control c_t c_oh,
                                        rl Reservation Allocation allocation a_t a_oh]
                
-               Pure  ret1
+               Pure  (ret1,user_data_map)
           --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
           (MkReR (MkRR allocation reconcile direction)) => do
                a_t <- GetWhs allocation
@@ -328,8 +331,8 @@ get_hom rk  = do
                    ret2 = MkRD rk direction [rl Reservation Allocation allocation a_t a_oh,
                                              rl Order Shipping reconcile r_t r_oh]
                
-               Pure ret2
-          (MkAl (MkListR allocation lst direction)) => Pure (MkRD rk direction [])
+               Pure (ret2,user_data_map)
+          (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction []),user_data_map)
 
 export
 init_self : WhsEvent () 
@@ -397,8 +400,9 @@ toWhs (ConfirmOrder fx) = do
                new_r <- NewRoute (date fx) (MkOR po)
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
-               Put route_key  (control po) fx_empty               
+               --Put route_key  (control po) fx_empty               
                Put route_key  (order po) fx_ev
+               --Put route_key (allocation po) fx_ev               
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) (MkOR so)

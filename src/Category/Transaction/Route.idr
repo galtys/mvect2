@@ -15,8 +15,8 @@ import Odoo.Schema.PJBRecDef
 %language ElabReflection
 
 export
-routeSha : RouteSumT -> RouteRef
-routeSha r = sha256 $ encode r
+routeSha : Date -> RouteSumT -> RouteRef
+routeSha d r = sha256 (d++ (encode r))
 
 export
 self_company : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
@@ -160,7 +160,7 @@ InitRouteT : RouteSumT
 InitRouteT = MkReR InitRoute
 export
 InitRouteRef : Ref
-InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitRouteT ) Progress)
+InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate InitRouteT ) Progress)
 
 
 export     
@@ -168,7 +168,7 @@ InventoryRouteT : RouteSumT
 InventoryRouteT =MkAl InventoryRoute
 export
 InventoryRouteKey : RouteKey
-InventoryRouteKey = (MkRK InitDate (routeSha InventoryRouteT) Progress)
+InventoryRouteKey = (MkRK InitDate (routeSha InitDate InventoryRouteT) Progress)
 export
 InventoryRouteRef : Ref
 InventoryRouteRef = MkRouteKeyRef InventoryRouteKey
@@ -187,7 +187,7 @@ TaxRouteT : RouteSumT
 TaxRouteT = MkReR TaxRoute
 export
 TaxRouteRef : Ref
-TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha TaxRouteT) Progress)
+TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxRouteT) Progress)
      
 export
 BankRoute : ReconciliationRoute
@@ -203,7 +203,7 @@ BankRouteT : RouteSumT
 BankRouteT = MkReR BankRoute
 export
 BankRouteRef : Ref
-BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha BankRouteT) Progress)
+BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankRouteT) Progress)
 
 export
 FxRoute : ReconciliationRoute
@@ -219,7 +219,7 @@ FxRouteT : RouteSumT
 FxRouteT = MkReR FxRoute
 export
 FxRouteRef : Ref
-FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha FxRouteT ) Progress)
+FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate FxRouteT ) Progress)
 
 
 
