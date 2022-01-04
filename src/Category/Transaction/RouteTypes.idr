@@ -107,6 +107,10 @@ allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
 public export
+data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping
+%runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+
+public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
 %runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
             
@@ -152,8 +156,10 @@ public export
 record RouteLine where
    constructor MkRL
    move : MoveKey
-   whse_f : List WhsEntry
-   whse_oh : List WhsEntry
+   whse_f : List (WhsEntry,DocumentType)
+   whse_oh : List (WhsEntry,DocumentType)
+   --doc_f : List DocumentType   
+   --doc_oh : List DocumentType   
    --forecast : RouteDataLine
    --onhand : RouteDataLine
 %runElab derive "RouteLine" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   

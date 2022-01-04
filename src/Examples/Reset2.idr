@@ -197,29 +197,34 @@ show_fxevent (Fx11 x y) =  div [class "callout"] [
                                 ,(show_HomQLine demoQL)
                                ]
 -}
-asdk : Ref -> Node Ev
-asdk (MkAllocationRef x) = ?asdk_rhs_0
-asdk (MkRouteKeyRef (MkRK date ref state)) = ?asdk_rhs_2
+show_RouteKey : RouteKey -> String
+show_RouteKey (MkRK date ref state) = "Date: \{date}, Ref: \{ref}, State: \{show state}"
+
+show_Ref : Ref -> String --Node Ev
+show_Ref (MkAllocationRef x) = " Allocation: \{x}"
+show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : WhsEntry -> Node Ev
-show_whsentry (MkWE ref (Fx121 x y)) = 
-                         div [class "callout"] [
-                                p  [] [fromString x]
-                                ,h4 [] ["Target"] 
+show_whsentry : (WhsEntry,RouteTypes.DocumentType) -> Node Ev
+show_whsentry (MkWE ref (Fx121 date y), dt) = 
+                         div [class "callout primary"] [
+                                span  [] [fromString date ]
+                                , span [class "doc-ref"] [fromString $ show_Ref ref]
+                                ,h4 [] [fromString $ show dt] 
                                 ,(show_HomQLine $ toQLine $ toHom12 y)
-                                , hr [] []
+                                --, hr [] []
                          ]
-show_whsentry (MkWE ref (Fx11 x y)) = 
+show_whsentry (MkWE ref (Fx11 date y),dt) = 
                          div [class "callout"] [
-                                p  [] [fromString x]
-                                ,h4 [] ["Target"] 
+                                span  [] [fromString date]
+                                , span [class "doc-ref"] [fromString $ show_Ref ref]                                
+                                ,h4 [] [fromString $ show dt] 
                                 ,(show_Hom1 $ toHom1 y)
-                                , hr [] []                                
+                                --, hr [] []                                
                          ]
 
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry)
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType))
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
@@ -232,13 +237,14 @@ show_route_grid_item : RouteLineGridItem -> Node Ev
 show_route_grid_item (MkLoc x) = (show_Location x)
 show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
 
+
 show_hom : RouteData -> Node Ev
-show_hom rk@(MkRD (MkRK date ref state) dir lines) = 
-  div [class "grid-y grid-padding-y"] [
+show_hom (MkRD  rk dir lines) = 
+  div [class "grid-y"] [ -- grid-padding-y
   
     div [class "large-1 cell"] [
       h5 [] [fromString "\{show dir} Route"]
-      ,p [] [fromString "Date: \{date}, Ref: \{ref}, State: \{show state}"]
+      ,p [] [fromString $ show_RouteKey rk]
     ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
