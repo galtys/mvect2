@@ -153,14 +153,10 @@ fdsa (Just x) = "[\{default_code x}] \{name_}" where
     name_ : String
     name_ = "\{get_name $product_tmpl_id x}"
 
-fql : UserDataMap  -> QLine -> Node Ev
-fql udm (MkQL dxpk bom q cxpk price) = tr [] [td [] [fromString $show dxpk],
-                                              td [] [fromString $ fdsa $ lookup dxpk (products udm) ], --unMaybe
-                                              td [] [fromString $show q],
-                                          
-                                              td [] [fromString $show price],
-                                              td [] [fromString $show (q*price)],
-                                              td [] [fromString $show cxpk]]
+bom_to_hom : BoM32 -> Hom1
+bom_to_hom b32 = (variants_BoM32  (mult_BoM32 1 [b32]) )
+
+
 
 f : UserDataMap -> Product  -> Node Ev
 f udm (k,v) = tr [] [ td [] [fromString $show k],
@@ -178,7 +174,33 @@ show_Hom1 udm dx1 =
                     ]]
         ,tbody [] (map (f udm) dx1)                       
       ]
+      
+show_Hom1_tbody : UserDataMap  -> Hom1 -> Node Ev
+show_Hom1_tbody udm dx1 =
+  table [ class "unstriped hover" ]
+        [ tbody [] (map (f udm) dx1)                       
+        ]
 
+fql : UserDataMap  -> QLine -> Node Ev
+fql udm (MkQL dxpk Nothing q cxpk price) = tr [] [td [] [fromString $show dxpk],
+                                              td [] [fromString $ fdsa $ lookup dxpk (products udm)], 
+                                              td [] [fromString $show q],
+                                          
+                                              td [] [fromString $show price],
+                                              td [] [fromString $show (q*price)],
+                                              td [] [fromString $show cxpk]]
+
+fql udm (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [] [fromString $show dxpk],
+                                              td [] [div [] [span [] [fromString $ fdsa $ lookup dxpk (products udm)]
+                                                             --p [] [fromString $ show $ bom_to_hom bom]
+                                                             ,(show_Hom1_tbody udm (bom_to_hom bom))
+                                                             ]], 
+                                                     --unMaybe
+                                              td [] [fromString $show q],
+                                          
+                                              td [] [fromString $show price],
+                                              td [] [fromString $show (q*price)],
+                                              td [] [fromString $show cxpk]]
 
 show_HomQLine : UserDataMap -> HomQLine -> Node Ev
 show_HomQLine udm xs = div [] [

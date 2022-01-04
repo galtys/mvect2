@@ -15,7 +15,7 @@ import Odoo.Schema.PJBRecDef
 --import Category.PG.Order
 
 %language ElabReflection
-
+%ambiguity_depth 10
 {-
 public export
 get_hom1 : Term -> List Hom1
@@ -161,14 +161,27 @@ toHom1 (MkH11 dx cx) = (dx+cx)
 public export
 toQLine : Hom12 -> HomQLine
 toQLine (MkHom12 dx appl bom) = ret where
-  ret1 : List (ProdKey, EQty,Maybe Product)
-  ret1 = [ (fst x, snd x, lookup (fst x) appl) | x <- dx ]
-   
-  retA : List (ProdKey, EQty,Maybe Product) -> HomQLine
+  test_bom : Maybe BoM32 -> Maybe BoM32
+  test_bom Nothing = Nothing
+  test_bom (Just (Node32 qty sku [])) = Nothing
+  test_bom bom@(Just (Node32 qty sku (xs))) = bom
+
+  bom_m : List BoM32 -> List (ProdKey, BoM32) 
+  bom_m  [] = []
+  bom_m ((Node32 qty sku components) :: xs) = [(sku, (Node32 qty sku components))]++(bom_m xs)
+
+  ret1 : List (ProdKey, EQty,Maybe Product, Maybe BoM32)
+  ret1 = [ (fst x, snd x, lookup (fst x) appl, lookup (fst x) (bom_m bom) )| x <- dx ]
+     
+  retA : List (ProdKey, EQty,Maybe Product,Maybe BoM32) -> HomQLine
+  retA [] = []
+  retA ((dx, (q, (Nothing, b))) :: xs) = retA xs
+  retA ((dx, (q, ((Just cx), b))) :: xs) = [MkQL dx (test_bom b) q (fst cx) (snd cx)]++(retA xs)
+  {-
   retA [] = []
   retA ((x, (y, Nothing)) :: xs) = retA xs
   retA ((dx, (q, (Just z))) :: xs) = [MkQL dx Nothing q (fst z) (snd z)]++(retA xs)
-  
+  -}
   ret : HomQLine
   ret = retA ret1
 
