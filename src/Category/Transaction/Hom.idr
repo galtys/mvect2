@@ -151,7 +151,7 @@ applyHom2 h2 p = ret where
 
 export
 toHom12 : Hom121 -> Hom12
-toHom12 (MkH121 dx bom appl cx h11) = (MkHom12 dx appl) 
+toHom12 (MkH121 dx bom appl cx h11) = (MkHom12 dx appl bom) 
 {-
 export
 toHom1 : Hom11 -> Hom1
@@ -160,7 +160,7 @@ toHom1 (MkH11 dx cx) = (dx+cx)
 
 public export
 toQLine : Hom12 -> HomQLine
-toQLine (MkHom12 dx appl) = ret where
+toQLine (MkHom12 dx appl bom) = ret where
   ret1 : List (ProdKey, EQty,Maybe Product)
   ret1 = [ (fst x, snd x, lookup (fst x) appl) | x <- dx ]
    

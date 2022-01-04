@@ -271,7 +271,8 @@ record Hom12 where
    constructor MkHom12
    dx:Hom1
    appl:Hom2
-
+   bom : List BoM32
+   
 public export
 record Hom121 where
    constructor MkH121
