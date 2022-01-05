@@ -5,6 +5,8 @@ import Category.Transaction.Demo2
 import Control.Monad.Either
 import Category.Transaction.Owner
 import Category.Transaction.Warehouse
+import Category.Transaction.RouteTypes
+
 import Control.Monad.State
 import Data.HashDB.Types
 import Data.HashDB.DataIO

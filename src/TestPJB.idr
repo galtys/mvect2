@@ -35,7 +35,7 @@ import PQ.Schema
 import PQ.Types
 
 import Odoo.PG.BoM
-import Odoo.PG.Order
+--import Odoo.PG.Order
 
 import Category.Schema.Types
 import Category.Schema.PJB

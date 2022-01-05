@@ -121,8 +121,8 @@ coreCSS =
       [ Height          .= perc 99]
        
   , class fx_event !!
-      [ BorderCollapse .= Collapse
-      , Width          .= perc 100 ]
+      [ --BorderCollapse .= Collapse
+       Width          .= perc 100 ]
   , Pseudo (class fx_event) Hover !!
       [ BackgroundColor .= row_hover ]
   , Many [Class fx_event,Elem Td] !!

@@ -7,6 +7,11 @@ import Rhone.JS
 import Data.MSF.Trans
 
 
+import Data.IORef
+import Data.MSF
+import JS
+
+
 {-
 import Data.Ratio
 import Category.Transaction.Types
@@ -60,6 +65,159 @@ import Category.Transaction.Warehouse
 --import Rhone.JS
 --import System.Random
 --import Text.CSS
+
+
+
+
+
+
+
+
+-------------------------------------------------
+
+||| Web.Internal.UIEventsTypes
+export data WebSocketEvent: Type where [external]
+
+-- Web.Internal.Types
+public export
+JSType WebSocketEvent where
+  parents =  [ JS.Object.Object ]
+  mixins =  []
+
+
+||| Web.Internal.WebSocketPrim
+namespace WebSocketEvent
+  -- message
+  export
+  %foreign "browser:lambda:x=>x.data"
+  prim__data : WebSocketEvent -> PrimIO String
+
+  export
+  %foreign "browser:lambda:x=>x.origin"
+  prim__origin : WebSocketEvent -> PrimIO String
+    
+  export
+  %foreign "browser:lambda:x=>x.lastEventId"
+  prim__lastEventId : WebSocketEvent -> PrimIO String
+  
+  export
+  %foreign "browser:lambda:x=>x.source"
+  prim__source : WebSocketEvent -> PrimIO String
+  
+  export
+  %foreign "browser:lambda:x=>x.ports"
+  prim__ports : WebSocketEvent -> PrimIO String
+
+  -- close
+  export
+  %foreign "browser:lambda:x=>x.code"
+  prim__code : WebSocketEvent -> PrimIO String
+  
+  export
+  %foreign "browser:lambda:x=>x.reason"
+  prim__reason : WebSocketEvent -> PrimIO String
+
+  export
+  %foreign "browser:lambda:x=>x.wasClean"
+  prim__wasClean : WebSocketEvent -> PrimIO String
+
+  -- error is using a generic event
+  -- open is using a generic event
+
+
+  --
+  export
+  getData : (0 _ : JSType t1)
+         => {auto 0 _ : Elem WebSocketEvent (Types t1)}
+         -> (obj : t1)
+         -> JSIO String
+  getData a = primJS $  WebSocketEvent.prim__data (up a)
+          
+  export
+  origin : (0 _ : JSType t1)
+         => {auto 0 _ : Elem WebSocketEvent (Types t1)}
+         -> (obj : t1)
+         -> JSIO String
+  origin a = primJS $  WebSocketEvent.prim__origin (up a)
+         
+  export
+  source : (0 _ : JSType t1)
+         => {auto 0 _ : Elem WebSocketEvent (Types t1)}
+         -> (obj : t1)
+         -> JSIO String
+  source a = primJS $  WebSocketEvent.prim__source (up a)
+  
+  
+  
+public export
+record WsMessageInfo where
+  constructor MkWsMI
+  msg : String
+  origin : String
+  source : String
+  
+export
+wsInfo : WebSocketEvent -> JSIO WsMessageInfo
+wsInfo e =
+  [| MkWsMI
+     (getData e)
+     (origin e)
+     (source e)
+   |]
+
+
+public export
+data EvWS = Msg WebSocketEvent 
+
+
+{-   
+public export
+data WSEvent : Type -> Type where
+   Msg : (WsMessageInfo -> Maybe a) -> WSEvent a
+-}
+   
+public export
+data WebsocketID : String -> Type where [external]
+     --Socket: String -> WebsocketID
+
+--WSid : Type
+--Wsid = WebsocketID "ws://localhost:8000/websocket"
+
+         
+%foreign "browser:lambda:(s) => new WebSocket(s)"
+prim__new_ws : (s:String) -> PrimIO (WebsocketID s)
+
+%foreign "browser:lambda:(s,h) => s.addEventListener('open', h)"
+prim__on_open : {s:String} -> (WebsocketID s) -> (WebSocketEvent -> IO Bits32) -> PrimIO ()
+
+%foreign "browser:lambda:(s,h) => s.addEventListener('message', h)"
+prim__on_message : {s:String} -> (WebsocketID s) -> (WebSocketEvent -> IO Bits32) -> PrimIO ()
+
+export
+ws_new : HasIO io => (s:String) -> io (WebsocketID s)
+ws_new s =  primIO $ prim__new_ws s
+
+    
+export
+ws_on_open : HasIO io => {s:String} -> (WebsocketID s) -> (WebSocketEvent -> JSIO ()) -> io (IO ())
+ws_on_open s run = do
+     ref <- newIORef (the Bits32 0)
+     primIO $ prim__on_open s (\dt => runJS (run dt) >> readIORef ref)
+     pure (writeIORef ref 1)
+
+export
+ws_on_message : HasIO io => {s:String} -> (WebsocketID s) -> (WebSocketEvent -> JSIO ()) -> io (IO ())
+ws_on_message s run = do
+     ref <- newIORef (the Bits32 0)
+     primIO $ prim__on_message s (\dt => runJS (run dt) >> readIORef ref)
+     pure (writeIORef ref 1)
+
+
+
+--ws_open : 
+
+--%foreign "browser:lambda:(s,h) => s.addEventListener('open', h)"
+
 
 
 namespace JSMem
@@ -333,6 +491,14 @@ msf2 =  fan_ []
             , adjLang
             , get >>> dispGame
             ]
+            
+public export
+record DomEnv (event : Type) where
+  constructor MkDomEnv
+  pre      : String
+  unique   : IORef Nat
+  handler  : event -> JSIO ()
+            
 -}
 
 export
@@ -340,10 +506,33 @@ ui2 : M (MSF M Ev (), JSIO ())
 ui2 = do
   --innerHtmlAt exampleDiv (content EN)
   (reas22,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   ) 
-    
+  
+  ws <- ws_new "ws://localhost:8000/websocket"
+  
+  
+  --h_open   <- DomEnv.handler <$> DomIO.env
+  
+  h_open   <- map Control.Monad.Dom.DomIO.DomEnv.handler DomIO.env
+  
+  --op <- ws_on_open ws (h_open . Msg)
+  {-
+  let ocas : (WebSocketEvent -> JSIO ())
+      ocas = (h_open . Msg)
+    -}
+      
+  h_msg   <- DomEnv.handler <$> DomIO.env
+  --msg <- ws_on_message ws (h_open . Msg)
+  
+  --(WebsocketID "ws://localhost:8000/websocket")
+  
   innerHtmlAt exampleDiv (show_hom we)
   --ini <- randomGame EN
   
 
   
-  pure (feedback initState (fromState msf2), pure ())
+  pure (feedback initState (fromState msf2), pure () )
+
+
+
+
+
