@@ -304,6 +304,8 @@ onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_s
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg,
               onOpen]
+--msf2 =  fan_ [onMsg,
+--              onOpen]
 
 export
 ui2 : M (MSF M Ev (), JSIO ())
@@ -321,6 +323,7 @@ ui2 = do
   --innerHtmlAt exampleDiv (content EN)
   
   (sstate,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
+  
   innerHtmlAt exampleDiv (show_hom we)
   --ini <- randomGame EN
   --ws_send ws "Test message"
