@@ -286,33 +286,49 @@ nextM (Msg d) = do
     pure (Ev x)
 nextM _        = pure NoEv
 
+
 onMsg :  MSF (StateT SystemState M) Ev () 
-onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  )
+onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  ) >>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_close ws)
+
+
+openM : Ev -> StateT SystemState M (Event () )   --JSIO (Event String)
+openM (Open d) = pure (Ev ()) 
+openM _        = pure NoEv
+
+
+--sendMessage : Maybe 
+
+onOpen :  MSF (StateT SystemState M) Ev () 
+onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
 
 msf2 : MSF (StateT SystemState M) Ev ()
-msf2 =  fan_ [onMsg]
+msf2 =  fan_ [onMsg,
+              onOpen]
 
 export
 ui2 : M (MSF M Ev (), JSIO ())
 ui2 = do
   
-  ws <- ws_new "ws://localhost:8000/websocket"  
+  w_sock <- ws_new "ws://localhost:8000/websocket"  
   h_open   <- map Control.Monad.Dom.DomIO.DomEnv.handler DomIO.env  
-  op <-  addEventListenerBE "open"  ws (h_open . Open)
+  op <-  addEventListenerBE "open"  w_sock (h_open . Open)
   
   h_msg   <- DomEnv.handler <$> DomIO.env
-  msg <-  addEventListenerBE "message"  ws (h_open . Msg)
+  msg <-  addEventListenerBE "message"  w_sock (h_open . Msg)
   
   --msg <-  addEventListenerBE "open"  ws h_msg
   --msg <- ws_on_message ws (h_msg . Msg)
   --innerHtmlAt exampleDiv (content EN)
   
-  (reas22,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
+  (sstate,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
   innerHtmlAt exampleDiv (show_hom we)
   --ini <- randomGame EN
-  
+  --ws_send ws "Test message"
   --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()
-  pure (feedback reas22 (fromState msf2),pure () ) --   pure ()
+  let new_sstate : SystemState
+      new_sstate = record {web_socket = (Just w_sock) } sstate
+      
+  pure (feedback new_sstate (fromState msf2),pure () ) --   pure ()
   --pure (feedback initState (fromState msf2),pure () ) --   pure ()
 
 

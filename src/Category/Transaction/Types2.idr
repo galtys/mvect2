@@ -11,6 +11,8 @@ import Generics.Derive
 import JSON
 import Odoo.Schema.PJBRecDef
 import Libc.Time
+import Browser.WebSocket
+import Browser.WS2
 
 %language ElabReflection
 
@@ -31,6 +33,7 @@ record UserDataMap where
   boms_m : SortedMap ProdKey (List BrowseBoM.RecordModel)  
    --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
+
 
 public export
 data OwnerJournalEvent : Type where
@@ -127,8 +130,8 @@ namespace SystemState
 
       journal : List OwnerJournalEvent
       user_data : UserDataMap
-
+      web_socket : Maybe WsSocket
    export
    Show SystemState where
-      show (MkSS fx_map routes led_map jm j user_data) = "system state"
+      show (MkSS fx_map routes led_map jm j user_data ws) = "system state"
 

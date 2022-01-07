@@ -22,6 +22,7 @@ import Odoo.Schema.PJBRecDef
 import UserDataDemo
 import Odoo.PG.BoM
 
+import Browser.WS2
 --%language ElabReflection
 {-
 safeHead : List x -> Maybe x
@@ -50,7 +51,7 @@ emptyUserData = (MkUD [] [] [] [])
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData))
+initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing)
 
 export
 StockMoveMap : Type

@@ -61,6 +61,9 @@ import Crypto.Hash.SHA256
 import Text.Html
 import Examples.CSS
 
+import Browser.WebSocket
+import Browser.WS2
+
 %ambiguity_depth 10
 
 json_result : String
