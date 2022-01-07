@@ -140,9 +140,15 @@ bom_to_hom b32 = (variants_BoM32  (mult_BoM32 1 [b32]) )
 
 
 f : UserDataMap -> Product  -> Node Ev
-f udm (k,v) = tr [] [ td [] [fromString $show k],
-                      td [] [fromString $ fdsa $ lookup k (products udm) ],
-                      td [] [fromString $show v] ] --f2 k (show v)
+f udm (k,v) = tr [] [ c_pk,
+                      name,
+                      qty ]
+      where c_pk : Node Ev
+            c_pk = td [class "bom-item"] [fromString $show k]
+            name : Node Ev
+            name = td [class "bom-item"] [fromString $ fdsa $ lookup k (products udm) ]
+            qty : Node Ev
+            qty = td [class "bom-item"] [fromString $show v] --f2 k (show v)
 
 show_Hom1 : UserDataMap  -> Hom1 -> Node Ev
 show_Hom1 udm dx1 =
@@ -280,15 +286,8 @@ nextM (Msg d) = do
     pure (Ev x)
 nextM _        = pure NoEv
 
-onMsg :  MSF (StateT SystemState M) Ev ()    ---LiftJSIO m => MSF (StateT GameState m) i ()
+onMsg :  MSF (StateT SystemState M) Ev () 
 onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  )
---onOpen = (readEv) ^>> ifJust ( arrM (\xl => printLn xl  )
-        where readEv : Ev -> Maybe String --StateT SystemState M (Maybe String) 
-              readEv (Msg x) = (Just "just msg")
-              -- readEv (Msg x) = Just $ msg (wsInfo x)
-              
-              readEv (Open x) = (Just "just open") --Nothing
-              readEv (Ocas) = (Just "just ocas") --Nothing
 
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg]
@@ -296,27 +295,25 @@ msf2 =  fan_ [onMsg]
 export
 ui2 : M (MSF M Ev (), JSIO ())
 ui2 = do
-  --innerHtmlAt exampleDiv (content EN)
-  (reas22,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   ) 
   
-  ws <- ws_new "ws://localhost:8000/websocket"
-  
+  ws <- ws_new "ws://localhost:8000/websocket"  
   h_open   <- map Control.Monad.Dom.DomIO.DomEnv.handler DomIO.env  
   op <-  addEventListenerBE "open"  ws (h_open . Open)
   
-  --op <- ws_on_open ws (h_open . Open)
-      
   h_msg   <- DomEnv.handler <$> DomIO.env
   msg <-  addEventListenerBE "message"  ws (h_open . Msg)
   
   --msg <-  addEventListenerBE "open"  ws h_msg
   --msg <- ws_on_message ws (h_msg . Msg)
+  --innerHtmlAt exampleDiv (content EN)
   
+  (reas22,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
   innerHtmlAt exampleDiv (show_hom we)
   --ini <- randomGame EN
   
   --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()
-  pure (feedback initState (fromState msf2),pure () ) --   pure ()
+  pure (feedback reas22 (fromState msf2),pure () ) --   pure ()
+  --pure (feedback initState (fromState msf2),pure () ) --   pure ()
 
 
 
