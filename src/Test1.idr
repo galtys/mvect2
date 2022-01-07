@@ -67,7 +67,8 @@ json_result : String
 json_result = "{\"result\": 332}"
 
 WEB_ROOT : String
-WEB_ROOT = "/home/jan/github.com/websocket-examples/jsClient"
+WEB_ROOT = "."
+
 
 {-
 ptrToString : Ptr String -> Maybe String
@@ -84,8 +85,6 @@ ptrToString ptr =
 x_my_http_handler : HasIO io => Ptr MG_CONNECTION -> MG_EVENT_TYPE -> Ptr EV_DATA -> Ptr FN_DATA -> io ()
 x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                     let hm = (ev_to_http_message p_ev)                    
-                    --putStrLn ("HTTP is null: " ++ (show (is_ptr_null p_fn)))
-                    putStrLn ("HTTP val: " ++ (show (get_p_int p_fn ) ))                                        
                     if (mg_http_match_uri hm "/rest")==1 then do
                            mg_http_reply p_conn 200 "Content-Type: application/json\r\n" json_result
                            set_p_int p_fn 100                           
@@ -96,19 +95,15 @@ x_my_http_handler p_conn MG_EV_HTTP_MSG p_ev p_fn = do
                              mg_http_serve_dir p_conn hm p_opts 
 
 x_my_http_handler p_conn MG_EV_ACCEPT p_ev p_fn = do
-                    --putStrLn ("MG_EV_ACCEPT: " ++ (show (is_ptr_null p_fn)))
                     putStrLn ("EV acceptp_fn  val: " ++ (show (get_p_int p_fn)))
-                    --x <- malloc_pint                     
-                    --set_p_int x 10                    
-                    --set_fn_data p_conn x
                     pure ()
                     
 x_my_http_handler p_conn MG_EV_WS_MSG p_ev p_fn = do
-                    --l1 <- muf_3_bom
-                    putStrLn ("EV WS  val: " ++ (show (get_p_int p_fn)))
                     let p_wm = (ev_to_ws_message p_ev)
                     msg <- mg_ws_receive_as_String p_conn p_wm                 
-                    mg_ws_send_text p_conn msg                    
+                    putStrLn ("Sending Back: (with MAGIC)" ++ msg)
+                    mg_ws_send_text p_conn (msg++" with MAGIC")
+                    
 x_my_http_handler p_conn ev p_ev p_fn = do 
                   pure ()
 
@@ -322,8 +317,8 @@ mg_test = do
   x1 <- malloc_pint                     
   set_p_int x1 99                    
       
-  mg_http_listen p_mgr "0.0.0.0:8080" my_http_handler x1
-  --inf_loop p_mgr 1000
+  mg_http_listen p_mgr "0.0.0.0:8000" my_http_handler x1
+  inf_loop p_mgr 1000
   mg_mgr_free p_mgr 
   
 
@@ -333,11 +328,11 @@ main = do
   --pjb_test
   --test_demo2
   --putStrLn $ Html.render Selector.content
-  putStrLn CSS.allRules
+  --putStrLn CSS.allRules
   --x <- muf_3_bom
   --traverse_ printLn x
   --pjb_test
   --test_main_x
   --db_main  
-  --mg_test
+  mg_test
   pure ()

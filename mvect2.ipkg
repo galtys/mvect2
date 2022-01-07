@@ -23,10 +23,11 @@ depends = base >= 0.5.1
 	, rhone >= 0.0.1
 	, tailrec >= 0.1.0
 	, rhone-js >= 0.0.1
-
+	, mongoose >= 0.1.0
+	, browser_ws >= 0.1.0
+	
 -- modules to install
-modules = Web.Mongoose.Types
-          , Test1
+modules = Test1
 	  , Category.Transaction.Qty
 	  , Data.Ratio
 	  , Category.Transaction.Types
