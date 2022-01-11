@@ -93,7 +93,45 @@ namespace MemoryMap
                (MkSS fx_map routes led_map rjm j user_data_map ws)<-get
                pure (lookup rk routes)
    interpret (Put ref (MkMK f t ledger) je) = do
+                (MkSS fx_map routes led_map rjm j user_data ws)<-get             
+                let whs_e : WhsEntry
+                    whs_e = MkWE ref je
+                    key : MoveKey                 
+                    key = (MkMK f t ledger)
+                    kf : (Location, Ledger)
+                    kf = (f,ledger)
+                    kt : (Location, Ledger)
+                    kt = (t,ledger)
+                    Hom11_2_LM : Hom11 -> LocationMap
+                    Hom11_2_LM h11 = led2'' where
+                       led1' : LocationMap
+                       led1' = update_ledger kf ( dx h11) led_map
+                       led1'' : LocationMap
+                       led1'' = update_ledger kf (invHom1 $ cx h11) led1'
+                       led2' : LocationMap
+                       led2' = update_ledger kt (invHom1 $ dx h11) led1''
+                       led2'' : LocationMap
+                       led2'' = update_ledger kt (cx h11) led2'
+
+                    je2lm : FxEvent -> LocationMap
+                    je2lm (Fx121 d h121 ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
+                    je2lm (Fx11  d h11 ) = Hom11_2_LM h11
+
+                    led' : LocationMap
+                    led' = je2lm je
+
+                case (lookup key rjm) of
+                   Nothing => do
+                      let rjm' = insert key [whs_e] rjm
+                      put (MkSS fx_map routes led' rjm' j user_data ws)
+
+                   Just je_list => do
+                      let rjm' = insert key (whs_e::je_list) rjm
+                      put (MkSS fx_map routes led' rjm' j user_data ws)
                 pure ()
+   --interpret Get = Get               
+   --interpret (Put ref (MkMK f t ledger) je) = do
+   --             pure ()
    --interpret Get = Get
 
    interpret (Get key) = do 

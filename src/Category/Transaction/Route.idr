@@ -93,12 +93,13 @@ soForecastFromFx fx = ret where
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
            del = (delivery fx)                      
-           saleOrder : MoveKey
-           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
-           saleInvoice : MoveKey
-           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund
+           
            saleDemand : MoveKey
            saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
+           saleInvoice : MoveKey
+           saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund           
+           saleOrder : MoveKey
+           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
            
            ret : OrderControlRoute --SaleForecastRoute
            ret = MkORrec saleDemand saleInvoice saleOrder Sale
@@ -114,6 +115,8 @@ poForecastFromFx fx = ret where
            forecastIn = MkMK (Border self_company) (In del) Forecast --OnHand: allocation from supplier route to customer route            
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
+           purchaseOrder : MoveKey
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
                       
            {-
            forecastIn : MoveKey
@@ -121,8 +124,6 @@ poForecastFromFx fx = ret where
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (Border self_company) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
            -}
-           purchaseOrder : MoveKey
-           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
            ret : OrderControlRoute --PurchaseForecastRoute 
            ret = MkORrec forecastIn purchaseInvoice purchaseOrder Purchase
 {-
@@ -144,7 +145,7 @@ export
 InventoryRoute : ListRoute
 InventoryRoute = (MkListR i [] Purchase) where
      i : MoveKey
-     i = MkMK Self (Border self_company) Forecast
+     i = MkMK Self (Out self_company) Forecast
 export   
 InitRoute : ReconciliationRoute 
 InitRoute = ret where
@@ -152,6 +153,7 @@ InitRoute = ret where
      reconciliation = MkMK Init (In self_company) Forecast
      allocation : MoveKey
      allocation = MkMK (In self_company) Self Forecast
+     
      ret : ReconciliationRoute 
      ret = MkRR reconciliation allocation Sale
      
@@ -177,9 +179,9 @@ export
 TaxRoute : ReconciliationRoute
 TaxRoute = ret where
      r : MoveKey
-     r = MkMK (Taxman self_taxman) (Border self_taxman) Forecast
+     r = MkMK (Taxman self_taxman) (In self_taxman) Forecast
      a : MoveKey
-     a = MkMK (Border self_taxman) Self Forecast
+     a = MkMK (In self_taxman) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR r a Sale     
 export
@@ -193,9 +195,9 @@ export
 BankRoute : ReconciliationRoute
 BankRoute =  ret where
      r : MoveKey
-     r = MkMK (Bank self_bank) (Border self_bank) Forecast
+     r = MkMK (Bank self_bank) (In self_bank) Forecast
      a : MoveKey
-     a = MkMK (Border self_bank) Self Forecast
+     a = MkMK (In self_bank) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR r a Sale
 export     
