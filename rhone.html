@@ -39,9 +39,57 @@
      .row {max-width: 100rem;}
 
 
-     .route-data {display: inline-grid; grid-template-columns: [from] 1fr [forecast] 5fr [onhand] 4fr; grid-gap: 0.5em}
-
+     .route-data {display: inline-grid;
+		  grid-template-columns: [from] 1fr [forecast] 5fr [onhand] 4fr;
+		  grid-gap: 0.5em}
      .route-item {display:flex; flex-direction:column;}
+
+     .route-sale {display: grid;
+		  grid-template-columns: 4fr 1fr 4fr;
+		  grid-gap: 1em;
+		  grid-template-rows: 2fr 5fr 2fr 5fr 2fr 5fr 2fr;
+		  grid-template-areas:      "customer customer customer"
+					    "order  .  shipping"
+					    "control control control"
+					    "invoice . delivery"
+					    "output output output"
+					    "reservation . allocation"
+					    "self self self";
+		 }
+     .loc-customer {
+         grid-area : customer;
+     }
+     .doc-order {
+	 grid-area : order;
+     }
+     .doc-shipping {
+         grid-area : shipping;
+     }
+     .loc-control {
+	 grid-area : control;
+     }
+     .doc-invoice {
+	 grid-area : invoice;
+     }
+     .doc-delivery {
+	 grid-area : delivery;
+     }
+     .loc output {
+	 grid-area : output;
+     }
+     .doc-reservation {
+	 grid-area : reservation;
+     }
+     .doc-allocation {
+	 grid-area : allocation;
+     }
+     .loc-self {
+	 grid-area : self;
+     }
+
+
+
+     
 
      .doc-ref {color: lightgrey;}
 

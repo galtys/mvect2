@@ -106,9 +106,10 @@ allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
-public export
-data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping
-%runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+namespace GridPlacement
+  public export
+  data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping | Control | Input |Output |Self|Border |Init |Loss| Customer | Supplier |Transit|Taxman|Bank
+  %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey

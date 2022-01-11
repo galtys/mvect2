@@ -93,9 +93,9 @@ show_ResPartner x Nothing = div [class "callout"] [
 show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = div [class "callout"] [
         h6 [] [fromString x]
         ,h4 [] [fromString name]
-        ,p [] [fromString $unMaybe street]
-        ,p [] [fromString $unMaybe street2]
-        ,p [] [fromString $unMaybe zip]
+     --   ,p [] [fromString $unMaybe street]
+     --   ,p [] [fromString $unMaybe street2]
+     --   ,p [] [fromString $unMaybe zip]
      ]
 
 show_Location : RouteTypes.Location -> Node Ev
@@ -225,7 +225,7 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : UserDataMap -> (WhsEntry,RouteTypes.DocumentType) -> Node Ev
+show_whsentry : UserDataMap -> (WhsEntry,GridPlacement.DocumentType) -> Node Ev
 show_whsentry udm (MkWE ref (Fx121 date y), dt) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
@@ -243,8 +243,52 @@ show_whsentry udm (MkWE ref (Fx11 date y),dt) =
                                 --, hr [] []                                
                          ]
 
+location_placement : RouteTypes.Location -> GridPlacement.DocumentType
+location_placement Self = GridPlacement.Self
+location_placement (In x) = GridPlacement.Input
+location_placement (Out x) = GridPlacement.Output
+location_placement (Border x) = GridPlacement.Border
+location_placement Init = GridPlacement.Init
+location_placement Loss = GridPlacement.Loss
+location_placement (Control x y) = GridPlacement.Control
+location_placement (Partner Sale y) = GridPlacement.Customer
+location_placement (Partner Purchase y) = GridPlacement.Supplier
+location_placement (Transit x y) = GridPlacement.Transit
+location_placement (Taxman x) = GridPlacement.Taxman
+location_placement (Bank x) = GridPlacement.Bank
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType))
+doc_css : GridPlacement.DocumentType ->String
+doc_css Order = "doc-order"
+doc_css Invoice = "doc-invoice"
+doc_css CreditNote = "doc-invoice"
+doc_css Payment = "doc-delivery"
+doc_css Refund = "doc-delivery"
+doc_css Delivery = "doc-delivery"
+doc_css Return = "doc-delivery"
+doc_css Reservation = "doc-reservation"
+doc_css Allocation = "doc-allocation"
+doc_css Shipping = "loc-shipping"
+doc_css Control = "loc-control"
+doc_css Input = "loc-input"
+doc_css Output = "loc-output"
+doc_css Self = "loc-self"
+doc_css Border = "loc-border"
+doc_css Init = "loc-init"
+doc_css Loss = "loc-loss"
+doc_css Customer = "loc-customer"
+doc_css Supplier = "loc-supplier"
+doc_css Transit = "loc-transit"
+doc_css Taxman = "loc-taxman"
+doc_css Bank = "loc-bank"
+
+export
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,GridPlacement.DocumentType))
+{-
+griditem_css : RouteLineGridItem -> String
+griditem_css (MkLoc x) = doc_css $ location_placement x
+griditem_css (MkWE []) = ""
+griditem_css (MkWE (x :: xs)) = ?griditem_css_rhs_3
+-}
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
@@ -256,7 +300,7 @@ route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(r
 show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
 show_route_grid_item udm (MkLoc x) = (show_Location x)
 show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
-
+--show_route_grid_item udm (MkWE xs) = (map (show_whsentry udm) xs)
 
 show_hom : (RouteData,UserDataMap) -> Node Ev
 show_hom ((MkRD  rk dir lines), udm) = 
@@ -267,8 +311,8 @@ show_hom ((MkRD  rk dir lines), udm) =
       ,p [] [fromString $ show_RouteKey rk]
     ]
     
-    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
-    ,div [class "route-data large-12 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
+    
+    ,div [class "route-sale large-12 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
   ]
 
     
