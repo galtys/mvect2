@@ -256,7 +256,7 @@ show_whsentry udm (MkWE ref (Fx121 date y), dt) =
                          div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
                                 --, hr [] []
                          ]
@@ -264,7 +264,7 @@ show_whsentry udm (MkWE ref (Fx11 date y),dt) =
                          div [class "callout"] [
                                 span  [] [fromString date]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,((show_Hom1 udm) $ toHom1 y)
                                 --, hr [] []                                
                          ]
@@ -288,17 +288,18 @@ show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentr
 
 show_hom : (RouteData,UserDataMap) -> Node Ev
 show_hom ((MkRD  rk dir lines), udm) = 
-  div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+  section [] [
+    div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
-    div [class "large-1 cell"] [
-      h5 [] [fromString "\{show dir} Route"]
-      ,p [] [fromString $ show_RouteKey rk]
-    ]
+      div [class "large-1 cell"] [
+        h5 [] [fromString "\{show dir} Route"]
+        ,p [] [fromString $ show_RouteKey rk]
+      ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
+    ]
   ]
-
     
 export
 get_msg' : LiftJSIO m => BrowserEvent -> m String   --BrowserEvent -> IO String

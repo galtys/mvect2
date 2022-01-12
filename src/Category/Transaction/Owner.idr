@@ -310,8 +310,8 @@ get_hom rk  = do
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                let ret1 : RouteData
-                   ret1 = MkRD rk dir [rl Order Shipping order o_t o_oh,
-                                       rl Invoice Delivery control c_t c_oh,
+                   ret1 = MkRD rk dir [rl Order Delivery order o_t o_oh,
+                                       rl Invoice Dispatch control c_t c_oh,
                                        rl Reservation Allocation allocation a_t a_oh]
                
                Pure  (ret1,user_data_map)
