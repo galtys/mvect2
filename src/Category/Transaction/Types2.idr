@@ -89,6 +89,8 @@ namespace WhsEventDo
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
+       SetAE : Ref -> AllocationEntry -> WhsEvent ()
+       GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        SetFxData : RouteKey -> FxData -> WhsEvent ()
        GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
 
@@ -127,11 +129,11 @@ namespace SystemState
       routes : SortedMap RouteKey RouteSumT
       led_map : LocationMap
       jm   : RouteJournalMap
-
       journal : List OwnerJournalEvent
       user_data : UserDataMap
       web_socket : Maybe WsSocket
+      allocentry : SortedMap Ref AllocationEntry
    export
    Show SystemState where
-      show (MkSS fx_map routes led_map jm j user_data ws) = "system state"
+      show (MkSS fx_map routes led_map jm j user_data ws ae) = "system state"
 

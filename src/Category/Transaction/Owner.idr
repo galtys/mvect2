@@ -51,7 +51,7 @@ emptyUserData = (MkUD [] [] [] [])
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing)
+initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing empty)
 
 export
 StockMoveMap : Type

@@ -44,8 +44,21 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
 namespace MemoryMap
    export
    interpret : HasIO io => WhsEvent a -> StateT SystemState io a       
+   interpret  (SetAE ref entry) = do
+                (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
+                let ae' : SortedMap Ref AllocationEntry
+                    ae' = insert ref entry ae
+                    
+                put (MkSS fx_map routes led_map rjm j user_data ws ae')
+                pure ()
+   interpret  (GetAE ref) = do
+              (MkSS fx_map routes led_map rjm j user_data ws ae)<-get                                        
+              let ret : Maybe AllocationEntry
+                  ret = lookup ref ae
+              pure ret
+              
    interpret  (NewRoute dt route) = do
-                (MkSS fx_map routes led_map rjm j user_data ws)<-get             
+                (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 
                 let route_ref = routeSha dt route                 
                     r_k : RouteKey
@@ -53,26 +66,26 @@ namespace MemoryMap
                     routes' : SortedMap RouteKey RouteSumT
                     routes' = insert r_k  route routes
 
-                put (MkSS fx_map routes' led_map rjm j user_data ws)
+                put (MkSS fx_map routes' led_map rjm j user_data ws ae)
                 pure r_k
 
    interpret  (SetFxData r_k fx) = do
-                (MkSS fx_map routes led_map rjm j user_data ws)<-get                          
+                (MkSS fx_map routes led_map rjm j user_data ws ae)<-get                          
                 let fx_map' : SortedMap RouteKey FxData
                     fx_map' = insert r_k fx fx_map                 
-                put (MkSS fx_map' routes led_map rjm j user_data ws)
+                put (MkSS fx_map' routes led_map rjm j user_data ws ae)
 
    interpret (UpdateUserData user_data ) = do
-                (MkSS fx_map routes led_map rjm j udm ws)<-get
+                (MkSS fx_map routes led_map rjm j udm ws ae)<-get
                 let udm' = userDataToMap user_data
-                put (MkSS fx_map routes led_map rjm j udm' ws)
+                put (MkSS fx_map routes led_map rjm j udm' ws ae)
 
    interpret (GetUserDataW ) = do
-                (MkSS fx_map routes led_map rjm j user_data_map ws)<-get
+                (MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                 pure user_data_map
 
    interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do     
-               (MkSS fx_map routes led_map rjm j user_data_map ws)<-get
+               (MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                case lookup route_ref routes of
                  Nothing => pure ()
                  (Just this) => do
@@ -83,18 +96,18 @@ namespace MemoryMap
 
                          routes'' : SortedMap RouteKey RouteSumT
                          routes'' = delete route_ref routes'
-                     put (MkSS fx_map routes'' led_map rjm j user_data_map ws)
+                     put (MkSS fx_map routes'' led_map rjm j user_data_map ws ae)
 
                pure ()
    interpret (GetFxData rk) = do
-               (MkSS fx_map routes led_map rjm j user_data_map ws)<-get
+               (MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                pure (lookup rk fx_map)
 
    interpret (GetRoute rk) = do
-               (MkSS fx_map routes led_map rjm j user_data_map ws)<-get
+               (MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                pure (lookup rk routes)
    interpret (Put ref (MkMK f t ledger) je) = do
-                (MkSS fx_map routes led_map rjm j user_data ws)<-get             
+                (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 let whs_e : WhsEntry
                     whs_e = MkWE ref je
                     key : MoveKey                 
@@ -124,11 +137,11 @@ namespace MemoryMap
                 case (lookup key rjm) of
                    Nothing => do
                       let rjm' = insert key [whs_e] rjm
-                      put (MkSS fx_map routes led' rjm' j user_data ws)
+                      put (MkSS fx_map routes led' rjm' j user_data ws ae)
 
                    Just je_list => do
                       let rjm' = insert key (whs_e::je_list) rjm
-                      put (MkSS fx_map routes led' rjm' j user_data ws)
+                      put (MkSS fx_map routes led' rjm' j user_data ws ae)
                 pure ()
    --interpret Get = Get               
    --interpret (Put ref (MkMK f t ledger) je) = do
@@ -136,7 +149,7 @@ namespace MemoryMap
    --interpret Get = Get
 
    interpret (Get key) = do 
-        (MkSS fx_map routes led_map rjm j user_data ws)<-get
+        (MkSS fx_map routes led_map rjm j user_data ws ae)<-get
         let muf1 : Maybe (List WhsEntry)
             muf1 = (lookup key rjm)
         case muf1 of
@@ -144,11 +157,11 @@ namespace MemoryMap
            Nothing => pure []
 
    interpret (Log x) = do
-        (MkSS fx_map routes led_map rjm js user_data ws)<-get
+        (MkSS fx_map routes led_map rjm js user_data ws ae)<-get
         let js'= (x::js)
         --putStrLn $ show x
         --putStrLn ""
-        put (MkSS fx_map routes led_map rjm js' user_data ws)
+        put (MkSS fx_map routes led_map rjm js' user_data ws ae)
 
    interpret (Show x) = putStrLn $ show x
    interpret (Pure x) = pure x
@@ -240,6 +253,19 @@ namespace DirMap
    
    export
    interpret_d : HasIO io=>MonadError DBError io=>WhsEvent a->StateT SystemState io a--io a
+   interpret_d  (SetAE ref entry) = do
+                --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
+                --let ae' : SortedMap Ref AllocationEntry
+                --    ae' = insert ref entry ae
+                    
+                --put (MkSS fx_map routes led_map rjm j user_data ws ae')
+                pure ()
+   interpret_d  (GetAE ref) = do
+              --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get                                        
+              --let ret : Maybe AllocationEntry
+              --    ret = lookup ref ae
+              pure Nothing
+   
    interpret_d (Put ref mkey@(MkMK f t ledger) je) = do   
                 --(MkSS fx_map routes led_map rjm j user_data)<-get             
                 let whs_e : WhsEntry

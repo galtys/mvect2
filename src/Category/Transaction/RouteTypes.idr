@@ -89,14 +89,14 @@ record ListRoute where
    lst : List MoveKey      
    direction : DirectionTag 
 %runElab derive "ListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+{-
 public export
 record VectRoute (n:Nat) where 
    constructor MkVectR
    allocation : MoveKey 
    lst : Vect n MoveKey      
 %runElab derive "VectRoute" [Generic, Meta]      
-
+-}
 public export
 data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderControlRoute 
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
