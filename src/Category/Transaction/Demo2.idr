@@ -62,8 +62,8 @@ demo_po_so = do
      date3 = "2021-11-05"
 
  po1 <- new_po date1 dx1 factory1 factory1 
- --transit_po_full po1 "2021-10-17"
- --receive_po_full po1 "2021-10-25"
+ transit_po_full po1 "2021-10-17"
+ receive_po_full po1 "2021-10-25"
  {-
  po2 <- new_po date2 dx2 factory2 factory2 
  transit_po_full po2 "2021-10-18"

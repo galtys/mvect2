@@ -87,16 +87,28 @@ unMaybe Nothing = ""
 unMaybe (Just x) = x
 
 show_ResPartner : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
-show_ResPartner x Nothing = div [class "callout"] [
+show_ResPartner x Nothing = 
+     div [class "callout"] [
         h4 [] [fromString x]
      ]
-show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = div [class "callout"] [
+show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
+     div [class "route-item-head callout"] [
+        p  [class "para-padding"] [fromString $unMaybe street]
+        ,p [class "para-padding"] [fromString $unMaybe street2]
+        ,p [class "para-padding"] [fromString $unMaybe zip]
+     ]
+
+show_Name : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
+show_Name x Nothing = 
+      div [class "callout"] [
+                 h4 [] [fromString x]
+      ]
+show_Name x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
+     div [class "route-item-head callout"] [
         h6 [] [fromString x]
         ,h4 [] [fromString name]
-        ,p [] [fromString $unMaybe street]
-        ,p [] [fromString $unMaybe street2]
-        ,p [] [fromString $unMaybe zip]
      ]
+
 
 show_Location : RouteTypes.Location -> Node Ev
 show_Location Self = show_ResPartner "Self" Nothing
@@ -111,6 +123,20 @@ show_Location (Partner Purchase y) = show_ResPartner "Supplier " (Just y)
 show_Location (Transit x y) = show_ResPartner "Transit \{show x}" (Just y)
 show_Location (Taxman x) = show_ResPartner "Taxman" (Just x)
 show_Location (Bank x) = show_ResPartner "Bank" (Just x)
+
+show_Owner : RouteTypes.Location -> Node Ev
+show_Owner Self = show_Name "Self" Nothing
+show_Owner (In x) = show_Name "In" (Just x)
+show_Owner (Out x) = show_Name "Out" (Just x)
+show_Owner (Border x) = show_Name "Border" (Just x)
+show_Owner Init = show_Name "Init" Nothing
+show_Owner Loss = show_Name "Loss" Nothing
+show_Owner (Control x y) = show_Name "Control \{show x}" (Just y)
+show_Owner (Partner Sale y) = show_Name "Customer " (Just y)
+show_Owner (Partner Purchase y) = show_Name "Supplier " (Just y)
+show_Owner (Transit x y) = show_Name "Transit \{show x}" (Just y)
+show_Owner (Taxman x) = show_Name "Taxman" (Just x)
+show_Owner (Bank x) = show_Name "Bank" (Just x)
 
 
 btn :  (r : ElemRef Button)
@@ -244,23 +270,25 @@ show_whsentry udm (MkWE ref (Fx11 date y),dt) =
                          ]
 
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType))
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType)) | MkOwn RouteTypes.Location
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
-route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
+route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
+--route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh, MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
 
 --route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkLoc (to move),MkWE f,MkWE oh]++(route_grid_items xs)
 
 
 show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
 show_route_grid_item udm (MkLoc x) = (show_Location x)
+show_route_grid_item udm (MkOwn x) = (show_Owner x)
 show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
 
 
 show_hom : (RouteData,UserDataMap) -> Node Ev
 show_hom ((MkRD  rk dir lines), udm) = 
-  div [class "grid-y"] [ -- grid-padding-y
+  div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
     div [class "large-1 cell"] [
       h5 [] [fromString "\{show dir} Route"]
@@ -268,7 +296,7 @@ show_hom ((MkRD  rk dir lines), udm) =
     ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
-    ,div [class "route-data large-12 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
+    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
   ]
 
     

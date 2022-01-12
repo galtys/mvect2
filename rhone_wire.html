@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html class="no-js" lang="en" >
+ <head>
+   <meta charset='utf-8'>
+<!--   <meta name="viewport" content="width=device-width, initial-scale=1.0" />   -->
+<!--   <link rel="stylesheet" href="src/css/border_fix.css"> 
+	 li {
+	     background: #333;
+	     &:hover {
+		 background: lighten(#333,10%);
+	     }
+	 }
+	 a {
+	     color: #fff;
+	 }
+
+   
+   <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
+   <link rel="stylesheet" href="http://dhbhdrzi4tiry.cloudfront.net/cdn/sites/foundation.min.css">
+   
+   <link rel="stylesheet" href="lib/foundation/css/foundation.css">
+   
+   -->
+   <link rel="stylesheet" href="src/css/app.css">
+   
+   <style id='appstyle'></style>
+   <style>
+     .top-bar { background: #6296cb;}
+     .top-bar-left { background: #6296cb;}
+     .menu { background: #6296cb;}
+
+     /*.menu li {background: #333;}*/
+     .menu:hover li:hover {background: #777; }
+
+     tbody td {padding: 0.3rem;}
+     
+     .menu a {color: #fff;}
+
+     .row {max-width: 100rem;}
+
+
+     .route-data {display: inline-grid; grid-template-columns: [from] 1fr [forecast] 5fr [onhand] 4fr; grid-gap: 0.5em}
+
+     .route-item {display:flex; flex-direction:column;}
+
+     .doc-ref {color: lightgrey;}
+
+      td .bom-item {font-style: italic; color: darkgrey;}
+     
+   </style>
+   
+ </head>
+ <body id='content'>
+   <!--<script type='text/javascript' src='js/rhonejs.js'></script> -->
+   <script type='text/javascript' src='src/js/sha256.js'></script>
+   <script type='text/javascript' src='build/exec/ui.js'></script>
+   
+<div id="example">
+    <div class="grid-y">
+        <div class="large-1 cell">
+            <h5>Sale Route</h5>
+            <p>Date: 2021-11-02, Ref: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832, State: Progress</p>
+        </div>
+        <div class="route-data large-12 cell">
+            <div class="callout">
+                <h6>Customer </h6>
+                <h4>John Hilton</h4>
+                <p>Sharing Hilton House</p>
+                <p>Mid Lane</p>
+                <p>CE6</p>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-02</span><span class="doc-ref"> Route: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832</span>
+                    <h4>Order</h4>
+                    <div>
+                        <table class="unstriped hover">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>pk1</td>
+                                    <td>[9788090392380] Na pravdě záleží?</td>
+                                    <td>1</td>
+                                    <td>1673/300</td>
+                                    <td>1673/300</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                                <tr>
+                                    <td>pk4</td>
+                                    <td>[9781617293023] Type-Driven Development with Idris</td>
+                                    <td>2</td>
+                                    <td>34993/1000</td>
+                                    <td>34993/500</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                                <tr>
+                                    <td>pk9</td>
+                                    <td>
+                                        <div><span>[bundle2] Programming Bundle</span>
+                                            <table class="unstriped hover">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="bom-item">pk3</td>
+                                                        <td class="bom-item">[9780464243878] Category Theory for Programmers</td>
+                                                        <td class="bom-item">2</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="bom-item">pk4</td>
+                                                        <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                                        <td class="bom-item">2</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <td>2</td>
+                                    <td>55993/1000</td>
+                                    <td>55993/500</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-06</span><span class="doc-ref"> Route: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832</span>
+                    <h4>Shipping</h4>
+                    <table class="unstriped hover">
+                        <thead>
+                            <tr>
+                                <th>ProdKey</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="bom-item">pk1</td>
+                                <td class="bom-item">[9788090392380] Na pravdě záleží?</td>
+                                <td class="bom-item">1</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk4</td>
+                                <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk9</td>
+                                <td class="bom-item">[bundle2] Programming Bundle</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">GBP EX20</td>
+                                <td class="bom-item"></td>
+                                <td class="bom-item">281323/1500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="callout">
+                <h6>Control Sale</h6>
+                <h4>John Hilton</h4>
+                <p>Sharing Hilton House</p>
+                <p>Mid Lane</p>
+                <p>CE6</p>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-04</span><span class="doc-ref"> Route: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832</span>
+                    <h4>Invoice</h4>
+                    <table class="unstriped hover">
+                        <thead>
+                            <tr>
+                                <th>ProdKey</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="bom-item">pk1</td>
+                                <td class="bom-item">[9788090392380] Na pravdě záleží?</td>
+                                <td class="bom-item">1</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk4</td>
+                                <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk9</td>
+                                <td class="bom-item">[bundle2] Programming Bundle</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">GBP EX20</td>
+                                <td class="bom-item"></td>
+                                <td class="bom-item">281323/1500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-03</span><span class="doc-ref"> Route: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832</span>
+                    <h4>Delivery</h4>
+                    <table class="unstriped hover">
+                        <thead>
+                            <tr>
+                                <th>ProdKey</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="bom-item">pk1</td>
+                                <td class="bom-item">[9788090392380] Na pravdě záleží?</td>
+                                <td class="bom-item">1</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk4</td>
+                                <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk9</td>
+                                <td class="bom-item">[bundle2] Programming Bundle</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">GBP EX20</td>
+                                <td class="bom-item"></td>
+                                <td class="bom-item">281323/1500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="callout">
+                <h6>Out</h6>
+                <h4>John Hilton</h4>
+                <p>Sharing Hilton House</p>
+                <p>Mid Lane</p>
+                <p>CE6</p>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-02</span><span class="doc-ref"> Route: c29716ef9fa4ae026890f58794e0736d64ca1752923a80937dc038a62c04c832</span>
+                    <h4>Reservation</h4>
+                    <div>
+                        <table class="unstriped hover">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Description</th>
+                                    <th>Qty</th>
+                                    <th>Price</th>
+                                    <th>Subtotal</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>pk1</td>
+                                    <td>[9788090392380] Na pravdě záleží?</td>
+                                    <td>1</td>
+                                    <td>1673/300</td>
+                                    <td>1673/300</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                                <tr>
+                                    <td>pk4</td>
+                                    <td>[9781617293023] Type-Driven Development with Idris</td>
+                                    <td>2</td>
+                                    <td>34993/1000</td>
+                                    <td>34993/500</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                                <tr>
+                                    <td>pk9</td>
+                                    <td>
+                                        <div><span>[bundle2] Programming Bundle</span>
+                                            <table class="unstriped hover">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="bom-item">pk3</td>
+                                                        <td class="bom-item">[9780464243878] Category Theory for Programmers</td>
+                                                        <td class="bom-item">2</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="bom-item">pk4</td>
+                                                        <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                                        <td class="bom-item">2</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <td>2</td>
+                                    <td>55993/1000</td>
+                                    <td>55993/500</td>
+                                    <td>GBP EX20</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="route-item">
+                <div class="callout"><span>2021-11-02</span><span class="doc-ref"> Allocation: 1495a945cbdbeabda56f0fdbbc9ada61c51567244f4459be84b64c395e7c1536</span>
+                    <h4>Allocation</h4>
+                    <table class="unstriped hover">
+                        <thead>
+                            <tr>
+                                <th>ProdKey</th>
+                                <th>Description</th>
+                                <th>Qty</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="bom-item">pk1</td>
+                                <td class="bom-item">[9788090392380] Na pravdě záleží?</td>
+                                <td class="bom-item">1</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk4</td>
+                                <td class="bom-item">[9781617293023] Type-Driven Development with Idris</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">pk9</td>
+                                <td class="bom-item">[bundle2] Programming Bundle</td>
+                                <td class="bom-item">2</td>
+                            </tr>
+                            <tr>
+                                <td class="bom-item">GBP EX20</td>
+                                <td class="bom-item"></td>
+                                <td class="bom-item">281323/1500</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+ </body>
+</html>
