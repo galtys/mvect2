@@ -98,20 +98,39 @@ new_po date1 dx1 supp invoice = do
      po1 : FxData
      po1 = MkFx date1 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
  
- new_r <- ConfirmOrder po1
- r <- GetRoute new_r
+ new_rk <- ConfirmOrder po1
+ r <- GetRoute new_rk
  case r of
-   Nothing => Pure ()
-   Just rt => do       
+   Nothing => Pure new_rk
+   Just rt => do     
+      case rt of
+          (MkOR (MkORrec allocation control order Sale)) => Pure new_rk       
+          (MkOR (MkORrec allocation control order Purchase)) => do               
+               xfc <- Get order 
+               let aitem : AllocationItem
+                   aitem = MkAI new_rk InventoryRouteKey (Fx11 date1 xfc) 
+               
+               aref <- Allocate (MkAE Forecast [aitem])       
+               
+               --Post rk transit_key (Fx11 date1 xfc)                         
+               
+               Pure new_rk       
+          (MkReR re) => Pure new_rk       
+          (MkAl lr) => Pure new_rk
+   
+{-       
        x <- Get $ allocationMove rt
        let aitem : AllocationItem
-           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)       
+           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x) 
+                 
        --aref <- Allocate (MkAE OnHand [aitem])
        aref <- Allocate (MkAE Forecast [aitem])       
        x <- Get (convMovekey $allocationMove rt)
        Show "Can be allocated"
        Show x
- Pure new_r
+Pure new_r       
+-}       
+ 
 
 export
 transit_po_full : RouteKey -> Date -> OwnerEvent ()
@@ -268,6 +287,8 @@ new_so date1 dx cust cust_inv = do
      fx = MkFx date1 Sale cust cust_inv (MkH121 dx1 h1_bom (h2 dx1) cx h11_1) 
  
  new_r <- ConfirmOrder fx
+ Pure new_r
+ {-
  r <- GetRoute new_r
  case r of
    Nothing => Pure ()
@@ -283,7 +304,7 @@ new_so date1 dx cust cust_inv = do
  aa <- Get $ convMovekey $allocation InitRoute
  -}
  Pure new_r
-
+ -}
 
 export
 filter_whs_dt : List (WhsEntry,DocumentType) -> Ref->List (WhsEntry,DocumentType)
@@ -314,8 +335,8 @@ filter_route_data (MkRD key dir lines) ref = (MkRD key dir (filter_route_lines l
 
 
 export
-get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --HomQLine
-get_hom rk  = do
+get_hom' : RouteKey -> OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --HomQLine
+get_hom' rk  = do
 
   let add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
       add_doct dt xs = [ (x,dt) | x<-xs]
@@ -378,6 +399,14 @@ get_hom rk  = do
                
                Pure (ret2,user_data_map)
           (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction []),user_data_map)
+export
+get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap)
+get_hom rk = do
+    w <- get_hom' rk
+    let rd = filter_route_data (fst w) (MkRouteKeyRef rk)
+  
+    Pure (rd, snd w)
+    
 
 export
 init_self : WhsEvent () 
