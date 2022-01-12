@@ -49,7 +49,7 @@ run_demo_so = do
   
   shipping_done_so_full so1 "2021-11-06"
   
-  w <- get_hom so1
+  w <- get_hom' so1
   Pure w
 
 export
