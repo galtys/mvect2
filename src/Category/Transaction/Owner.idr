@@ -559,6 +559,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
+       SetAE a_ref entry
        
        Pure a_ref
        
