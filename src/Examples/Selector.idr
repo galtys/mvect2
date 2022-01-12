@@ -10,6 +10,10 @@ import Rhone.JS
 
 %default total
 
+
+
+
+
 public export
 MSel : Type -> Type
 MSel = DomIO String JSIO
@@ -30,6 +34,7 @@ content1 =
               ]
           ]
       , div [ref exampleDiv] []
+      , div [ref formContentDiv] []      
       ]
       
 export
@@ -46,6 +51,7 @@ content =
          , li [] [a [href "#",onClick "math"]["Math Game"]] ]
     ]
  ,div [ref exampleDiv] []
+ ,div [ref formContentDiv] []       
  ]
 cleanup : LiftJSIO io => (clean : JSIO ()) -> io ()
 cleanup = liftJSIO

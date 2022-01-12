@@ -25,6 +25,10 @@ public export
 exampleDiv : ElemRef HTMLDivElement
 exampleDiv = Id Div "example"
 
+public export
+formContentDiv : ElemRef HTMLDivElement
+formContentDiv = Id Div "form_content"
+
 ||| ID of a `<style>` element in the page header.
 ||| The generated CSS rules will go here.
 public export

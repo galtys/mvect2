@@ -85,6 +85,15 @@ demo_po_so = do
  Pure wx
 
 export
+read_ref_data : Ref -> OwnerEvent (RouteData,UserDataMap)
+read_ref_data (MkAllocationRef x) = ?open_ref_rhs_0
+read_ref_data (MkRouteKeyRef x) = do
+       w <- get_hom' x
+       Pure w
+
+    
+
+export
 list_refs : OwnerEvent (List Ref,UserDataMap)
 list_refs = do
    user_data_map <- GetUserData

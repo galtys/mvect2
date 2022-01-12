@@ -63,7 +63,7 @@ import Category.Transaction.Warehouse
 --import Examples.WsTest
 
 public export
-data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas --Open BrowserEvent
+data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRef Ref --Open BrowserEvent
 
      
 namespace JSMem
@@ -311,9 +311,9 @@ show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        ]  
                     
                                        
-show_ref ss (MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_direction route]
-                                                        ,td [] [fromString "\{date}"]
-                                                        ,td [] [fromString "\{ref}"]
+show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_direction route]
+                                                          ,td [] [fromString "\{date}"]
+                                                          ,td [] [a [href "#",onClick (OpenRef route_ref)][fromString "\{ref}"]]   --[      fromString "\{ref}"]
                                                         ] where
                      route : Maybe RouteSumT
                      route = lookup rk (routes ss)
@@ -349,6 +349,8 @@ nextM (Msg d) = do
 nextM _        = pure NoEv
 
 
+
+
 onMsg :  MSF (StateT SystemState M) Ev () 
 onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  ) >>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_close ws)
 
@@ -357,15 +359,32 @@ openM : Ev -> StateT SystemState M (Event () )   --JSIO (Event String)
 openM (Open d) = pure (Ev ()) 
 openM _        = pure NoEv
 
+routeRefM : Ev -> StateT SystemState M (Event (RouteData,UserDataMap) )   --JSIO (Event String)
+routeRefM (OpenRef rf) = do
+            ss <- get
+            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (read_ref_data rf)  ))   
+            --printLn $ lines $ (fst we)
+            pure (Ev (we) ) 
+            
+routeRefM _            = pure NoEv
+
+
+
 
 --sendMessage : Maybe 
+onOpenRef :  MSF (StateT SystemState M) Ev () 
+--onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=>printLn $ show rf)
+onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_hom rf)  )
+
+--Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
 
 onOpen :  MSF (StateT SystemState M) Ev () 
 onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
 
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg,
-              onOpen]
+              onOpen,
+              onOpenRef]
 --msf2 =  fan_ [onMsg,
 --              onOpen]
 
@@ -390,10 +409,12 @@ ui2 = do
   
   
   (sstate,refs) <- runStateT sstate (JSMem.interpret_js (toWhs   list_refs )   )   
-  --innerHtmlAt exampleDiv (show_hom we)
+
   
   innerHtmlAt exampleDiv (show_refs_udm  refs sstate)
   
+  --innerHtmlAt formContentDiv (show_hom we)
+    
   --ini <- randomGame EN
   --ws_send ws "Test message"
   --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()
