@@ -106,10 +106,16 @@ allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
-namespace GridPlacement
-  public export
-  data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping | Control | Input |Output |Self|Border |Init |Loss| Customer | Supplier |Transit|Taxman|Bank
-  %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+--<<<<<<< HEAD
+--namespace GridPlacement
+--  public export
+--  data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping | Control | Input |Output |Self|Border |Init |Loss| Customer | Supplier |Transit|Taxman|Bank
+--  %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+--=======
+public export
+data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |Allocation|Shipping
+%runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+-->>>>>>> 567bb1ad731c387925299e2849e4c6a5e99fcdf9
 
 public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
@@ -137,7 +143,7 @@ record WhsEntry where
      ref : Ref   
      fx : FxEvent
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+{-
 public export
 record RouteMetaKey where
    constructor MkRMK
@@ -152,7 +158,7 @@ record RouteMetaKey where
    --doc : String
    --whse : List WhsEntry
 %runElab derive "RouteMetaKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+-}
 public export
 record RouteLine where
    constructor MkRL

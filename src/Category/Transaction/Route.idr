@@ -110,13 +110,21 @@ poForecastFromFx fx = ret where
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
            del = (delivery fx)                      
-           
+           {-           
            forecastIn : MoveKey
-           forecastIn = MkMK (Border self_company) (In del) Forecast --OnHand: allocation from supplier route to customer route            
+           forecastIn = MkMK (Border self_company) (In del) Forecast                     
            purchaseInvoice : MoveKey
-           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast --OnHand: in delivery, in return to supplier, suppl payment, suppl refund
+           purchaseInvoice = MkMK (In del) (Control Purchase inv) Forecast
            purchaseOrder : MoveKey
-           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast  -- OnHand transit
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
+           -} 
+           forecastIn : MoveKey
+           forecastIn = MkMK (In del) (Border self_company) Forecast                     
+           purchaseInvoice : MoveKey
+           purchaseInvoice = MkMK (Border self_company) (Control Purchase inv) Forecast
+           purchaseOrder : MoveKey
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
+           
                       
            {-
            forecastIn : MoveKey

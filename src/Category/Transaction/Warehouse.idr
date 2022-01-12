@@ -46,6 +46,7 @@ namespace MemoryMap
    interpret : HasIO io => WhsEvent a -> StateT SystemState io a       
    interpret  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data ws)<-get             
+                
                 let route_ref = routeSha dt route                 
                     r_k : RouteKey
                     r_k = (MkRK dt route_ref Progress)                                                   

@@ -87,21 +87,39 @@ unMaybe Nothing = ""
 unMaybe (Just x) = x
 
 show_ResPartner : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
-show_ResPartner x Nothing = div [class "callout"] [
-        h4 [] [fromString x]
+show_ResPartner x Nothing = 
+     div [class "grid-x route-item-head callout"] [
+        h6 [class "large-12 cell h4-right"] [fromString x]
      ]
-show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = div [class "callout"] [
-        h6 [] [fromString x]
-        ,h4 [] [fromString name]
-     --   ,p [] [fromString $unMaybe street]
-     --   ,p [] [fromString $unMaybe street2]
-     --   ,p [] [fromString $unMaybe zip]
+show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
+    div [class "grid-x route-item-head callout"] [
+        p  [class "large-12 cell para-padding h4-right"] [fromString $ (unMaybe street)++", "++(unMaybe street2)++", "++unMaybe zip]
+      
+    ]
+
+
+
+
+show_Name : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
+show_Name x Nothing = 
+      div [class "grid-x route-item-head callout"] [
+                 p [class "large-2 cell"] []
+                 ,h6 [class "large-2 cell h4-left"] [fromString x]
+                 
+      ]
+show_Name x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
+     div [class "grid-x route-item-head callout"] [
+        h4 [class "large-2 cell h4-left"] [fromString name]
+        ,h6 [class "large-1 cell"] [fromString x]        
+        ,p [class "large-7 cell"] []        
+        ,p [class "large-2 cell h4-right"] [fromString email]        
      ]
+
 
 show_Location : RouteTypes.Location -> Node Ev
 show_Location Self = show_ResPartner "Self" Nothing
-show_Location (In x) = show_ResPartner "In" (Just x)
-show_Location (Out x) = show_ResPartner "Out" (Just x)
+show_Location (In x) = show_ResPartner "Input" (Just x)
+show_Location (Out x) = show_ResPartner "Output" (Just x)
 show_Location (Border x) = show_ResPartner "Border" (Just x)
 show_Location Init = show_ResPartner "Init" Nothing
 show_Location Loss = show_ResPartner "Loss" Nothing
@@ -111,6 +129,20 @@ show_Location (Partner Purchase y) = show_ResPartner "Supplier " (Just y)
 show_Location (Transit x y) = show_ResPartner "Transit \{show x}" (Just y)
 show_Location (Taxman x) = show_ResPartner "Taxman" (Just x)
 show_Location (Bank x) = show_ResPartner "Bank" (Just x)
+
+show_Owner : RouteTypes.Location -> Node Ev
+show_Owner Self = show_Name "Self" Nothing
+show_Owner (In x) = show_Name "Input" (Just x)
+show_Owner (Out x) = show_Name "Output" (Just x)
+show_Owner (Border x) = show_Name "Border" (Just x)
+show_Owner Init = show_Name "Init" Nothing
+show_Owner Loss = show_Name "Loss" Nothing
+show_Owner (Control x y) = show_Name "Control \{show x}" (Just y)
+show_Owner (Partner Sale y) = show_Name "Customer " (Just y)
+show_Owner (Partner Purchase y) = show_Name "Supplier " (Just y)
+show_Owner (Transit x y) = show_Name "Transit \{show x}" (Just y)
+show_Owner (Taxman x) = show_Name "Taxman" (Just x)
+show_Owner (Bank x) = show_Name "Bank" (Just x)
 
 
 btn :  (r : ElemRef Button)
@@ -192,7 +224,7 @@ fql udm (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [] [fromString $show dxp
 show_HomQLine : UserDataMap -> HomQLine -> Node Ev
 show_HomQLine udm xs = div [] [
   table [ class "unstriped hover" ]
-        [  thead []
+        [ thead []
                 [tr [] 
                    [ th [] [""]
                    , th [] ["Description"]
@@ -202,17 +234,6 @@ show_HomQLine udm xs = div [] [
                    , th []  ["Subtotal"]
                    , th []  [""] ]
                 ]
-                {-
-                [tr [] 
-                   [ th [Str "width" "20"] [""]
-                   , th [Str "width" "210"] ["Description"]
-                   , th [Str "width" "50"]  ["Qty"] 
-                
-                   , th [Str "width" "40"]  ["Price"]
-                   , th [Str "width" "40"]  ["Subtotal"]
-                   , th [Str "width" "60"]  [""] ]
-                ]
-                -}
          , tbody [] (map (fql udm) (colimQLine xs) )        
         ]
    ]
@@ -225,96 +246,56 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : UserDataMap -> (WhsEntry,GridPlacement.DocumentType) -> Node Ev
+show_whsentry : UserDataMap -> (WhsEntry,RouteTypes.DocumentType) -> Node Ev
 show_whsentry udm (MkWE ref (Fx121 date y), dt) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
-                                --, hr [] []
+
                          ]
 show_whsentry udm (MkWE ref (Fx11 date y),dt) = 
                          div [class "callout"] [
                                 span  [] [fromString date]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,((show_Hom1 udm) $ toHom1 y)
-                                --, hr [] []                                
+
                          ]
 
-location_placement : RouteTypes.Location -> GridPlacement.DocumentType
-location_placement Self = GridPlacement.Self
-location_placement (In x) = GridPlacement.Input
-location_placement (Out x) = GridPlacement.Output
-location_placement (Border x) = GridPlacement.Border
-location_placement Init = GridPlacement.Init
-location_placement Loss = GridPlacement.Loss
-location_placement (Control x y) = GridPlacement.Control
-location_placement (Partner Sale y) = GridPlacement.Customer
-location_placement (Partner Purchase y) = GridPlacement.Supplier
-location_placement (Transit x y) = GridPlacement.Transit
-location_placement (Taxman x) = GridPlacement.Taxman
-location_placement (Bank x) = GridPlacement.Bank
 
-doc_css : GridPlacement.DocumentType ->String
-doc_css Order = "doc-order"
-doc_css Invoice = "doc-invoice"
-doc_css CreditNote = "doc-invoice"
-doc_css Payment = "doc-delivery"
-doc_css Refund = "doc-delivery"
-doc_css Delivery = "doc-delivery"
-doc_css Return = "doc-delivery"
-doc_css Reservation = "doc-reservation"
-doc_css Allocation = "doc-allocation"
-doc_css Shipping = "loc-shipping"
-doc_css Control = "loc-control"
-doc_css Input = "loc-input"
-doc_css Output = "loc-output"
-doc_css Self = "loc-self"
-doc_css Border = "loc-border"
-doc_css Init = "loc-init"
-doc_css Loss = "loc-loss"
-doc_css Customer = "loc-customer"
-doc_css Supplier = "loc-supplier"
-doc_css Transit = "loc-transit"
-doc_css Taxman = "loc-taxman"
-doc_css Bank = "loc-bank"
-
-export
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,GridPlacement.DocumentType))
-{-
-griditem_css : RouteLineGridItem -> String
-griditem_css (MkLoc x) = doc_css $ location_placement x
-griditem_css (MkWE []) = ""
-griditem_css (MkWE (x :: xs)) = ?griditem_css_rhs_3
--}
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType)) | MkOwn RouteTypes.Location
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
-route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
+route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
+route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
+--route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh, MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
 
 --route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkLoc (to move),MkWE f,MkWE oh]++(route_grid_items xs)
 
 
 show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
 show_route_grid_item udm (MkLoc x) = (show_Location x)
+show_route_grid_item udm (MkOwn x) = (show_Owner x)
 show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
---show_route_grid_item udm (MkWE xs) = (map (show_whsentry udm) xs)
+
 
 show_hom : (RouteData,UserDataMap) -> Node Ev
 show_hom ((MkRD  rk dir lines), udm) = 
-  div [class "grid-y"] [ -- grid-padding-y
+  section [] [
+    div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
-    div [class "large-1 cell"] [
-      h5 [] [fromString "\{show dir} Route"]
-      ,p [] [fromString $ show_RouteKey rk]
+      div [class "large-1 cell"] [
+        h5 [] [fromString "\{show dir} Route"]
+        ,p [] [fromString $ show_RouteKey rk]
+      ]
+    
+    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
+    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
     ]
-    
-    
-    ,div [class "route-sale large-12 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
   ]
-
     
 export
 get_msg' : LiftJSIO m => BrowserEvent -> m String   --BrowserEvent -> IO String
