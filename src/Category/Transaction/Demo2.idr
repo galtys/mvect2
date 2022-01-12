@@ -31,12 +31,17 @@ run_demo_so : OwnerEvent (RouteData,UserDataMap) --(List WhsEntry)
 run_demo_so = do
   let date1 : Date
       date1 = "2021-11-02"
+      date2 : Date
+      date2 = "2021-11-12"      
       --dx1 : Hom1 
       --dx1 = [ (pk32DX 1, 1), (pk32DX 3, 1), (pk32DX 4, 2), (pk32DX 9, 2)]
       dx2 : Hom1 
       dx2 = [ (pk32DX 1, 1), (pk32DX 4, 2), (pk32DX 9, 2)]
+      dx3 : Hom1 
+      dx3 = [ (pk32DX 1, 1), (pk32DX 4, 1)]
       
   so1 <- new_so date1 dx2 hilton hilton --RouteKey
+  so2 <- new_so date2 dx2 hilton hilton --RouteKey
   reserve_so_full so1 "2021-11-02"
   deliver_so_full so1 "2021-11-03"
   invoice_so_full so1 "2021-11-04"
@@ -68,13 +73,14 @@ demo_po_so = do
  
 
  po2 <- new_po date2 dx2 factory1 factory2 
- transit_po_full po2 "2021-10-18"
+ --reserve_po_full so1 "2021-11-02"
+ --transit_po_full po2 "2021-10-18"
  {- 
  po3 <- new_po date3 dx1 factory1 factory1   
  -}
  wx <- run_demo_so
  w <- get_hom po2
- Pure w
+ Pure wx
 
 export
 demo_po_so_whs : WhsEvent (RouteData,UserDataMap) --(List WhsEntry)

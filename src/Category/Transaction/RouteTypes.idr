@@ -136,7 +136,7 @@ record WhsEntry where
      ref : Ref   
      fx : FxEvent
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+{-
 public export
 record RouteMetaKey where
    constructor MkRMK
@@ -151,7 +151,7 @@ record RouteMetaKey where
    --doc : String
    --whse : List WhsEntry
 %runElab derive "RouteMetaKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
+-}
 public export
 record RouteLine where
    constructor MkRL
