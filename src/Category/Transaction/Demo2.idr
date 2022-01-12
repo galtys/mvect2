@@ -74,7 +74,7 @@ demo_po_so = do
  -}
  wx <- run_demo_so
  w <- get_hom po2
- Pure wx
+ Pure w
 
 export
 demo_po_so_whs : WhsEvent (RouteData,UserDataMap) --(List WhsEntry)
