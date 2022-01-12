@@ -88,25 +88,31 @@ unMaybe (Just x) = x
 
 show_ResPartner : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_ResPartner x Nothing = 
-     div [class "callout"] [
-        h4 [] [fromString x]
+     div [class "grid-x route-item-head callout"] [
+        h6 [class "large-12 cell h4-right"] [fromString x]
      ]
 show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
-     div [class "route-item-head callout"] [
-        p  [class "para-padding"] [fromString $unMaybe street]
-        ,p [class "para-padding"] [fromString $unMaybe street2]
-        ,p [class "para-padding"] [fromString $unMaybe zip]
-     ]
+    div [class "grid-x route-item-head callout"] [
+        p  [class "large-12 cell para-padding h4-right"] [fromString $ (unMaybe street)++", "++(unMaybe street2)++", "++unMaybe zip]
+      
+    ]
+
+
+
 
 show_Name : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_Name x Nothing = 
-      div [class "callout"] [
-                 h4 [] [fromString x]
+      div [class "grid-x route-item-head callout"] [
+                 p [class "large-2 cell"] []
+                 ,h6 [class "large-2 cell h4-left"] [fromString x]
+                 
       ]
 show_Name x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
-     div [class "route-item-head callout"] [
-        h6 [] [fromString x]
-        ,h4 [] [fromString name]
+     div [class "grid-x route-item-head callout"] [
+        h4 [class "large-2 cell h4-left"] [fromString name]
+        ,h6 [class "large-1 cell"] [fromString x]        
+        ,p [class "large-7 cell"] []        
+        ,p [class "large-2 cell h4-right"] [fromString email]        
      ]
 
 
@@ -274,6 +280,7 @@ data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteT
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
+route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
 route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
 --route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh, MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
 
