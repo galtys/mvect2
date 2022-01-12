@@ -69,6 +69,8 @@ namespace OwnerEventDo
        Close: (ref:RouteKey)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent Ref
        
+       ListRefs : OwnerEvent (List Ref)
+       
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
        Bind : OwnerEvent a -> (a -> OwnerEvent b) -> OwnerEvent b

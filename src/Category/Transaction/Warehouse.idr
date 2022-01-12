@@ -60,7 +60,10 @@ namespace MemoryMap
               (MkSS fx_map routes led_map rjm j user_data ws ae)<-get
               let a_keys : List Ref
                   a_keys = keys ae
-              pure a_keys    
+                  r_keys : List Ref --RouteKey
+                  r_keys = map MkRouteKeyRef (keys routes)
+                  
+              pure (a_keys++r_keys)
    interpret  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 

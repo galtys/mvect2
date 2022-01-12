@@ -282,6 +282,7 @@ show_route_grid_item udm (MkOwn x) = (show_Owner x)
 show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
 
 
+
 show_hom : (RouteData,UserDataMap) -> Node Ev
 show_hom ((MkRD  rk dir lines), udm) = 
   section [] [
@@ -296,7 +297,43 @@ show_hom ((MkRD  rk dir lines), udm) =
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
     ]
   ]
-    
+
+show_direction : Maybe RouteSumT -> String
+show_direction Nothing = ""
+show_direction (Just (MkReR (MkRR allocation reconcile direction)) )=         "\{show direction} LR"
+show_direction (Just (MkAl  (MkListR allocation lst direction)) )=            "\{show direction} AL"
+show_direction (Just (MkOR  (MkORrec allocation control order direction)) )=  "\{show direction} Order"
+
+show_ref : SystemState -> Ref -> Node Ev
+show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
+                                       , td [] []
+                                       ,td [] [fromString "\{ref}"]
+                                       ]  
+                    
+                                       
+show_ref ss (MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_direction route]
+                                                        ,td [] [fromString "\{date}"]
+                                                        ,td [] [fromString "\{ref}"]
+                                                        ] where
+                     route : Maybe RouteSumT
+                     route = lookup rk (routes ss)
+
+show_refs : List Ref -> SystemState -> Node Ev
+show_refs xs ss = table [class "hover"] 
+                     [thead []
+                           [tr []
+                              [ th [] ["Type"],
+                                th [] ["Date"],
+                                th [] ["Ref"]
+                              ]
+                           ]
+                      , tbody [] (map (show_ref ss) xs)
+                      ]     
+
+
+show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
+show_refs_udm (xx, y) ss = show_refs xx ss
+
 export
 get_msg' : LiftJSIO m => BrowserEvent -> m String   --BrowserEvent -> IO String
 get_msg' e = do
@@ -332,6 +369,8 @@ msf2 =  fan_ [onMsg,
 --msf2 =  fan_ [onMsg,
 --              onOpen]
 
+
+
 export
 ui2 : M (MSF M Ev (), JSIO ())
 ui2 = do
@@ -349,7 +388,12 @@ ui2 = do
   
   (sstate,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
   
-  innerHtmlAt exampleDiv (show_hom we)
+  
+  (sstate,refs) <- runStateT sstate (JSMem.interpret_js (toWhs   list_refs )   )   
+  --innerHtmlAt exampleDiv (show_hom we)
+  
+  innerHtmlAt exampleDiv (show_refs_udm  refs sstate)
+  
   --ini <- randomGame EN
   --ws_send ws "Test message"
   --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()

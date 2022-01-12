@@ -85,6 +85,13 @@ demo_po_so = do
  Pure wx
 
 export
+list_refs : OwnerEvent (List Ref,UserDataMap)
+list_refs = do
+   user_data_map <- GetUserData
+   refs <- ListRefs
+   Pure (refs, user_data_map)
+
+export
 demo_po_so_whs : WhsEvent (RouteData,UserDataMap) --(List WhsEntry)
 demo_po_so_whs = (toWhs   demo_po_so)
 
