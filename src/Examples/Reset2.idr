@@ -118,8 +118,8 @@ show_Name x (Just (MkRecordModel pk name use_parent_address active street contra
 
 show_Location : RouteTypes.Location -> Node Ev
 show_Location Self = show_ResPartner "Self" Nothing
-show_Location (In x) = show_ResPartner "In" (Just x)
-show_Location (Out x) = show_ResPartner "Out" (Just x)
+show_Location (In x) = show_ResPartner "Input" (Just x)
+show_Location (Out x) = show_ResPartner "Output" (Just x)
 show_Location (Border x) = show_ResPartner "Border" (Just x)
 show_Location Init = show_ResPartner "Init" Nothing
 show_Location Loss = show_ResPartner "Loss" Nothing
@@ -132,8 +132,8 @@ show_Location (Bank x) = show_ResPartner "Bank" (Just x)
 
 show_Owner : RouteTypes.Location -> Node Ev
 show_Owner Self = show_Name "Self" Nothing
-show_Owner (In x) = show_Name "In" (Just x)
-show_Owner (Out x) = show_Name "Out" (Just x)
+show_Owner (In x) = show_Name "Input" (Just x)
+show_Owner (Out x) = show_Name "Output" (Just x)
 show_Owner (Border x) = show_Name "Border" (Just x)
 show_Owner Init = show_Name "Init" Nothing
 show_Owner Loss = show_Name "Loss" Nothing
@@ -224,7 +224,7 @@ fql udm (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [] [fromString $show dxp
 show_HomQLine : UserDataMap -> HomQLine -> Node Ev
 show_HomQLine udm xs = div [] [
   table [ class "unstriped hover" ]
-        [  thead []
+        [ thead []
                 [tr [] 
                    [ th [] [""]
                    , th [] ["Description"]
@@ -234,17 +234,6 @@ show_HomQLine udm xs = div [] [
                    , th []  ["Subtotal"]
                    , th []  [""] ]
                 ]
-                {-
-                [tr [] 
-                   [ th [Str "width" "20"] [""]
-                   , th [Str "width" "210"] ["Description"]
-                   , th [Str "width" "50"]  ["Qty"] 
-                
-                   , th [Str "width" "40"]  ["Price"]
-                   , th [Str "width" "40"]  ["Subtotal"]
-                   , th [Str "width" "60"]  [""] ]
-                ]
-                -}
          , tbody [] (map (fql udm) (colimQLine xs) )        
         ]
    ]
@@ -264,7 +253,7 @@ show_whsentry udm (MkWE ref (Fx121 date y), dt) =
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
                                 ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
-                                --, hr [] []
+
                          ]
 show_whsentry udm (MkWE ref (Fx11 date y),dt) = 
                          div [class "callout"] [
@@ -272,7 +261,7 @@ show_whsentry udm (MkWE ref (Fx11 date y),dt) =
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
                                 ,h4 [class "h4-center"] [fromString $ show dt] 
                                 ,((show_Hom1 udm) $ toHom1 y)
-                                --, hr [] []                                
+
                          ]
 
 

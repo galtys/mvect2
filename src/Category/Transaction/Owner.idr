@@ -300,7 +300,7 @@ get_hom rk  = do
     Nothing => Pure ((MkRD rk Sale []),user_data_map) --tbd: error
     Just rt => do
        case rt of
-          (MkOR (MkORrec allocation control order dir)) => do 
+          (MkOR (MkORrec allocation control order Sale)) => do 
                o_t <- GetWhs order                
                o_oh <- GetWhs $ convMovekey order                
                
@@ -310,9 +310,24 @@ get_hom rk  = do
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                let ret1 : RouteData
-                   ret1 = MkRD rk dir [rl Order Delivery order o_t o_oh,
-                                       rl Invoice Dispatch control c_t c_oh,
-                                       rl Reservation Allocation allocation a_t a_oh]
+                   ret1 = MkRD rk Sale [rl Order Delivery order o_t o_oh
+                                        ,rl Invoice Dispatch control c_t c_oh
+                                        ,rl Reservation Allocation allocation a_t a_oh]
+               Pure  (ret1,user_data_map)                                        
+          (MkOR (MkORrec allocation control order Purchase)) => do 
+               o_t <- GetWhs order                
+               o_oh <- GetWhs $ convMovekey order                
+               
+               c_t <- GetWhs control
+               c_oh <- GetWhs $ convMovekey control
+               
+               a_t <- GetWhs allocation
+               a_oh <- GetWhs $ convMovekey allocation
+               let ret1 : RouteData
+                   ret1 = MkRD rk Purchase [rl Reservation Allocation allocation a_t a_oh                                            
+                                            ,rl Invoice Dispatch control c_t c_oh
+                                            ,rl Order Delivery order o_t o_oh
+                                            ]
                
                Pure  (ret1,user_data_map)
           --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
