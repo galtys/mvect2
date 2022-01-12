@@ -56,7 +56,11 @@ namespace MemoryMap
               let ret : Maybe AllocationEntry
                   ret = lookup ref ae
               pure ret
-              
+   interpret  (ListRefs) = do
+              (MkSS fx_map routes led_map rjm j user_data ws ae)<-get
+              let a_keys : List Ref
+                  a_keys = keys ae
+              pure a_keys    
    interpret  (NewRoute dt route) = do
                 (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 
@@ -260,6 +264,8 @@ namespace DirMap
                     
                 --put (MkSS fx_map routes led_map rjm j user_data ws ae')
                 pure ()
+   interpret_d   ListRefs = pure []
+   
    interpret_d  (GetAE ref) = do
               --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get                                        
               --let ret : Maybe AllocationEntry

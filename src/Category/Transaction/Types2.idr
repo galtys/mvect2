@@ -89,6 +89,7 @@ namespace WhsEventDo
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
+       ListRefs : WhsEvent (List Ref)
        SetAE : Ref -> AllocationEntry -> WhsEvent ()
        GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        SetFxData : RouteKey -> FxData -> WhsEvent ()
