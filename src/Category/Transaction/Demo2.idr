@@ -48,7 +48,9 @@ run_demo_so = do
   shipping_done_so_full so1 "2021-11-06"
   
   w <- get_hom so1
-  Pure w
+  let rd = filter_route_data (fst w) (MkRouteKeyRef so1)
+  
+  Pure (rd, snd w)
 
 export
 demo_po_so : OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --Hom1

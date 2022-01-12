@@ -308,8 +308,8 @@ filter_route_lines xs ref = map (filter_rl ref) xs
 
 
 export
-filter_route_daata : RouteData -> Ref -> RouteData
-filter_route_daata (MkRD key dir lines) ref = (MkRD key dir (filter_route_lines lines ref) )
+filter_route_data : RouteData -> Ref -> RouteData
+filter_route_data (MkRD key dir lines) ref = (MkRD key dir (filter_route_lines lines ref) )
 
 
 
