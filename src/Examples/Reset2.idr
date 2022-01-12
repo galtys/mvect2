@@ -319,17 +319,17 @@ show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [
                      route = lookup rk (routes ss)
 
 show_refs : List Ref -> SystemState -> Node Ev
-show_refs xs ss = table [class "hover"] 
-                     [thead []
-                           [tr []
-                              [ th [] ["Type"],
-                                th [] ["Date"],
-                                th [] ["Ref"]
-                              ]
-                           ]
-                      , tbody [] (map (show_ref ss) xs)
-                      ]     
-
+show_refs xs ss = section [] [table [class "hover"] 
+                                    [thead []
+                                          [tr []
+                                             [ th [] ["Type"],
+                                               th [] ["Date"],
+                                               th [] ["Ref"]
+                                             ]
+                                          ]
+                                     , tbody [] (map (show_ref ss) xs)
+                                     ]     
+                             ] 
 
 show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
 show_refs_udm (xx, y) ss = show_refs xx ss

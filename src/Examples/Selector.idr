@@ -17,6 +17,7 @@ import Rhone.JS
 public export
 MSel : Type -> Type
 MSel = DomIO String JSIO
+{-
 export
 content1 : Node String
 content1 =
@@ -33,10 +34,12 @@ content1 =
               , option [ value "math" ] ["Math Game"]
               ]
           ]
-      , div [ref exampleDiv] []
-      , div [ref formContentDiv] []      
+      , div [class "grid-x"] [
+           div [class "large-2 cell", ref exampleDiv] []
+           ,div [class "large-10 cell", ref formContentDiv] []      
+           ]
       ]
-      
+-}      
 export
 content : Node String
 content =
@@ -50,8 +53,10 @@ content =
          , li [] [a [href "#",onClick "balls"]["Balls"]]
          , li [] [a [href "#",onClick "math"]["Math Game"]] ]
     ]
- ,div [ref exampleDiv] []
- ,div [ref formContentDiv] []       
+    , div [class "grid-x"] [
+           div [class "large-4 cell", ref exampleDiv] []
+           ,div [class "large-8 cell", ref formContentDiv] []      
+           ]
  ]
 cleanup : LiftJSIO io => (clean : JSIO ()) -> io ()
 cleanup = liftJSIO
