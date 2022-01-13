@@ -93,13 +93,22 @@ soForecastFromFx fx = ret where
            inv = (invoice fx)
            del : BrowseResPartner.RecordModel
            del = (delivery fx)                      
-           
+           {-
            saleDemand : MoveKey
            saleDemand = MkMK (Out del) Self Forecast --OnHand: goods allocation
            saleInvoice : MoveKey
            saleInvoice = MkMK (Control Sale inv) (Out del) Forecast  --OnHand: delivery,return,payment,refund           
            saleOrder : MoveKey
            saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast --OnHand: goods in transit, money in transit
+           -}
+           
+           saleOrder : MoveKey
+           saleOrder = MkMK (Partner Sale del) (Control Sale inv) Forecast
+           saleInvoice : MoveKey
+           saleInvoice = MkMK (Control Sale inv) (Border del) Forecast
+           
+           saleDemand : MoveKey
+           saleDemand = MkMK (Border del) (Out del) Forecast
            
            ret : OrderControlRoute --SaleForecastRoute
            ret = MkORrec saleDemand saleInvoice saleOrder Sale
@@ -118,10 +127,19 @@ poForecastFromFx fx = ret where
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
            -} 
+           
+           {-
            forecastIn : MoveKey
            forecastIn = MkMK (In del) (Border self_company) Forecast                     
            purchaseInvoice : MoveKey
            purchaseInvoice = MkMK (Border self_company) (Control Purchase inv) Forecast
+           purchaseOrder : MoveKey
+           purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
+           -}
+           forecastIn : MoveKey
+           forecastIn = MkMK (In del) (Border del) Forecast                     
+           purchaseInvoice : MoveKey
+           purchaseInvoice = MkMK (Border del) (Control Purchase inv) Forecast
            purchaseOrder : MoveKey
            purchaseOrder = MkMK (Control Purchase inv) (Partner Purchase del) Forecast
            

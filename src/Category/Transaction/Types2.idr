@@ -72,7 +72,7 @@ namespace OwnerEventDo
        
        ListRefs : OwnerEvent (List Ref)
        ListDocs : OwnerEvent (List DocumentNumber)
-       SetAE : Ref -> AllocationEntry -> OwnerEvent ()
+       --SetAE : Ref -> AllocationEntry -> OwnerEvent ()
        GetAE : Ref -> OwnerEvent (Maybe AllocationEntry)
        
        Show : (Show ty) => ty -> OwnerEvent ()

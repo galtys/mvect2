@@ -261,7 +261,6 @@ show_whsentry udm ( we@(MkWE ref (Fx11 date y) mk)) =
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
                                 ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
                                 ,((show_Hom1 udm) $ toHom1 y)
-
                          ]
 
 
@@ -281,10 +280,50 @@ show_route_grid_item udm (MkLoc x) = (show_Location x)
 show_route_grid_item udm (MkOwn x) = (show_Owner x)
 show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
 
+show_FxEvent : UserDataMap -> FxEvent -> Node Ev
+show_FxEvent udm (Fx121 date y) =
+                         div [class "callout"] [
+                                span  [] [fromString date ]
+                                --, span [class "doc-ref"] [fromString $ show_Ref ref]
+                                --,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
+                                ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
+                          ]
+show_FxEvent udm (Fx11 date y) = 
+                         div [class "callout"] [
+                                span  [] [fromString date]
+                                --, span [class "doc-ref"] [fromString $ show_Ref ref]                                
+                                --,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
+                                ,((show_Hom1 udm) $ toHom1 y)
+                         ]
 
 
-show_hom : (Maybe RouteData,UserDataMap) -> Node Ev
-show_hom (Just (MkRD  rk dir lines), udm) = 
+show_allocation_item : UserDataMap -> Ledger -> AllocationItem -> Node Ev
+show_allocation_item ud ledger (MkAI supplier customer fx) =
+        div [class "grid-x grid-padding-x"] [
+            div [class "large-2 cell"] [fromString $ show_RouteKey supplier]
+            ,div [class "large-2 cell"] [fromString $ show_RouteKey customer]        
+            ,div [class "large-8 cell"] [show_FxEvent ud fx]--[fromString $ show_RouteKey customer]        
+        
+        ]
+                  
+
+
+show_allocation_maybe : (Maybe AllocationEntry,UserDataMap) -> Node Ev 
+show_allocation_maybe (Nothing, ud) = section [] []
+show_allocation_maybe (Just (MkAE ledger moves), ud) = 
+  section [] [
+    div [class "callout"] (map (show_allocation_item ud ledger) moves)
+          --div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+    --]
+  ]
+
+
+
+--?show_allocation_maybe_rhs_2
+
+
+show_route_maybe : (Maybe RouteData,UserDataMap) -> Node Ev
+show_route_maybe (Just (MkRD  rk dir lines), udm) = 
   section [] [
     div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
@@ -297,7 +336,25 @@ show_hom (Just (MkRD  rk dir lines), udm) =
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
     ]
   ]
-show_hom _ = section [] []
+show_route_maybe _ = section [] []
+
+
+show_route :( RouteData,UserDataMap) -> Node Ev
+show_route (MkRD  rk dir lines, udm) = 
+  section [] [
+    div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+  
+      div [class "large-1 cell"] [
+        h5 [] [fromString "\{show dir} Route"]
+        ,p [] [fromString $ show_RouteKey rk]
+      ]
+    
+    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
+    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
+    ]
+  ]
+
+
 
 show_direction : Maybe RouteSumT -> String
 show_direction Nothing = ""
@@ -378,11 +435,19 @@ routeKeyM (OpenRoute rk) = do
             pure (Ev (we) )             
 routeKeyM _            = pure NoEv
 
+allocationM : Ev -> StateT SystemState M (Event (Maybe AllocationEntry,UserDataMap) )   --JSIO (Event String)
+allocationM (OpenAlloc ref) = do
+            ss <- get
+            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (read_allocation ref)  ))   
+            --printLn $ lines $ (fst we)
+            pure (Ev (we) )             
+allocationM _            = pure NoEv
+
 -- read_allocation
 
 
 onOpenRef :  MSF (StateT SystemState M) Ev () 
-onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_hom rf)  )
+onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_route_maybe rf)  )
 
 
 onOpen :  MSF (StateT SystemState M) Ev () 
@@ -391,7 +456,9 @@ onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_s
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg,
               onOpen,
-              onOpenRef]
+              onOpenRef,
+              (arrM routeKeyM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_route rf)  ),
+              (arrM allocationM) ?>> (arrM $ \ae=> innerHtmlAt formContentDiv (show_allocation_maybe ae)  ) ]
 --msf2 =  fan_ [onMsg,
 --              onOpen]
 
@@ -420,7 +487,7 @@ ui2 = do
   
   innerHtmlAt exampleDiv (show_refs_udm  refs sstate)
   
-  --innerHtmlAt formContentDiv (show_hom we)
+  --innerHtmlAt formContentDiv (show_route_maybe we)
     
   --ini <- randomGame EN
   --ws_send ws "Test message"

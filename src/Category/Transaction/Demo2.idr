@@ -41,13 +41,13 @@ run_demo_so = do
       dx3 = [ (pk32DX 1, 1), (pk32DX 4, 1)]
       
   so1 <- new_so date1 dx2 hilton hilton --RouteKey
-  --so2 <- new_so date2 dx2 hilton hilton --RouteKey
+  so2 <- new_so date2 dx2 hilton hilton --RouteKey
   
-  reserve_so_full so1 "2021-11-02"
-  deliver_so_full so1 "2021-11-03"
-  invoice_so_full so1 "2021-11-04"
+  --reserve_so_full so1 "2021-11-02"
+  --deliver_so_full so1 "2021-11-03"
+  --invoice_so_full so1 "2021-11-04"
   
-  shipping_done_so_full so1 "2021-11-06"
+  --shipping_done_so_full so1 "2021-11-06"
   
   w <- get_hom' so1
   Pure w
@@ -74,11 +74,12 @@ demo_po_so = do
  --receive_po_full po1 "2021-10-25"
  
 
- --po2 <- new_po date2 dx2 factory1 factory2 
+ po2 <- new_po date2 dx2 factory1 factory2 
  --reserve_po_full so1 "2021-11-02"
  --transit_po_full po2 "2021-10-18"
- {- 
  po3 <- new_po date3 dx1 factory1 factory1   
+ {- 
+ 
  -}
  wx <- run_demo_so
  w <- get_hom' po1
@@ -92,11 +93,12 @@ read_ref_data (MkAllocationRef x) = do
 read_ref_data (MkRouteKeyRef x) = do
        (rd,u) <- get_hom' x
        Pure (Just rd, u)
-
-read_allocation : AllocationRef -> OwnerEvent (Maybe AllocationEntry)
+export
+read_allocation : AllocationRef -> OwnerEvent (Maybe AllocationEntry,UserDataMap)
 read_allocation ref = do
+       u <- GetUserData
        ma <- GetAE (MkAllocationRef ref)
-       Pure ma
+       Pure (ma,u)
 {-
 export
 read_route : RouteKey -> OwnerEvent (RouteData,UserDataMap)

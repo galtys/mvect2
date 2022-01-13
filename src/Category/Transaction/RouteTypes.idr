@@ -124,6 +124,8 @@ record AllocationItem where
   supplier : RouteKey
   customer: RouteKey
   fx : FxEvent
+  
+  
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 public export
 record AllocationEntry where
