@@ -300,7 +300,7 @@ negateDocumentType Refund = Payment
 negateDocumentType Delivery = GoodsReceipt
 negateDocumentType Dispatch = Return
 
-negateDocumentType Return = ?negateDocumentType_rhs_14
+negateDocumentType Return = Dispatch
 negateDocumentType Reservation = Reservation
 negateDocumentType Allocation = Allocation
 negateDocumentType Shipping = Shipping
@@ -310,6 +310,34 @@ negateDocumentType SaleReservation = SaleReservation
 negateDocumentType PurchaseAllocation = PurchaseAllocation
 negateDocumentType SaleAllocation = SaleAllocation
 negateDocumentType GoodsReceipt = Delivery
+
+
+export
+isAllocationDocument : DocumentType -> Bool
+isAllocationDocument SaleOrder = False
+isAllocationDocument SaleOrderAmendment = False
+isAllocationDocument PurchaseOrder = False
+isAllocationDocument Order = False
+isAllocationDocument CustomerInvoice = False
+isAllocationDocument SupplierInvoice = False
+isAllocationDocument CustomerCreditNote = False
+isAllocationDocument SupplierCreditNote = False
+isAllocationDocument Invoice = False
+isAllocationDocument CreditNote = False
+isAllocationDocument Payment = False
+isAllocationDocument Refund = False
+isAllocationDocument Delivery = False
+isAllocationDocument Dispatch = False
+isAllocationDocument Return = False
+isAllocationDocument Reservation = False
+isAllocationDocument Allocation = True
+isAllocationDocument Shipping = False
+isAllocationDocument NotDefined = False
+isAllocationDocument PurchaseReservation = False
+isAllocationDocument SaleReservation = False
+isAllocationDocument PurchaseAllocation = True
+isAllocationDocument SaleAllocation = True
+isAllocationDocument GoodsReceipt = True
 
 
 export
