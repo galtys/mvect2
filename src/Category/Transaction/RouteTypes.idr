@@ -112,9 +112,6 @@ allocationMove (MkAl (MkListR allocation lst d)) = allocation
 --  data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping | Control | Input |Output |Self|Border |Init |Loss| Customer | Supplier |Transit|Taxman|Bank
 --  %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 --=======
-public export
-data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |Allocation|Shipping
-%runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 -->>>>>>> 567bb1ad731c387925299e2849e4c6a5e99fcdf9
 
 public export

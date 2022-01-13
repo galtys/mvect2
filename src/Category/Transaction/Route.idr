@@ -231,6 +231,91 @@ export
 FxRouteRef : Ref
 FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate FxRouteT ) Progress)
 
+export
+getDxDocumentType : MoveKey -> (DocumentType,DocumentType)
+{-
+getDxDocumentType (MkMK from to OnHand) = ?getDxDocumentType_rhs_1
+getDxDocumentType (MkMK Self to Forecast) = ?getDxDocumentType_rhs_3
+getDxDocumentType (MkMK (In x) to Forecast) = ?getDxDocumentType_rhs_4
+getDxDocumentType (MkMK (Out x) to Forecast) = ?getDxDocumentType_rhs_5
+getDxDocumentType (MkMK (Border x) to Forecast) = ?getDxDocumentType_rhs_6
+getDxDocumentType (MkMK Init to Forecast) = ?getDxDocumentType_rhs_7
+getDxDocumentType (MkMK Loss to Forecast) = ?getDxDocumentType_rhs_8
+-}
+{- Sale Route -}
+getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) ledger) = (SaleOrder,Delivery)
+getDxDocumentType (MkMK (Control Sale y) (Out x)  ledger) = (CustomerInvoice,Dispatch)
+getDxDocumentType (MkMK (Out x) Self ledger) = (SaleReservation,SaleAllocation)
+{-Purchase Route -}
+getDxDocumentType (MkMK (In x) (Border y) ledger) = (PurchaseReservation,PurchaseAllocation)
+getDxDocumentType (MkMK (Border x) (Control Purchase y) ledger) = (SupplierInvoice,GoodsReceipt)
+getDxDocumentType (MkMK (Control Purchase y) (Partner Purchase x)  ledger) = (PurchaseOrder,Shipping) --CustomerInvoice,Dispatch)
+
+{-
+getDxDocumentType (MkMK (Partner Purchase y) to Forecast) = ?getDxDocumentType_rhs_15
+getDxDocumentType (MkMK (Transit x y) to Forecast) = ?getDxDocumentType_rhs_11
+getDxDocumentType (MkMK (Taxman x) to Forecast) = ?getDxDocumentType_rhs_12
+getDxDocumentType (MkMK (Bank x) to Forecast) = ?getDxDocumentType_rhs_13
+-}
+getDxDocumentType _ = (NotDefined,NotDefined)
+
+export
+swapDxCx : DocumentType -> DocumentType
+swapDxCx SaleOrder = SaleOrder
+swapDxCx SaleOrderAmendment = SaleOrderAmendment
+swapDxCx PurchaseOrder = PurchaseOrder
+swapDxCx Order = Order
+swapDxCx CustomerInvoice = CustomerInvoice
+swapDxCx SupplierInvoice = SupplierInvoice
+swapDxCx CustomerCreditNote = CustomerCreditNote
+swapDxCx SupplierCreditNote = SupplierCreditNote
+swapDxCx Invoice = Invoice
+swapDxCx CreditNote = CreditNote
+swapDxCx Payment = Dispatch
+swapDxCx Refund = Return
+swapDxCx Delivery = Payment
+swapDxCx Dispatch = Payment
+swapDxCx Return = Refund
+swapDxCx Reservation = Reservation
+swapDxCx Allocation = Allocation
+swapDxCx Shipping = Payment
+swapDxCx NotDefined = NotDefined
+swapDxCx PurchaseReservation = PurchaseReservation
+swapDxCx SaleReservation = SaleReservation
+swapDxCx PurchaseAllocation = PurchaseAllocation
+swapDxCx SaleAllocation = SaleAllocation
+swapDxCx GoodsReceipt = Payment
+
+export
+negateDocumentType : DocumentType -> DocumentType
+negateDocumentType SaleOrder = SaleOrderAmendment
+negateDocumentType SaleOrderAmendment = SaleOrder
+negateDocumentType PurchaseOrder = PurchaseOrder --?no amendment?
+negateDocumentType Order = Order
+negateDocumentType CustomerInvoice = CustomerCreditNote
+negateDocumentType SupplierInvoice = SupplierCreditNote
+negateDocumentType CustomerCreditNote = CustomerInvoice
+negateDocumentType SupplierCreditNote = SupplierInvoice
+negateDocumentType Invoice = CreditNote
+negateDocumentType CreditNote = Invoice
+negateDocumentType Payment = Refund
+negateDocumentType Refund = Payment
+
+negateDocumentType Delivery = GoodsReceipt
+negateDocumentType Dispatch = Return
+
+negateDocumentType Return = ?negateDocumentType_rhs_14
+negateDocumentType Reservation = Reservation
+negateDocumentType Allocation = Allocation
+negateDocumentType Shipping = Shipping
+negateDocumentType NotDefined = NotDefined
+negateDocumentType PurchaseReservation = PurchaseReservation
+negateDocumentType SaleReservation = SaleReservation
+negateDocumentType PurchaseAllocation = PurchaseAllocation
+negateDocumentType SaleAllocation = SaleAllocation
+negateDocumentType GoodsReceipt = Delivery
+
+
 
 
 {-

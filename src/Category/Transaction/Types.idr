@@ -17,6 +17,9 @@ Date : Type
 Date = String --DateTime --String
 
 
+public export
+data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt
+%runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 
 public export

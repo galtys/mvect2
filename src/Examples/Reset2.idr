@@ -246,7 +246,7 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : UserDataMap -> (WhsEntry,RouteTypes.DocumentType) -> Node Ev
+show_whsentry : UserDataMap -> (WhsEntry,Transaction.Types.DocumentType) -> Node Ev
 show_whsentry udm (MkWE ref (Fx121 date y), dt) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
@@ -265,7 +265,7 @@ show_whsentry udm (MkWE ref (Fx11 date y),dt) =
                          ]
 
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,RouteTypes.DocumentType)) | MkOwn RouteTypes.Location
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,Transaction.Types.DocumentType)) | MkOwn RouteTypes.Location
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
