@@ -108,7 +108,7 @@ new_po date1 dx1 supp invoice = do
           (MkOR (MkORrec allocation control order Purchase)) => do               
                xfc <- Get order 
                let aitem : AllocationItem
-                   aitem = MkAI new_rk InventoryRouteKey (Fx11 date1 xfc) 
+                   aitem = MkAI new_rk InventoryInputRouteKey (Fx11 date1 xfc) 
                
                aref <- Allocate (MkAE Forecast [aitem])       
                
@@ -121,7 +121,7 @@ new_po date1 dx1 supp invoice = do
 {-       
        x <- Get $ allocationMove rt
        let aitem : AllocationItem
-           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x) 
+           aitem = MkAI new_r InventoryInputRouteKey (Fx11 date1 x) 
                  
        --aref <- Allocate (MkAE OnHand [aitem])
        aref <- Allocate (MkAE Forecast [aitem])       
@@ -163,7 +163,7 @@ receive_po_full rk date1 = do
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
-                   aitem = MkAI rk InventoryRouteKey fx11
+                   aitem = MkAI rk InventoryInputRouteKey fx11
                Post rk recv_key fx11
                aref <- Allocate (MkAE OnHand [aitem])
                Pure ()
@@ -186,7 +186,7 @@ reserve_so_full rk date1 = do
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
-                   aitem = MkAI rk InventoryRouteKey fx11
+                   aitem = MkAI rk InventoryInputRouteKey fx11
                aref <- Allocate (MkAE OnHand [aitem])               
                Pure ()          
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
@@ -295,7 +295,7 @@ new_so date1 dx cust cust_inv = do
    Just rt => do
        x <- Get $ allocationMove rt
        let aitem : AllocationItem
-           aitem = MkAI new_r InventoryRouteKey (Fx11 date1 x)  
+           aitem = MkAI new_r InventoryInputRouteKey (Fx11 date1 x)  
        --aref <- Allocate (MkAE Forecast [aitem])                   
        --Show aref
        Pure ()
@@ -458,9 +458,9 @@ init_self = do
      Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je --je_dx
      -}
      
-     inventory_route <- NewRoute InitDate InventoryRouteT
-     
-     --Log (MkNewRoute InventoryRouteT fx_empty)
+     inventory_input_route <- NewRoute InitDate InventoryInputRouteT
+     inventory_output_route <- NewRoute InitDate InventoryOutputRouteT     
+     --Log (MkNewRoute InventoryInputRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          
      bank_route <- NewRoute InitDate BankRouteT

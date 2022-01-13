@@ -169,19 +169,34 @@ export
 InitDate : Date
 InitDate = "2021-11-01"
 export
-InventoryRoute : ListRoute
-InventoryRoute = (MkListR i [] Purchase) where
+InventoryInputRoute : ListRoute
+InventoryInputRoute = (MkListR i [] Purchase) where
      i : MoveKey
      i = MkMK Self (In self_company) Forecast
 export     
-InventoryRouteT : RouteSumT     
-InventoryRouteT =MkAl InventoryRoute
+InventoryInputRouteT : RouteSumT     
+InventoryInputRouteT =MkAl InventoryInputRoute
 export
-InventoryRouteKey : RouteKey
-InventoryRouteKey = (MkRK InitDate (routeSha InitDate InventoryRouteT) Progress)
+InventoryInputRouteKey : RouteKey
+InventoryInputRouteKey = (MkRK InitDate (routeSha InitDate InventoryInputRouteT) Progress)
 export
-InventoryRouteRef : Ref
-InventoryRouteRef = MkRouteKeyRef InventoryRouteKey
+InventoryInputRouteRef : Ref
+InventoryInputRouteRef = MkRouteKeyRef InventoryInputRouteKey
+
+export
+InventoryOutputRoute : ListRoute
+InventoryOutputRoute = (MkListR i [] Sale) where
+     i : MoveKey
+     i = MkMK Self (Out self_company) Forecast
+export     
+InventoryOutputRouteT : RouteSumT     
+InventoryOutputRouteT =MkAl InventoryOutputRoute
+export
+InventoryOutputRouteKey : RouteKey
+InventoryOutputRouteKey = (MkRK InitDate (routeSha InitDate InventoryOutputRouteT) Progress)
+export
+InventoryOutputRouteRef : Ref
+InventoryOutputRouteRef = MkRouteKeyRef InventoryOutputRouteKey
 
 
 export   
@@ -305,7 +320,7 @@ getDocRouteType (MkReR (MkRR allocation (MkMK (Transit x y) to ledger) direction
 
 
 getDocRouteType (MkAl (MkListR (MkMK Self (In x) ledger) [] Purchase)) = DocumentRouteType.StockInputRoute -- ?kkkdfasdflas_3 --DocumentRouteType.NA
-getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ledger) [] Purchase)) = DocumentRouteType.StockOutputRoute 
+getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ledger) [] Sale)) = DocumentRouteType.StockOutputRoute 
 
 
 
