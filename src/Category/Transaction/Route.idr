@@ -232,32 +232,28 @@ FxRouteRef : Ref
 FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate FxRouteT ) Progress)
 
 export
-getDxDocumentType : MoveKey -> (DocumentType,DocumentType)
-{-
-getDxDocumentType (MkMK from to OnHand) = ?getDxDocumentType_rhs_1
-getDxDocumentType (MkMK Self to Forecast) = ?getDxDocumentType_rhs_3
-getDxDocumentType (MkMK (In x) to Forecast) = ?getDxDocumentType_rhs_4
-getDxDocumentType (MkMK (Out x) to Forecast) = ?getDxDocumentType_rhs_5
-getDxDocumentType (MkMK (Border x) to Forecast) = ?getDxDocumentType_rhs_6
-getDxDocumentType (MkMK Init to Forecast) = ?getDxDocumentType_rhs_7
-getDxDocumentType (MkMK Loss to Forecast) = ?getDxDocumentType_rhs_8
--}
+getDxDocumentType : MoveKey -> DocumentType
 {- Sale Route -}
-getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) ledger) = (SaleOrder,Delivery)
-getDxDocumentType (MkMK (Control Sale y) (Out x)  ledger) = (CustomerInvoice,Dispatch)
-getDxDocumentType (MkMK (Out x) Self ledger) = (SaleReservation,SaleAllocation)
-{-Purchase Route -}
-getDxDocumentType (MkMK (In x) (Border y) ledger) = (PurchaseReservation,PurchaseAllocation)
-getDxDocumentType (MkMK (Border x) (Control Purchase y) ledger) = (SupplierInvoice,GoodsReceipt)
-getDxDocumentType (MkMK (Control Purchase y) (Partner Purchase x)  ledger) = (PurchaseOrder,Shipping) --CustomerInvoice,Dispatch)
+getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) Forecast) = SaleOrder
+getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) OnHand) = Delivery
 
-{-
-getDxDocumentType (MkMK (Partner Purchase y) to Forecast) = ?getDxDocumentType_rhs_15
-getDxDocumentType (MkMK (Transit x y) to Forecast) = ?getDxDocumentType_rhs_11
-getDxDocumentType (MkMK (Taxman x) to Forecast) = ?getDxDocumentType_rhs_12
-getDxDocumentType (MkMK (Bank x) to Forecast) = ?getDxDocumentType_rhs_13
--}
-getDxDocumentType _ = (NotDefined,NotDefined)
+getDxDocumentType (MkMK (Control Sale y) (Out x)  Forecast) = CustomerInvoice
+getDxDocumentType (MkMK (Control Sale y) (Out x)  OnHand) = Dispatch
+
+getDxDocumentType (MkMK (Out x) Self Forecast) = SaleReservation
+getDxDocumentType (MkMK (Out x) Self OnHand) = SaleAllocation
+
+{-Purchase Route -}
+getDxDocumentType (MkMK (In x) (Border y) Forecast) = PurchaseReservation
+getDxDocumentType (MkMK (In x) (Border y) OnHand) = PurchaseAllocation
+
+getDxDocumentType (MkMK (Border x) (Control Purchase y) Forecast) = SupplierInvoice
+getDxDocumentType (MkMK (Border x) (Control Purchase y) OnHand) = GoodsReceipt
+
+getDxDocumentType (MkMK (Control Purchase y) (Partner Purchase x)  Forecast) = PurchaseOrder
+getDxDocumentType (MkMK (Control Purchase y) (Partner Purchase x)  OnHand) = Shipping
+
+getDxDocumentType _ = NotDefined
 
 export
 swapDxCx : DocumentType -> DocumentType
@@ -316,6 +312,9 @@ negateDocumentType SaleAllocation = SaleAllocation
 negateDocumentType GoodsReceipt = Delivery
 
 
+export
+getDocumentType : WhsEntry -> DocumentType
+getDocumentType (MkWE ref fx move_key) = getDxDocumentType move_key
 
 
 {-

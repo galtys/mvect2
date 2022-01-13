@@ -307,18 +307,18 @@ new_so date1 dx cust cust_inv = do
  -}
 
 export
-filter_whs_dt : List (WhsEntry,DocumentType) -> Ref->List (WhsEntry,DocumentType)
+filter_whs_dt : List WhsEntry -> Ref->List WhsEntry
 filter_whs_dt [] x = []
-filter_whs_dt ((whs@(MkWE ref fx), z) :: xs) x = if (ref==x) then [ (whs,z)]++(filter_whs_dt xs x) else (filter_whs_dt xs x)
+filter_whs_dt ((whs@(MkWE ref fx mk)) :: xs) x = if (ref==x) then [ (whs)]++(filter_whs_dt xs x) else (filter_whs_dt xs x)
 
 
 export
 filter_rl : Ref -> RouteLine -> RouteLine
 filter_rl ref (MkRL move whse_f whse_oh)  = (MkRL move filtered_f filtered_oh) where
-           filtered_f : List (WhsEntry,DocumentType)
+           filtered_f : List (WhsEntry)
            filtered_f = filter_whs_dt whse_f ref
            
-           filtered_oh : List (WhsEntry,DocumentType)
+           filtered_oh : List (WhsEntry)
            filtered_oh = filter_whs_dt whse_oh ref
            
 
@@ -337,13 +337,13 @@ filter_route_data (MkRD key dir lines) ref = (MkRD key dir (filter_route_lines l
 export
 get_hom' : RouteKey -> OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --HomQLine
 get_hom' rk  = do
-
+  
   let add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
       add_doct dt xs = [ (x,dt) | x<-xs]
       
-      rl : DocumentType -> DocumentType -> MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
-      rl df doh mk f oh = MkRL mk (add_doct df f) (add_doct doh oh)
-
+      rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
+      rl mk f oh = MkRL mk (f) (oh)
+  
   m_rst <- GetRoute rk
   user_data_map <- GetUserData
   case m_rst of
@@ -360,9 +360,9 @@ get_hom' rk  = do
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                let ret1 : RouteData
-                   ret1 = MkRD rk Sale [rl Order Delivery order o_t o_oh
-                                        ,rl Invoice Dispatch control c_t c_oh
-                                        ,rl Reservation Allocation allocation a_t a_oh]
+                   ret1 = MkRD rk Sale [rl order o_t o_oh
+                                        ,rl control c_t c_oh
+                                        ,rl allocation a_t a_oh]
                Pure  (ret1,user_data_map)                                        
           (MkOR (MkORrec allocation control order Purchase)) => do 
                o_t <- GetWhs order                
@@ -374,9 +374,9 @@ get_hom' rk  = do
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                let ret1 : RouteData
-                   ret1 = MkRD rk Purchase [rl Reservation Allocation allocation a_t a_oh                                            
-                                            ,rl Invoice Dispatch control c_t c_oh
-                                            ,rl Order Delivery order o_t o_oh
+                   ret1 = MkRD rk Purchase [rl allocation a_t a_oh                                            
+                                            ,rl control c_t c_oh
+                                            ,rl order o_t o_oh
                                             ]
                
                Pure  (ret1,user_data_map)
@@ -394,8 +394,8 @@ get_hom' rk  = do
                                             rl (convMovekey reconcile) r_oh]
                -}
                let ret2 : RouteData
-                   ret2 = MkRD rk direction [rl Reservation Allocation allocation a_t a_oh,
-                                             rl Order Shipping reconcile r_t r_oh]
+                   ret2 = MkRD rk direction [rl allocation a_t a_oh,
+                                             rl reconcile r_t r_oh]
                
                Pure (ret2,user_data_map)
           (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction []),user_data_map)

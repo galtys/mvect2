@@ -113,12 +113,14 @@ namespace MemoryMap
    interpret (GetRoute rk) = do
                (MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                pure (lookup rk routes)
-   interpret (Put ref (MkMK f t ledger) je) = do
+   interpret (Put ref mk@(MkMK f t ledger) je) = do
                 (MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 let whs_e : WhsEntry
-                    whs_e = MkWE ref je
+                    whs_e = MkWE ref je mk
+                    
                     key : MoveKey                 
                     key = (MkMK f t ledger)
+                    
                     kf : (Location, Ledger)
                     kf = (f,ledger)
                     kt : (Location, Ledger)
@@ -278,7 +280,7 @@ namespace DirMap
    interpret_d (Put ref mkey@(MkMK f t ledger) je) = do   
                 --(MkSS fx_map routes led_map rjm j user_data)<-get             
                 let whs_e : WhsEntry
-                    whs_e = MkWE ref je
+                    whs_e = MkWE ref je mkey
                 
                 mp_x <- lookup_typeptr mkey --DirectoryMap.lookup mkey 
                 case mp_x of

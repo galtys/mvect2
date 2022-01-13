@@ -246,26 +246,26 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
-show_whsentry : UserDataMap -> (WhsEntry,Transaction.Types.DocumentType) -> Node Ev
-show_whsentry udm (MkWE ref (Fx121 date y), dt) = 
+show_whsentry : UserDataMap -> (WhsEntry) -> Node Ev
+show_whsentry udm ( we@(MkWE ref (Fx121 date y) mk)) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [class "h4-center"] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
 
                          ]
-show_whsentry udm (MkWE ref (Fx11 date y),dt) = 
+show_whsentry udm ( we@(MkWE ref (Fx11 date y) mk)) = 
                          div [class "callout"] [
                                 span  [] [fromString date]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [class "h4-center"] [fromString $ show dt] 
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
                                 ,((show_Hom1 udm) $ toHom1 y)
 
                          ]
 
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List (WhsEntry,Transaction.Types.DocumentType)) | MkOwn RouteTypes.Location
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry) | MkOwn RouteTypes.Location
 
 route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
@@ -294,7 +294,7 @@ show_hom ((MkRD  rk dir lines), udm) =
       ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
-    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items lines) )    
+    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
     ]
   ]
 

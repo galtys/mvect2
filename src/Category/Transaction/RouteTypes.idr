@@ -139,6 +139,7 @@ record WhsEntry where
      constructor MkWE
      ref : Ref   
      fx : FxEvent
+     move_key : MoveKey --doc : Types.DocumentType
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 {-
 public export
@@ -160,8 +161,8 @@ public export
 record RouteLine where
    constructor MkRL
    move : MoveKey
-   whse_f : List (WhsEntry,DocumentType)
-   whse_oh : List (WhsEntry,DocumentType)
+   whse_f : List (WhsEntry) --,DocumentType)
+   whse_oh : List (WhsEntry) --,DocumentType)
    --doc_f : List DocumentType   
    --doc_oh : List DocumentType   
    --forecast : RouteDataLine
