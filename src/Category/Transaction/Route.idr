@@ -176,12 +176,13 @@ export
 InitRoute : ReconciliationRoute 
 InitRoute = ret where
      reconciliation : MoveKey
-     reconciliation = MkMK Init (In self_company) Forecast
+     reconciliation = MkMK   Init (In self_company) Forecast
+
      allocation : MoveKey
-     allocation = MkMK (In self_company) Self Forecast
+     allocation = MkMK  (In self_company) Self Forecast
      
      ret : ReconciliationRoute 
-     ret = MkRR reconciliation allocation Sale
+     ret = MkRR allocation reconciliation Sale
      
 export
 InitRouteT : RouteSumT     
@@ -225,7 +226,8 @@ BankRoute =  ret where
      a : MoveKey
      a = MkMK (In self_bank) Self Forecast
      ret : ReconciliationRoute
-     ret = MkRR r a Sale
+     ret = MkRR a r Sale
+     
 export     
 BankRouteT : RouteSumT
 BankRouteT = MkReR BankRoute

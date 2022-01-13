@@ -53,7 +53,7 @@ run_demo_so = do
   Pure w
 
 export
-demo_po_so : OwnerEvent (RouteData,UserDataMap) --(List WhsEntry) --Hom1
+demo_po_so : OwnerEvent () --(RouteData,UserDataMap) --(List WhsEntry) --Hom1
 demo_po_so = do
  Init 
  let date1 : Date
@@ -81,9 +81,9 @@ demo_po_so = do
  {- 
  
  -}
- wx <- run_demo_so
- w <- get_hom' po1
- Pure wx
+ -- wx <- run_demo_so
+ --w <- get_hom' po1
+ Pure () --w
 
 export
 read_ref_data : Ref -> OwnerEvent (Maybe RouteData,UserDataMap)
@@ -116,6 +116,6 @@ list_refs = do
 
 
 export
-demo_po_so_whs : WhsEvent (RouteData,UserDataMap) --(List WhsEntry)
+demo_po_so_whs : WhsEvent () --(RouteData,UserDataMap) --(List WhsEntry)
 demo_po_so_whs = (toWhs   demo_po_so)
 

@@ -381,20 +381,22 @@ get_hom' rk  = do
                
                Pure  (ret1,user_data_map)
           --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
-          (MkReR (MkRR allocation reconcile direction)) => do
+          (MkReR (MkRR allocation reconcile Sale)) => do
                a_t <- GetWhs allocation
                a_oh <- GetWhs $ convMovekey allocation
                r_t <- GetWhs reconcile
                r_oh <- GetWhs $ convMovekey reconcile
-               {-
                let ret2 : RouteData
-                   ret2 = MkRD rk direction [rl allocation a_t,
-                                            rl (convMovekey allocation) a_oh,
-                                            rl reconcile r_t,
-                                            rl (convMovekey reconcile) r_oh]
-               -}
+                   ret2 = MkRD rk Sale [rl reconcile r_t r_oh,
+                                             rl allocation a_t a_oh]
+               Pure (ret2,user_data_map)                                              
+          (MkReR (MkRR allocation reconcile Purchase)) => do
+               a_t <- GetWhs allocation
+               a_oh <- GetWhs $ convMovekey allocation
+               r_t <- GetWhs reconcile
+               r_oh <- GetWhs $ convMovekey reconcile
                let ret2 : RouteData
-                   ret2 = MkRD rk direction [rl allocation a_t a_oh,
+                   ret2 = MkRD rk Purchase [rl allocation a_t a_oh,
                                              rl reconcile r_t r_oh]
                
                Pure (ret2,user_data_map)
@@ -440,13 +442,20 @@ init_self = do
      SetFxData (ref_init) fx
      --Log (MkOpen fx)
      --Log (MkNewRoute InitRouteT je)       
+     
+     
      Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
      Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
-     --Show je     
-     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
-     Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je_dx
      
-     inventory_route <- NewRoute InitDate InventoryRouteT
+     
+     --Show je     
+     {-
+     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
+     Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je --je_dx
+     -}
+     
+     --inventory_route <- NewRoute InitDate InventoryRouteT
+     
      --Log (MkNewRoute InventoryRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          
@@ -569,7 +578,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
-       SetAE a_ref entry
+       --SetAE a_ref entry
        
        Pure a_ref
 toWhs (ListRefs) = do
