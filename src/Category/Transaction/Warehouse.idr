@@ -126,14 +126,44 @@ namespace MemoryMap
                --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                ss <- get
                pure (lookup rk (routes ss) )
-   interpret (Put ref mk@(MkMK f t ledger) fe) = do
+   interpret (Put ref key@(MkMK f t ledger) fe) = do
                 --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 ss <- get
                 let whs_e : WhsEntry
-                    whs_e = MkWE ref fe mk
+                    whs_e = MkWE ref fe key
                     
-                    key : MoveKey                 
-                    key = (MkMK f t ledger)
+                    whs_e_cnt : String
+                    whs_e_cnt = encode whs_e
+                    
+                    whs_h : H256
+                    whs_h = (sha256 whs_e_cnt)
+                    
+                    doc_type : DocumentType
+                    doc_type = getDocumentType whs_e 
+                    
+                    cnt : Int
+                    cnt = case (lookup doc_type (counters ss)) of
+                       Nothing => 0
+                       Just c => c
+                    
+                    next : Int
+                    next = cnt + 1
+                    
+                    new_doc_nr : DocumentNumber
+                    new_doc_nr = DocNr doc_type Nothing next
+                    --key : MoveKey                 
+                    --key = (MkMK f t ledger)
+                    counters' : SortedMap DocumentType Int
+                    counters' = insert doc_type next (counters ss)
+                    
+                    name2hash' : SortedMap DocumentNumber H256
+                    name2hash' = insert new_doc_nr whs_h (name2hash ss)
+                    
+                    hash2name' : SortedMap H256 DocumentNumber
+                    hash2name' = insert whs_h new_doc_nr (hash2name ss)
+                    
+                    docs' : SortedMap H256 WhsEntry
+                    docs' = insert whs_h whs_e (docs ss)
                     
                     kf : (Location, Ledger)
                     kf = (f,ledger)
@@ -160,12 +190,13 @@ namespace MemoryMap
                 case (lookup key (jm ss) ) of
                    Nothing => do
                       let rjm' = insert key [whs_e] (jm ss) --rjm
-                      put (record {led_map=led', jm=rjm'} ss)
+                      
+                      put (record {led_map=led', jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
                       --put (MkSS fx_map routes led' rjm' j user_data ws ae)
 
                    Just je_list => do
                       let rjm' = insert key (whs_e::je_list) (jm ss) --rjm
-                      put (record {led_map=led', jm=rjm'} ss)
+                      put (record {led_map=led', jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
                       --put (MkSS fx_map routes led' rjm' j user_data ws ae)
                 pure ()
    --interpret Get = Get               

@@ -142,7 +142,7 @@ namespace SystemState
       name2hash : SortedMap DocumentNumber H256
       hash2name : SortedMap H256 DocumentNumber
       counters : SortedMap DocumentType Int
-      
+      docs : SortedMap H256 WhsEntry
    
    {-
    export
