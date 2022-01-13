@@ -21,6 +21,38 @@ public export
 data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt
 %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
+export
+docPrefix : DocumentType -> String
+docPrefix SaleOrder = "SO"
+docPrefix SaleOrderAmendment = "SOA"
+docPrefix PurchaseOrder = "PO"
+docPrefix Order = "O"
+docPrefix CustomerInvoice = "INV"
+docPrefix SupplierInvoice = "SINV"
+docPrefix CustomerCreditNote = "CRINV"
+docPrefix SupplierCreditNote = "SCRINV"
+docPrefix Invoice = "INV"
+docPrefix CreditNote = "CRN"
+docPrefix Payment = ""
+docPrefix Refund = ""
+docPrefix Delivery = "D"
+docPrefix Dispatch = "OUT"
+docPrefix Return = "RET"
+docPrefix Reservation = "RES"
+docPrefix Allocation = "AL"
+docPrefix Shipping = "SH"
+docPrefix NotDefined = "ND"
+docPrefix PurchaseReservation = "PORES"
+docPrefix SaleReservation = "SORES"
+docPrefix PurchaseAllocation = "POAL"
+docPrefix SaleAllocation = "SOAL"
+docPrefix GoodsReceipt = "GRC"
+
+public export
+data DocumentNumber : Type where
+     DocNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
+     DocName : String -> DocumentNumber     
+%runElab derive "DocumentNumber" [Generic, Meta, Eq, Show,Ord,ToJSON,FromJSON]
 
 public export
 data TreeB = Leaf String | Node TreeB String TreeB

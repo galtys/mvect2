@@ -95,6 +95,8 @@ namespace WhsEventDo
        ListRefs : WhsEvent (List Ref)
        SetAE : Ref -> AllocationEntry -> WhsEvent ()
        GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
+       
+       
        SetFxData : RouteKey -> FxData -> WhsEvent ()
        GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
 
@@ -137,6 +139,9 @@ namespace SystemState
       user_data : UserDataMap
       web_socket : Maybe WsSocket
       allocentry : SortedMap Ref AllocationEntry
+      --name2hash : SortedMap DocumentName SHA256
+      --hash2name : SortedMap SHA256 DocumentName
+      
    export
    Show SystemState where
       show (MkSS fx_map routes led_map jm j user_data ws ae) = "system state"
