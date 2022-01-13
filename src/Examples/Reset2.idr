@@ -63,7 +63,7 @@ import Category.Transaction.Warehouse
 --import Examples.WsTest
 
 public export
-data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRef Ref --Open BrowserEvent
+data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRoute RouteKey | OpenAlloc AllocationRef | OpenRef Ref --Open BrowserEvent
 
      
 namespace JSMem
@@ -283,8 +283,8 @@ show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentr
 
 
 
-show_hom : (RouteData,UserDataMap) -> Node Ev
-show_hom ((MkRD  rk dir lines), udm) = 
+show_hom : (Maybe RouteData,UserDataMap) -> Node Ev
+show_hom (Just (MkRD  rk dir lines), udm) = 
   section [] [
     div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
@@ -297,6 +297,7 @@ show_hom ((MkRD  rk dir lines), udm) =
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
     ]
   ]
+show_hom _ = section [] []
 
 show_direction : Maybe RouteSumT -> String
 show_direction Nothing = ""
@@ -304,16 +305,18 @@ show_direction (Just (MkReR (MkRR allocation reconcile direction)) )=         "\
 show_direction (Just (MkAl  (MkListR allocation lst direction)) )=            "\{show direction} AL"
 show_direction (Just (MkOR  (MkORrec allocation control order direction)) )=  "\{show direction} Order"
 
+
+
 show_ref : SystemState -> Ref -> Node Ev
 show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        , td [] []
-                                       ,td [] [fromString "\{ref}"]
+                                       ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]]
                                        ]  
                     
                                        
 show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_direction route]
                                                           ,td [] [fromString "\{date}"]
-                                                          ,td [] [a [href "#",onClick (OpenRef route_ref)][fromString "\{ref}"]]   --[      fromString "\{ref}"]
+                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][fromString "\{ref}"]]   --[      fromString "\{ref}"]
                                                         ] where
                      route : Maybe RouteSumT
                      route = lookup rk (routes ss)
@@ -359,24 +362,28 @@ openM : Ev -> StateT SystemState M (Event () )   --JSIO (Event String)
 openM (Open d) = pure (Ev ()) 
 openM _        = pure NoEv
 
-routeRefM : Ev -> StateT SystemState M (Event (RouteData,UserDataMap) )   --JSIO (Event String)
+routeRefM : Ev -> StateT SystemState M (Event (Maybe RouteData,UserDataMap) )   --JSIO (Event String)
 routeRefM (OpenRef rf) = do
             ss <- get
             (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (read_ref_data rf)  ))   
             --printLn $ lines $ (fst we)
             pure (Ev (we) ) 
-            
 routeRefM _            = pure NoEv
 
+routeKeyM : Ev -> StateT SystemState M (Event (RouteData,UserDataMap) )   --JSIO (Event String)
+routeKeyM (OpenRoute rk) = do
+            ss <- get
+            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (get_hom rk)  ))   
+            --printLn $ lines $ (fst we)
+            pure (Ev (we) )             
+routeKeyM _            = pure NoEv
+
+-- read_allocation
 
 
-
---sendMessage : Maybe 
 onOpenRef :  MSF (StateT SystemState M) Ev () 
---onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=>printLn $ show rf)
 onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_hom rf)  )
 
---Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
 
 onOpen :  MSF (StateT SystemState M) Ev () 
 onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")

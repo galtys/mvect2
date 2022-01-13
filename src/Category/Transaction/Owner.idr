@@ -564,7 +564,15 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
        Pure a_ref
 toWhs (ListRefs) = do
       rfs <- ListRefs
-      Pure rfs       
+      Pure rfs 
+toWhs (SetAE ref ae) = do
+       SetAE ref ae
+toWhs (GetAE ref) = do
+       ae <- GetAE ref
+       Pure ae
+toWhs ListDocs = do
+      dcs <- ListDocs
+      Pure dcs   
 toWhs (Show x) = Show x --Pure ()
 toWhs (Pure x) = Pure x
 toWhs (Bind x f) = do res <- toWhs x

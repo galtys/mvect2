@@ -283,8 +283,8 @@ swapDxCx SaleReservation = SaleReservation
 swapDxCx PurchaseAllocation = PurchaseAllocation
 swapDxCx SaleAllocation = SaleAllocation
 swapDxCx GoodsReceipt = Payment
-swapDxCx RouteDoc = RouteDoc
-swapDxCx RouteDocInv = RouteDocInv
+--swapDxCx RouteDoc = RouteDoc
+--swapDxCx RouteDocInv = RouteDocInv
 
 export
 negateDocumentType : DocumentType -> DocumentType
@@ -315,8 +315,8 @@ negateDocumentType SaleReservation = SaleReservation
 negateDocumentType PurchaseAllocation = PurchaseAllocation
 negateDocumentType SaleAllocation = SaleAllocation
 negateDocumentType GoodsReceipt = Delivery
-negateDocumentType RouteDoc = RouteDocInv
-negateDocumentType RouteDocInv = RouteDoc
+--negateDocumentType RouteDoc = RouteDocInv
+--negateDocumentType RouteDocInv = RouteDoc
 
 export
 isAllocationDocument : DocumentType -> Bool
@@ -345,8 +345,8 @@ isAllocationDocument SaleReservation = False
 isAllocationDocument PurchaseAllocation = True
 isAllocationDocument SaleAllocation = True
 isAllocationDocument GoodsReceipt = True
-isAllocationDocument RouteDoc = False
-isAllocationDocument RouteDocInv = False
+--isAllocationDocument RouteDoc = False
+--isAllocationDocument RouteDocInv = False
 
 export
 getDocumentType : WhsEntry -> DocumentType

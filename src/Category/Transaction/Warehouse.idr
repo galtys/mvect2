@@ -70,6 +70,12 @@ namespace MemoryMap
                   r_keys = map MkRouteKeyRef (keys $ routes ss)
                   
               pure (a_keys++r_keys)
+   interpret ListDocs = do
+              ss <- get
+              let dcs : List DocumentNumber
+                  dcs = keys (name2hash ss)
+              pure dcs --( keys (hash2name ss))
+              
    interpret  (NewRoute dt route) = do
                 --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 ss <- get
@@ -320,7 +326,8 @@ namespace DirMap
                 --put (MkSS fx_map routes led_map rjm j user_data ws ae')
                 pure ()
    interpret_d   ListRefs = pure []
-   
+   interpret_d ListDocs = pure []
+      
    interpret_d  (GetAE ref) = do
               --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get                                        
               --let ret : Maybe AllocationEntry

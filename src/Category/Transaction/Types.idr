@@ -16,9 +16,14 @@ public export
 Date : Type
 Date = String --DateTime --String
 
+public export
+data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | SaleTaxRoute | PurchaseTaxRoute | FxRoute | BankRoute | StockRoute
+%runElab derive "DocumentRouteType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
-data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |AllocationDoc|Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt | RouteDoc |RouteDocInv
+data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |AllocationDoc|Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt 
+
+--| RouteDoc |RouteDocInv
 %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 export
@@ -48,8 +53,8 @@ docPrefix SaleReservation = "SORES"
 docPrefix PurchaseAllocation = "POAL"
 docPrefix SaleAllocation = "SOAL"
 docPrefix GoodsReceipt = "GRC"
-docPrefix RouteDoc = "RD"
-docPrefix RouteDocInv = "RDI"
+--docPrefix RouteDoc = "RD"
+--docPrefix RouteDocInv = "RDI"
 
 export
 docDigits : DocumentType -> Int
@@ -58,6 +63,9 @@ docDigits d = 4
 public export
 data DocumentNumber : Type where
      DocNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
+     RouteNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
+     --RouteNr : DocumentRouteType ->(number:Int)-> DocumentNumber
+     
      DocName : String -> DocumentNumber     
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Show,Ord,ToJSON,FromJSON]
 

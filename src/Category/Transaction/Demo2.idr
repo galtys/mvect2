@@ -85,13 +85,24 @@ demo_po_so = do
  Pure wx
 
 export
-read_ref_data : Ref -> OwnerEvent (RouteData,UserDataMap)
-read_ref_data (MkAllocationRef x) = ?open_ref_rhs_0
+read_ref_data : Ref -> OwnerEvent (Maybe RouteData,UserDataMap)
+read_ref_data (MkAllocationRef x) = do
+       u <- GetUserData
+       Pure (Nothing,u) --?open_ref_rhs_0
 read_ref_data (MkRouteKeyRef x) = do
-       w <- get_hom' x
-       Pure w
+       (rd,u) <- get_hom' x
+       Pure (Just rd, u)
 
-    
+read_allocation : AllocationRef -> OwnerEvent (Maybe AllocationEntry)
+read_allocation ref = do
+       ma <- GetAE (MkAllocationRef ref)
+       Pure ma
+{-
+export
+read_route : RouteKey -> OwnerEvent (RouteData,UserDataMap)
+       r <- get_hom x
+       Pure r
+-}
 
 export
 list_refs : OwnerEvent (List Ref,UserDataMap)
@@ -99,6 +110,8 @@ list_refs = do
    user_data_map <- GetUserData
    refs <- ListRefs
    Pure (refs, user_data_map)
+
+
 
 export
 demo_po_so_whs : WhsEvent (RouteData,UserDataMap) --(List WhsEntry)

@@ -71,6 +71,9 @@ namespace OwnerEventDo
        Allocate : AllocationEntry -> OwnerEvent Ref
        
        ListRefs : OwnerEvent (List Ref)
+       ListDocs : OwnerEvent (List DocumentNumber)
+       SetAE : Ref -> AllocationEntry -> OwnerEvent ()
+       GetAE : Ref -> OwnerEvent (Maybe AllocationEntry)
        
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
@@ -93,6 +96,7 @@ namespace WhsEventDo
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        ListRefs : WhsEvent (List Ref)
+       ListDocs : WhsEvent (List DocumentNumber)
        SetAE : Ref -> AllocationEntry -> WhsEvent ()
        GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        
