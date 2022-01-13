@@ -319,31 +319,23 @@ show_allocation_maybe (Nothing, ud) = section [] []
 show_allocation_maybe (Just (MkAE ledger moves), ud) = 
   section [] [
     div [class "callout"] (map (show_allocation_item ud ledger) moves)
-          --div [class "grid-y grid-padding-x"] [ -- grid-padding-y
-    --]
   ]
-
-
-
---?show_allocation_maybe_rhs_2
 
 
 show_route_maybe : (Maybe RouteData,UserDataMap) -> Node Ev
 show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) = 
       section [] [
-        div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+        div [class "grid-y grid-padding-x"] [ 
 
           div [class "large-1 cell"] [
             h5 [] [fromString $ show_route_dt m_rst dir ]
             ,p [] [fromString $ show_RouteKey rk]
           ]
-
-        --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
         ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
         ]
       ] where  
   show_route_dt : Maybe RouteSumT -> DirectionTag -> String
-  show_route_dt Nothing dir = "\{show dir} Route"   --?show_route_dt_rhs_0
+  show_route_dt Nothing dir = "\{show dir} Route"  
   show_route_dt m_rst y = show_route_doc_type m_rst
 show_route_maybe _ = section [] []
 
@@ -351,24 +343,18 @@ show_route_maybe _ = section [] []
 show_route :( RouteData,UserDataMap) -> Node Ev
 show_route (MkRD  rk dir lines m_rst, udm ) = 
   section [] [
-    div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+    div [class "grid-y grid-padding-x"] [ 
   
       div [class "large-1 cell"] [
         h5 [] [fromString $ show_route_dt m_rst dir   ]
         ,p [] [fromString $ show_RouteKey rk]
       ]
-    
-    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
     ]
   ] where  
   show_route_dt : Maybe RouteSumT -> DirectionTag -> String
-  show_route_dt Nothing dir = "\{show dir} Route"   --?show_route_dt_rhs_0
+  show_route_dt Nothing dir = "\{show dir} Route"  
   show_route_dt m_rst y = show_route_doc_type m_rst
-
-
-
-
 
 
 
@@ -377,11 +363,9 @@ show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        , td [] []
                                        ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]]
                                        ]  
-                    
-                                       
 show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
                                                           ,td [] [fromString "\{date}"]
-                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][fromString "\{ref}"]]   --[      fromString "\{ref}"]
+                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][fromString "\{ref}"]] 
                                                         ] where
                      route : Maybe RouteSumT
                      route = lookup rk (routes ss)
@@ -403,16 +387,14 @@ show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
 show_refs_udm (xx, y) ss = show_refs xx ss
 
 export
-get_msg' : LiftJSIO m => BrowserEvent -> m String   --BrowserEvent -> IO String
+get_msg' : LiftJSIO m => BrowserEvent -> m String 
 get_msg' e = do
-    --x <- runJS (wsInfo e)
     x <- (get_data e)
     pure (x)
 
-nextM : Ev -> StateT SystemState M (Event String)   --JSIO (Event String)
+nextM : Ev -> StateT SystemState M (Event String) 
 nextM (Msg d) = do
     x<- get_msg' d
-    --u <- (liftJSIO . wsInfo d)
     pure (Ev x)
 nextM _        = pure NoEv
 
