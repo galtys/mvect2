@@ -18,7 +18,7 @@ Date = String --DateTime --String
 
 
 public export
-data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt
+data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |AllocationDoc|Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt | RouteDoc |RouteDocInv
 %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 export
@@ -40,6 +40,7 @@ docPrefix Dispatch = "OUT"
 docPrefix Return = "RET"
 docPrefix Reservation = "RES"
 docPrefix Allocation = "AL"
+docPrefix AllocationDoc = "ALD"
 docPrefix Shipping = "SH"
 docPrefix NotDefined = "ND"
 docPrefix PurchaseReservation = "PORES"
@@ -47,6 +48,12 @@ docPrefix SaleReservation = "SORES"
 docPrefix PurchaseAllocation = "POAL"
 docPrefix SaleAllocation = "SOAL"
 docPrefix GoodsReceipt = "GRC"
+docPrefix RouteDoc = "RD"
+docPrefix RouteDocInv = "RDI"
+
+export
+docDigits : DocumentType -> Int
+docDigits d = 4
 
 public export
 data DocumentNumber : Type where

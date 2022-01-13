@@ -273,7 +273,9 @@ swapDxCx Delivery = Payment
 swapDxCx Dispatch = Payment
 swapDxCx Return = Refund
 swapDxCx Reservation = Reservation
+swapDxCx AllocationDoc = AllocationDoc
 swapDxCx Allocation = Allocation
+
 swapDxCx Shipping = Payment
 swapDxCx NotDefined = NotDefined
 swapDxCx PurchaseReservation = PurchaseReservation
@@ -281,6 +283,8 @@ swapDxCx SaleReservation = SaleReservation
 swapDxCx PurchaseAllocation = PurchaseAllocation
 swapDxCx SaleAllocation = SaleAllocation
 swapDxCx GoodsReceipt = Payment
+swapDxCx RouteDoc = RouteDoc
+swapDxCx RouteDocInv = RouteDocInv
 
 export
 negateDocumentType : DocumentType -> DocumentType
@@ -303,6 +307,7 @@ negateDocumentType Dispatch = Return
 negateDocumentType Return = Dispatch
 negateDocumentType Reservation = Reservation
 negateDocumentType Allocation = Allocation
+negateDocumentType AllocationDoc = AllocationDoc
 negateDocumentType Shipping = Shipping
 negateDocumentType NotDefined = NotDefined
 negateDocumentType PurchaseReservation = PurchaseReservation
@@ -310,7 +315,8 @@ negateDocumentType SaleReservation = SaleReservation
 negateDocumentType PurchaseAllocation = PurchaseAllocation
 negateDocumentType SaleAllocation = SaleAllocation
 negateDocumentType GoodsReceipt = Delivery
-
+negateDocumentType RouteDoc = RouteDocInv
+negateDocumentType RouteDocInv = RouteDoc
 
 export
 isAllocationDocument : DocumentType -> Bool
@@ -330,7 +336,8 @@ isAllocationDocument Delivery = False
 isAllocationDocument Dispatch = False
 isAllocationDocument Return = False
 isAllocationDocument Reservation = False
-isAllocationDocument Allocation = True
+isAllocationDocument Allocation = False
+isAllocationDocument AllocationDoc = True
 isAllocationDocument Shipping = False
 isAllocationDocument NotDefined = False
 isAllocationDocument PurchaseReservation = False
@@ -338,7 +345,8 @@ isAllocationDocument SaleReservation = False
 isAllocationDocument PurchaseAllocation = True
 isAllocationDocument SaleAllocation = True
 isAllocationDocument GoodsReceipt = True
-
+isAllocationDocument RouteDoc = False
+isAllocationDocument RouteDocInv = False
 
 export
 getDocumentType : WhsEntry -> DocumentType

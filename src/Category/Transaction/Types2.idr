@@ -5,7 +5,7 @@ import Category.Transaction.RouteTypes
 import Category.Transaction.Qty
 import Data.SortedMap
 --import Control.Monad.State
---import Crypto.Hash.SHA256
+import Crypto.Hash.SHA256
 import Data.Ratio
 import Generics.Derive
 import JSON
@@ -139,10 +139,13 @@ namespace SystemState
       user_data : UserDataMap
       web_socket : Maybe WsSocket
       allocentry : SortedMap Ref AllocationEntry
-      --name2hash : SortedMap DocumentName SHA256
-      --hash2name : SortedMap SHA256 DocumentName
+      name2hash : SortedMap DocumentNumber H256
+      hash2name : SortedMap H256 DocumentNumber
+      counters : SortedMap DocumentType Int
       
+   
+   {-
    export
    Show SystemState where
-      show (MkSS fx_map routes led_map jm j user_data ws ae) = "system state"
-
+      show (MkSS fx_map routes led_map jm j user_data ws ae  n2h h2n dcouners) = "system state"
+   -}
