@@ -172,7 +172,7 @@ export
 InventoryRoute : ListRoute
 InventoryRoute = (MkListR i [] Purchase) where
      i : MoveKey
-     i = MkMK Self (Out self_company) Forecast
+     i = MkMK Self (In self_company) Forecast
 export     
 InventoryRouteT : RouteSumT     
 InventoryRouteT =MkAl InventoryRoute

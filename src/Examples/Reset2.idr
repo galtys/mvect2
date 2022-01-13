@@ -407,7 +407,7 @@ routeRefM _            = pure NoEv
 routeKeyM : Ev -> StateT SystemState M (Event (RouteData,UserDataMap) )   --JSIO (Event String)
 routeKeyM (OpenRoute rk) = do
             ss <- get
-            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (get_hom rk)  ))   
+            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (get_hom' rk)  ))   
             --printLn $ lines $ (fst we)
             pure (Ev (we) )             
 routeKeyM _            = pure NoEv

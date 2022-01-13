@@ -400,7 +400,11 @@ get_hom' rk  = do
                                              rl reconcile r_t r_oh] m_rst
                
                Pure (ret2,user_data_map)
-          (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction [] m_rst),user_data_map)
+          (MkAl (MkListR allocation lst direction)) => do
+               a_t <- GetWhs allocation
+               a_oh <- GetWhs $ convMovekey allocation               
+               Pure ((MkRD rk direction [rl allocation a_t a_oh] m_rst),user_data_map)
+{-          
 export
 get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap)
 get_hom rk = do
@@ -408,7 +412,7 @@ get_hom rk = do
     let rd = filter_route_data (fst w) (MkRouteKeyRef rk)
   
     Pure (rd, snd w)
-    
+  -}  
 
 export
 init_self : WhsEvent () 
