@@ -255,11 +255,11 @@ getDxDocumentType : MoveKey -> DocumentType
 getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) Forecast) = SaleOrder
 getDxDocumentType (MkMK (Partner Sale y1) (Control Sale y2) OnHand) = Delivery
 
-getDxDocumentType (MkMK (Control Sale y) (Out x)  Forecast) = CustomerInvoice
-getDxDocumentType (MkMK (Control Sale y) (Out x)  OnHand) = Dispatch
+getDxDocumentType (MkMK (Control Sale y) (Border x)  Forecast) = CustomerInvoice
+getDxDocumentType (MkMK (Control Sale y) (Border x)  OnHand) = Dispatch
 
-getDxDocumentType (MkMK (Out x) Self Forecast) = SaleReservation
-getDxDocumentType (MkMK (Out x) Self OnHand) = SaleAllocation
+getDxDocumentType (MkMK (Border x) (Out y) Forecast) = SaleReservation
+getDxDocumentType (MkMK (Border x) (Out y)  OnHand) = SaleAllocation
 
 {-Purchase Route -}
 getDxDocumentType (MkMK (In x) (Border y) Forecast) = PurchaseReservation

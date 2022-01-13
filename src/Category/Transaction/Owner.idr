@@ -445,13 +445,14 @@ init_self = do
      --Show je     
      Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
      Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je_dx
+     
      inventory_route <- NewRoute InitDate InventoryRouteT
      --Log (MkNewRoute InventoryRouteT fx_empty)
-     tax_route <- NewRoute InitDate TaxRouteT
+     --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          
      bank_route <- NewRoute InitDate BankRouteT
      --Log (MkNewRoute BankRouteT fx_empty)     
-     fx_route <- NewRoute InitDate FxRouteT
+     --fx_route <- NewRoute InitDate FxRouteT
      --Log (MkNewRoute FxRouteT fx_empty)       
      Pure ()
 
@@ -538,16 +539,25 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                   _ => Pure Nothing
                   
            allocateItem : (RouteSumT,RouteSumT,FxEvent) -> WhsEvent () 
-           -- Maybe (RouteKey, RouteKey, FxEvent)
            allocateItem (rx,ry,fe) = do
                case ledger of
                   Forecast => do
-                    Put a_ref (allocationMove rx) fe
-                    Put a_ref (allocationMove ry) fe
+                    let rec_route : ReconciliationRoute 
+                        rec_route = MkRR (allocationMove rx) (allocationMove ry) Sale
+                        
+                    new_r <- NewRoute "?date" (MkReR rec_route)
+                    let route_ref : Ref
+                        route_ref = MkRouteKeyRef new_r
+                    
+                    Put route_ref (allocationMove rx) fe
+                    Put route_ref (allocationMove ry) fe
+                    
                   OnHand => do
+                    Pure ()
+                    {-
                     Put a_ref (convMovekey $allocationMove rx) fe
                     Put a_ref (convMovekey $allocationMove ry) fe
-                           
+                    -}     
            
            allocate : List AllocationItem -> WhsEvent ()
            allocate [] = Pure ()
