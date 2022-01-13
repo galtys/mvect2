@@ -176,6 +176,7 @@ public export
 record RouteData where
    constructor MkRD
    key : RouteKey   
-   dir : DirectionTag
+   dir : DirectionTag   
    lines : List RouteLine 
+   def : Maybe RouteSumT   
 %runElab derive "RouteData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   

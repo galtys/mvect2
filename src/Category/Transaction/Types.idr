@@ -16,9 +16,10 @@ public export
 Date : Type
 Date = String --DateTime --String
 
-public export
-data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | SaleTaxRoute | PurchaseTaxRoute | FxRoute | BankRoute | StockRoute
-%runElab derive "DocumentRouteType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
+namespace DocumentRouteType
+  public export
+  data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | FxRoute | BankRoute | StockRoute | ListSale | ListPurchase |NA |StockLossRoute|TaxSaleRoute |TaxPurchaseRoute
+  %runElab derive "DocumentRouteType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
 data DocumentType = SaleOrder |SaleOrderAmendment| PurchaseOrder| Order | CustomerInvoice|SupplierInvoice|CustomerCreditNote|SupplierCreditNote|Invoice |CreditNote| Payment | Refund | Delivery |Dispatch| Return | Reservation |AllocationDoc|Allocation|Shipping |NotDefined | PurchaseReservation | SaleReservation | PurchaseAllocation | SaleAllocation |GoodsReceipt 

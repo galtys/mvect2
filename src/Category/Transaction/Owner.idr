@@ -330,7 +330,7 @@ filter_route_lines xs ref = map (filter_rl ref) xs
 
 export
 filter_route_data : RouteData -> Ref -> RouteData
-filter_route_data (MkRD key dir lines) ref = (MkRD key dir (filter_route_lines lines ref) )
+filter_route_data (MkRD key dir lines m_rst) ref = (MkRD key dir (filter_route_lines lines ref) m_rst)
 
 
 
@@ -347,7 +347,7 @@ get_hom' rk  = do
   m_rst <- GetRoute rk
   user_data_map <- GetUserData
   case m_rst of
-    Nothing => Pure ((MkRD rk Sale []),user_data_map) --tbd: error
+    Nothing => Pure ((MkRD rk Sale [] Nothing),user_data_map) --tbd: error
     Just rt => do
        case rt of
           (MkOR (MkORrec allocation control order Sale)) => do 
@@ -362,7 +362,7 @@ get_hom' rk  = do
                let ret1 : RouteData
                    ret1 = MkRD rk Sale [rl order o_t o_oh
                                         ,rl control c_t c_oh
-                                        ,rl allocation a_t a_oh]
+                                        ,rl allocation a_t a_oh] m_rst
                Pure  (ret1,user_data_map)                                        
           (MkOR (MkORrec allocation control order Purchase)) => do 
                o_t <- GetWhs order                
@@ -377,7 +377,7 @@ get_hom' rk  = do
                    ret1 = MkRD rk Purchase [rl allocation a_t a_oh                                            
                                             ,rl control c_t c_oh
                                             ,rl order o_t o_oh
-                                            ]
+                                            ] m_rst
                
                Pure  (ret1,user_data_map)
           --(MkOR (MkORrec allocation control order Purchase)) => Pure []                    
@@ -388,7 +388,7 @@ get_hom' rk  = do
                r_oh <- GetWhs $ convMovekey reconcile
                let ret2 : RouteData
                    ret2 = MkRD rk Sale [rl reconcile r_t r_oh,
-                                             rl allocation a_t a_oh]
+                                             rl allocation a_t a_oh] m_rst
                Pure (ret2,user_data_map)                                              
           (MkReR (MkRR allocation reconcile Purchase)) => do
                a_t <- GetWhs allocation
@@ -397,10 +397,10 @@ get_hom' rk  = do
                r_oh <- GetWhs $ convMovekey reconcile
                let ret2 : RouteData
                    ret2 = MkRD rk Purchase [rl allocation a_t a_oh,
-                                             rl reconcile r_t r_oh]
+                                             rl reconcile r_t r_oh] m_rst
                
                Pure (ret2,user_data_map)
-          (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction []),user_data_map)
+          (MkAl (MkListR allocation lst direction)) => Pure ((MkRD rk direction [] m_rst),user_data_map)
 export
 get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap)
 get_hom rk = do

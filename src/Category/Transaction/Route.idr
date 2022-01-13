@@ -275,6 +275,32 @@ getDxDocumentType (MkMK (Control Purchase y) (Partner Purchase x)  OnHand) = Shi
 
 getDxDocumentType _ = NotDefined
 
+
+
+
+export
+getDocRouteType : RouteSumT -> DocumentRouteType
+getDocRouteType (MkReR (MkRR allocation (MkMK Init to ledger) direction)) = InitRoute
+getDocRouteType (MkReR (MkRR allocation (MkMK Loss to ledger) direction)) = StockLossRoute
+getDocRouteType (MkReR (MkRR allocation (MkMK (Taxman x) to ledger) Sale)) = TaxSaleRoute
+getDocRouteType (MkReR (MkRR allocation (MkMK (Taxman x) to ledger) Purchase)) = TaxPurchaseRoute
+getDocRouteType (MkReR (MkRR allocation (MkMK (Bank x) to ledger) direction)) = BankRoute
+getDocRouteType (MkReR (MkRR allocation (MkMK from to ledger) direction)) = DocumentRouteType.NA
+{-
+getDocRouteType (MkReR (MkRR allocation (MkMK Self to ledger) direction)) = DocumentRouteType.NA
+getDocRouteType (MkReR (MkRR allocation (MkMK (In x) to ledger) direction)) = DocumentRouteType.NA
+getDocRouteType (MkReR (MkRR allocation (MkMK (Out x) to ledger) direction)) = ?getDocRouteType_rhs_xs0_4
+getDocRouteType (MkReR (MkRR allocation (MkMK (Border x) to ledger) direction)) = ?getDocRouteType_rhs_xs0_5
+getDocRouteType (MkReR (MkRR allocation (MkMK (Control x y) to ledger) direction)) = ?getDocRouteType_rhs_xs0_8
+getDocRouteType (MkReR (MkRR allocation (MkMK (Partner x y) to ledger) direction)) = ?getDocRouteType_rhs_xs0_9
+getDocRouteType (MkReR (MkRR allocation (MkMK (Transit x y) to ledger) direction)) = ?getDocRouteType_rhs_xs0_10
+-}
+getDocRouteType (MkAl x) = DocumentRouteType.NA --?getDocRouteType_rhs_1
+getDocRouteType (MkOR (MkORrec allocation control order Sale)) = SaleRoute
+getDocRouteType (MkOR (MkORrec allocation control order Purchase)) = PurchaseRoute
+
+
+
 export
 swapDxCx : DocumentType -> DocumentType
 swapDxCx SaleOrder = SaleOrder

@@ -97,6 +97,12 @@ show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street 
       
     ]
 
+show_route_doc_type : Maybe RouteSumT -> String
+show_route_doc_type Nothing = ""
+show_route_doc_type (Just rst) = show $ getDocRouteType rst
+--show_route_doc_type (Just (MkReR (MkRR allocation reconcile direction)) )=         "\{show direction} RecRoute"
+--show_route_doc_type (Just (MkAl  (MkListR allocation lst direction)) )=            "\{show direction} ListRoute"
+--show_route_doc_type (Just (MkOR  (MkORrec allocation control order direction)) )=  "\{show direction} OrderRoute"
 
 
 
@@ -323,44 +329,46 @@ show_allocation_maybe (Just (MkAE ledger moves), ud) =
 
 
 show_route_maybe : (Maybe RouteData,UserDataMap) -> Node Ev
-show_route_maybe (Just (MkRD  rk dir lines), udm) = 
-  section [] [
-    div [class "grid-y grid-padding-x"] [ -- grid-padding-y
-  
-      div [class "large-1 cell"] [
-        h5 [] [fromString "\{show dir} Route"]
-        ,p [] [fromString $ show_RouteKey rk]
-      ]
-    
-    --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
-    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
-    ]
-  ]
+show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) = 
+      section [] [
+        div [class "grid-y grid-padding-x"] [ -- grid-padding-y
+
+          div [class "large-1 cell"] [
+            h5 [] [fromString $ show_route_dt m_rst dir ]
+            ,p [] [fromString $ show_RouteKey rk]
+          ]
+
+        --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
+        ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
+        ]
+      ] where  
+  show_route_dt : Maybe RouteSumT -> DirectionTag -> String
+  show_route_dt Nothing dir = "\{show dir} Route"   --?show_route_dt_rhs_0
+  show_route_dt m_rst y = show_route_doc_type m_rst
 show_route_maybe _ = section [] []
 
 
 show_route :( RouteData,UserDataMap) -> Node Ev
-show_route (MkRD  rk dir lines, udm) = 
+show_route (MkRD  rk dir lines m_rst, udm ) = 
   section [] [
     div [class "grid-y grid-padding-x"] [ -- grid-padding-y
   
       div [class "large-1 cell"] [
-        h5 [] [fromString "\{show dir} Route"]
+        h5 [] [fromString $ show_route_dt m_rst dir   ]
         ,p [] [fromString $ show_RouteKey rk]
       ]
     
     --,div [class "route-data large-12 cell"] (map show_route_grid_item (route_grid_items $ reverse lines) )
     ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
     ]
-  ]
+  ] where  
+  show_route_dt : Maybe RouteSumT -> DirectionTag -> String
+  show_route_dt Nothing dir = "\{show dir} Route"   --?show_route_dt_rhs_0
+  show_route_dt m_rst y = show_route_doc_type m_rst
 
 
 
-show_direction : Maybe RouteSumT -> String
-show_direction Nothing = ""
-show_direction (Just (MkReR (MkRR allocation reconcile direction)) )=         "\{show direction} LR"
-show_direction (Just (MkAl  (MkListR allocation lst direction)) )=            "\{show direction} AL"
-show_direction (Just (MkOR  (MkORrec allocation control order direction)) )=  "\{show direction} Order"
+
 
 
 
@@ -371,7 +379,7 @@ show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        ]  
                     
                                        
-show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_direction route]
+show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
                                                           ,td [] [fromString "\{date}"]
                                                           ,td [] [a [href "#",onClick (OpenRoute rk)][fromString "\{ref}"]]   --[      fromString "\{ref}"]
                                                         ] where
