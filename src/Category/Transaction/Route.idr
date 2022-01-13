@@ -300,7 +300,18 @@ getDocRouteType (MkReR (MkRR allocation (MkMK (Transit x y) to ledger) direction
 -}
 
 --getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ) Purchase) [] direction) = StockRoute
-getDocRouteType (MkAl (MkListR allocation [] Purchase)) = DocumentRouteType.StockRoute -- ?kkkdfasdflas_3 --DocumentRouteType.NA
+
+
+
+
+getDocRouteType (MkAl (MkListR (MkMK Self (In x) ledger) [] Purchase)) = DocumentRouteType.StockInputRoute -- ?kkkdfasdflas_3 --DocumentRouteType.NA
+getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ledger) [] Purchase)) = DocumentRouteType.StockOutputRoute 
+
+
+
+
+
+
 getDocRouteType (MkAl x) = DocumentRouteType.NA
 --getDocRouteType (MkAl (MkListR allocation (x :: xs) Purchase)) = ?kkkdfasdflas_4 --DocumentRouteType.NA
 

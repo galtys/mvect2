@@ -18,7 +18,7 @@ Date = String --DateTime --String
 
 namespace DocumentRouteType
   public export
-  data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | FxRoute | BankRoute | StockRoute | ListSale | ListPurchase |NA |StockLossRoute|TaxSaleRoute |TaxPurchaseRoute
+  data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | FxRoute | BankRoute | StockInputRoute | StockOutputRoute | ListSale | ListPurchase |NA |StockLossRoute|TaxSaleRoute |TaxPurchaseRoute
   %runElab derive "DocumentRouteType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
