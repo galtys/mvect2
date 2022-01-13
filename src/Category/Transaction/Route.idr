@@ -11,6 +11,7 @@ import Data.Ratio
 import Generics.Derive
 import JSON
 import Odoo.Schema.PJBRecDef
+import Data.List
 
 %language ElabReflection
 
@@ -172,6 +173,17 @@ InventoryRoute : ListRoute
 InventoryRoute = (MkListR i [] Purchase) where
      i : MoveKey
      i = MkMK Self (Out self_company) Forecast
+export     
+InventoryRouteT : RouteSumT     
+InventoryRouteT =MkAl InventoryRoute
+export
+InventoryRouteKey : RouteKey
+InventoryRouteKey = (MkRK InitDate (routeSha InitDate InventoryRouteT) Progress)
+export
+InventoryRouteRef : Ref
+InventoryRouteRef = MkRouteKeyRef InventoryRouteKey
+
+
 export   
 InitRoute : ReconciliationRoute 
 InitRoute = ret where
@@ -192,15 +204,6 @@ InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate InitRouteT ) Progress)
 
 
-export     
-InventoryRouteT : RouteSumT     
-InventoryRouteT =MkAl InventoryRoute
-export
-InventoryRouteKey : RouteKey
-InventoryRouteKey = (MkRK InitDate (routeSha InitDate InventoryRouteT) Progress)
-export
-InventoryRouteRef : Ref
-InventoryRouteRef = MkRouteKeyRef InventoryRouteKey
      
 export
 TaxRoute : ReconciliationRoute
@@ -295,7 +298,12 @@ getDocRouteType (MkReR (MkRR allocation (MkMK (Control x y) to ledger) direction
 getDocRouteType (MkReR (MkRR allocation (MkMK (Partner x y) to ledger) direction)) = ?getDocRouteType_rhs_xs0_9
 getDocRouteType (MkReR (MkRR allocation (MkMK (Transit x y) to ledger) direction)) = ?getDocRouteType_rhs_xs0_10
 -}
-getDocRouteType (MkAl x) = DocumentRouteType.NA --?getDocRouteType_rhs_1
+
+--getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ) Purchase) [] direction) = StockRoute
+getDocRouteType (MkAl (MkListR allocation [] Purchase)) = DocumentRouteType.StockRoute -- ?kkkdfasdflas_3 --DocumentRouteType.NA
+getDocRouteType (MkAl x) = DocumentRouteType.NA
+--getDocRouteType (MkAl (MkListR allocation (x :: xs) Purchase)) = ?kkkdfasdflas_4 --DocumentRouteType.NA
+
 getDocRouteType (MkOR (MkORrec allocation control order Sale)) = SaleRoute
 getDocRouteType (MkOR (MkORrec allocation control order Purchase)) = PurchaseRoute
 
@@ -398,6 +406,21 @@ export
 getDocumentType : WhsEntry -> DocumentType
 getDocumentType (MkWE ref fx move_key) = getDxDocumentType move_key
 
+
+getRouteKey : WhsEntry -> Maybe RouteKey
+getRouteKey (MkWE (MkAllocationRef x) fx move_key) = Nothing
+getRouteKey (MkWE (MkRouteKeyRef rk) fx move_key) = Just rk
+
+
+
+routeLineKeys : RouteLine -> List RouteKey
+routeLineKeys (MkRL move whse_f whse_oh) = catMaybes (  (map getRouteKey whse_f)++(map getRouteKey whse_oh) )
+
+
+
+export
+listRouteKeys : RouteData -> List RouteKey
+listRouteKeys (MkRD key dir lines def) = join (map routeLineKeys lines) --?listRouteKeys_rhs_0
 
 {-
 export

@@ -100,11 +100,6 @@ show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street 
 show_route_doc_type : Maybe RouteSumT -> String
 show_route_doc_type Nothing = ""
 show_route_doc_type (Just rst) = show $ getDocRouteType rst
---show_route_doc_type (Just (MkReR (MkRR allocation reconcile direction)) )=         "\{show direction} RecRoute"
---show_route_doc_type (Just (MkAl  (MkListR allocation lst direction)) )=            "\{show direction} ListRoute"
---show_route_doc_type (Just (MkOR  (MkORrec allocation control order direction)) )=  "\{show direction} OrderRoute"
-
-
 
 show_Name : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_Name x Nothing = 
@@ -276,10 +271,6 @@ route_grid_items : (List RouteLine) -> List RouteLineGridItem
 route_grid_items [] = []
 route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
 route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
---route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkWE f,MkWE oh, MkLoc (from move),MkWE f,MkWE oh]++(route_grid_items xs)
-
---route_grid_items ((MkRL move f oh)::xs) = [MkLoc (from move),MkLoc (to move),MkWE f,MkWE oh]++(route_grid_items xs)
-
 
 show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
 show_route_grid_item udm (MkLoc x) = (show_Location x)
@@ -290,15 +281,11 @@ show_FxEvent : UserDataMap -> FxEvent -> Node Ev
 show_FxEvent udm (Fx121 date y) =
                          div [class "callout"] [
                                 span  [] [fromString date ]
-                                --, span [class "doc-ref"] [fromString $ show_Ref ref]
-                                --,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
                           ]
 show_FxEvent udm (Fx11 date y) = 
                          div [class "callout"] [
                                 span  [] [fromString date]
-                                --, span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                --,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
                                 ,((show_Hom1 udm) $ toHom1 y)
                          ]
 

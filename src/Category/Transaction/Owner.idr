@@ -454,7 +454,7 @@ init_self = do
      Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je --je_dx
      -}
      
-     --inventory_route <- NewRoute InitDate InventoryRouteT
+     inventory_route <- NewRoute InitDate InventoryRouteT
      
      --Log (MkNewRoute InventoryRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
