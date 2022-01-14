@@ -532,6 +532,7 @@ toWhs (ConfirmOrder fx) = do
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
                doc<-Put route_key  (order po) fx_ev
+               SetRouteNumber doc new_r
                -- toRouteDoc
                Pure new_r
            Sale => do
@@ -539,6 +540,7 @@ toWhs (ConfirmOrder fx) = do
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r  
                doc<-Put route_key (order so) fx_ev               
+               SetRouteNumber doc new_r               
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key

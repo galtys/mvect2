@@ -330,16 +330,20 @@ show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) =
 show_route_maybe _ = section [] []
 
 
---get_route_number : SystemState -> rk
+get_route_number : SystemState -> RouteKey -> String
+get_route_number ss rk@(MkRK date ref state) = 
+       case (lookup rk (route_number ss)) of
+         Nothing => ref
+         (Just doc) => show doc
 
 show_ref : SystemState -> Ref -> Node Ev
 show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        , td [] []
-                                       ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]]
+                                       ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]  ]
                                        ]  
 show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
                                                           ,td [] [fromString "\{date}"]
-                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][fromString "\{ref}"]] 
+                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][ fromString $ get_route_number ss rk]] 
                                                         ] where
                      route : Maybe RouteSumT
                      route = lookup rk (routes ss)

@@ -61,13 +61,35 @@ export
 docDigits : DocumentType -> Int
 docDigits d = 4
 
+
 public export
 data DocumentNumber : Type where
      DocNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
      RouteNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
      RouteName : String -> DocumentNumber
-     --RouteNr : DocumentRouteType ->(number:Int)-> DocumentNumber     
      DocName : String -> DocumentNumber     
+
+repeat_zeros : Int -> String
+repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
+with_zeros : DocumentType -> Int -> String
+with_zeros dt a = ret where
+     str : String
+     str = show a
+     ret : String
+     ret = ( repeat_zeros ( (docDigits dt) - (cast $length str)) ) ++ str
+
+export 
+show_document_number : DocumentNumber -> String
+show_document_number (DocNr dt Nothing number) = (docPrefix dt)++(with_zeros dt number) --?show_document_number_rhs_0
+show_document_number (DocNr dt (Just x) number) = (docPrefix dt)++x++(with_zeros dt number) --?show_document_number_rhs_1
+show_document_number (RouteNr dt Nothing number) = "Allocation "++(docPrefix dt)++(with_zeros dt number)
+show_document_number (RouteNr dt (Just x) number) = "Allocation "++(docPrefix dt)++x++(with_zeros dt number)
+show_document_number (RouteName x) = x
+show_document_number (DocName x) = x
+
+export
+Show DocumentNumber where
+   show = show_document_number
      
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Show,Ord,ToJSON,FromJSON]
 
