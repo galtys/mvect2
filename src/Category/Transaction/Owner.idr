@@ -289,8 +289,30 @@ new_so date1 dx cust cust_inv = do
      fx : FxData
      fx = MkFx date1 Sale cust cust_inv (MkH121 dx1 h1_bom (h2 dx1) cx h11_1) 
  
- new_r <- ConfirmOrder fx
- Pure new_r
+ new_rk <- ConfirmOrder fx
+ r <- GetRoute new_rk
+ case r of
+   Just rt => do
+      case rt of
+          (MkOR (MkORrec allocation control order Sale)) => do
+               xfc <- Get order 
+               let aitem : AllocationItem
+                   aitem = MkAI new_rk InventoryOutputRouteKey (Fx11 date1 (justDX xfc) )
+                   
+                   bank_item : AllocationItem
+                   bank_item = MkAI new_rk BankRouteKey (Fx11 date1 (justCX xfc) )
+               
+               rf<-Allocate (MkAE Forecast [aitem,bank_item])       
+               Pure new_rk
+
+          (MkOR (MkORrec allocation control order Purchase)) => Pure new_rk
+               
+              -- Pure new_rk
+          (MkReR re) => Pure new_rk
+          (MkAl lr) => Pure new_rk
+   
+   Nothing => Pure new_rk 
+ --Pure new_rk
  {-
  r <- GetRoute new_r
  case r of

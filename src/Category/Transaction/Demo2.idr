@@ -96,44 +96,44 @@ run_demo_so = do
 export
 demo_po_so : OwnerEvent () --(RouteData,UserDataMap) --(List WhsEntry) --Hom1
 demo_po_so = do
- let user_data = (MkUD static_products [] static_boms [])
- UpdateUserData user_data
-     --Log (MkUserUpdate user_data)
- init_route_key <- NewRoute InitDate InitRouteT            
- inventory_input_route <- NewRoute InitDate InventoryInputRouteT
- inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
- bank_route <- NewRoute InitDate BankRouteT     
- init_self
- 
- --init_self
- let date1 : Date
-     date1 = "2021-10-01"
-     dx1 : Hom1 
-     dx1 = [ (pk32DX 1, 10), (pk32DX 3, 15), (pk32DX 4, 5), (pk32DX 5, 1), (pk32DX 6,2)]
-     date2 : Date
-     date2 = "2021-10-15"
-     dx2 : Hom1 
-     dx2 = (map (mult_p 2) dx1) ++ [ (pk32DX 7,3) ]
-          
-     date3 : Date
-     date3 = "2021-11-05"
- 
- po1 <- new_po date1 dx1 factory1 factory1 
- 
- --transit_po_full po1 "2021-10-17"
- --receive_po_full po1 "2021-10-25"
- 
+   let user_data = (MkUD static_products [] static_boms [])
+   UpdateUserData user_data
+       --Log (MkUserUpdate user_data)
+   init_route_key <- NewRoute InitDate InitRouteT            
+   inventory_input_route <- NewRoute InitDate InventoryInputRouteT
+   inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
+   bank_route <- NewRoute InitDate BankRouteT     
+   --init_self
 
- --po2 <- new_po date2 dx2 factory1 factory2 
- --reserve_po_full so1 "2021-11-02"
- --transit_po_full po2 "2021-10-18"
- --po3 <- new_po date3 dx1 factory1 factory1   
- {- 
- 
- -}
- -- wx <- run_demo_so
- --w <- get_hom' po1
- Pure () --w
+   --init_self
+   let date1 : Date
+       date1 = "2021-10-01"
+       dx1 : Hom1 
+       dx1 = [ (pk32DX 1, 10), (pk32DX 3, 15), (pk32DX 4, 5), (pk32DX 5, 1), (pk32DX 6,2)]
+       date2 : Date
+       date2 = "2021-10-15"
+       dx2 : Hom1 
+       dx2 = (map (mult_p 2) dx1) ++ [ (pk32DX 7,3) ]
+
+       date3 : Date
+       date3 = "2021-11-05"
+
+   po1 <- new_po date1 dx1 factory1 factory1 
+   wx <- run_demo_so
+   --transit_po_full po1 "2021-10-17"
+   --receive_po_full po1 "2021-10-25"
+
+
+   --po2 <- new_po date2 dx2 factory1 factory2 
+   --reserve_po_full so1 "2021-11-02"
+   --transit_po_full po2 "2021-10-18"
+   --po3 <- new_po date3 dx1 factory1 factory1   
+   {- 
+
+   -}
+
+   --w <- get_hom' po1
+   Pure () --w
 
 export
 read_ref_data : Ref -> OwnerEvent (Maybe RouteData,UserDataMap)
