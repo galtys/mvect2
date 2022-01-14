@@ -27,6 +27,46 @@ import Category.Transaction.Warehouse
 --%language ElabReflection
 
 export
+init_self : OwnerEvent () 
+init_self = do
+     let -- InitDate
+         h1 : Hom1
+         h1 = [(pk32DX 999, 100)]
+         
+         
+     --SetFxData (init_route_key) fx
+     so_init <- new_so InitDate h1 self_company self_company --RouteKey
+     
+     --let bank_item : AllocationItem
+     --    bank_item = MkAI InitRouteKey BankRouteKey (Fx11 InitDate to_bank )
+         
+     --aref <- Allocate (MkAE Forecast [bank_item])
+     --Log (MkOpen fx)
+     --Log (MkNewRoute InitRouteT je)       
+     
+     
+     --Post init_route_key (reconcile InitRoute) je
+     --Post init_route_key (convMovekey $ reconcile InitRoute) je
+     
+     
+     --Show je     
+     {-
+     Put (MkRouteKeyRef init_route_key) (allocation InitRoute) je 
+     Put (MkRouteKeyRef init_route_key) (convMovekey $ allocation InitRoute) je --je_dx
+     -}
+        
+              
+     --Log (MkNewRoute InventoryInputRouteT fx_empty)
+     --tax_route <- NewRoute InitDate TaxRouteT
+     --Log (MkNewRoute TaxRouteT fx_empty)          
+
+     --Log (MkNewRoute BankRouteT fx_empty)     
+     --fx_route <- NewRoute InitDate FxRouteT
+     --Log (MkNewRoute FxRouteT fx_empty)       
+     Pure ()
+
+
+export
 run_demo_so : OwnerEvent (RouteData,UserDataMap) --(List WhsEntry)
 run_demo_so = do
   let date1 : Date
@@ -41,6 +81,7 @@ run_demo_so = do
       dx3 = [ (pk32DX 1, 1), (pk32DX 4, 1)]
       
   so1 <- new_so date1 dx2 hilton hilton --RouteKey
+
   --so2 <- new_so date2 dx2 hilton hilton --RouteKey
   
   --reserve_so_full so1 "2021-11-02"
@@ -55,7 +96,16 @@ run_demo_so = do
 export
 demo_po_so : OwnerEvent () --(RouteData,UserDataMap) --(List WhsEntry) --Hom1
 demo_po_so = do
- Init 
+ let user_data = (MkUD static_products [] static_boms [])
+ UpdateUserData user_data
+     --Log (MkUserUpdate user_data)
+ init_route_key <- NewRoute InitDate InitRouteT            
+ inventory_input_route <- NewRoute InitDate InventoryInputRouteT
+ inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
+ bank_route <- NewRoute InitDate BankRouteT     
+ init_self
+ 
+ --init_self
  let date1 : Date
      date1 = "2021-10-01"
      dx1 : Hom1 
@@ -67,7 +117,7 @@ demo_po_so = do
           
      date3 : Date
      date3 = "2021-11-05"
-
+ 
  po1 <- new_po date1 dx1 factory1 factory1 
  
  --transit_po_full po1 "2021-10-17"

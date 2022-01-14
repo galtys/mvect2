@@ -149,6 +149,9 @@ applyHom2 h2 p = ret where
   ret : Hom1
   ret = (ev_ret1 ret1)
 
+--export
+--toHom11 (MkH121 dx bom appl cx h11)
+
 export
 toHom12 : Hom121 -> Hom12
 toHom12 (MkH121 dx bom appl cx h11) = (MkHom12 dx appl bom) 
@@ -157,7 +160,6 @@ export
 toHom1 : Hom11 -> Hom1
 toHom1 (MkH11 dx cx) = (dx+cx)
 -}
-
 public export
 toQLine : Hom12 -> HomQLine
 toQLine (MkHom12 dx appl bom) = ret where
@@ -335,6 +337,22 @@ multHom11 x y = MkH11 [] []
 export
 toHom1 : Hom11 -> Hom1
 toHom1 (MkH11 dx cx) = dx++cx
+
+export
+dropDX : Hom11 -> Hom11
+dropDX (MkH11 dx cx) = (MkH11 [] cx)
+
+export
+dropCX : Hom11 -> Hom11
+dropCX (MkH11 dx cx) = (MkH11 dx [])
+
+export
+justDX : Hom11 -> Hom11
+justDX (MkH11 dx cx) = (MkH11 dx [])
+
+export
+justCX : Hom11 -> Hom11
+justCX (MkH11 dx cx) = (MkH11 [] cx)
 
 
 export

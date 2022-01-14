@@ -54,7 +54,9 @@ namespace OwnerEventDo
   public export
   data OwnerEvent : Type -> Type where
        --Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
-       Init : OwnerEvent ()
+       --Init : OwnerEvent ()
+       NewRoute : Date -> RouteSumT -> OwnerEvent RouteKey
+       
        UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
        

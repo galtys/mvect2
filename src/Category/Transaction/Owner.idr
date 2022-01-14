@@ -108,9 +108,12 @@ new_po date1 dx1 supp invoice = do
           (MkOR (MkORrec allocation control order Purchase)) => do               
                xfc <- Get order 
                let aitem : AllocationItem
-                   aitem = MkAI new_rk InventoryInputRouteKey (Fx11 date1 xfc) 
+                   aitem = MkAI new_rk InventoryInputRouteKey (Fx11 date1 (justDX xfc) )
+                   
+                   bank_item : AllocationItem
+                   bank_item = MkAI new_rk BankRouteKey (Fx11 date1 (justCX xfc) )
                
-               aref <- Allocate (MkAE Forecast [aitem])       
+               aref <- Allocate (MkAE Forecast [aitem,bank_item])       
                
                --Post rk transit_key (Fx11 date1 xfc)                         
                
@@ -415,8 +418,8 @@ get_hom rk = do
   -}  
 
 export
-init_self : WhsEvent () 
-init_self = do
+init_self_whs : WhsEvent () 
+init_self_whs = do
      let user_data = (MkUD static_products [] static_boms [])
      UpdateUserData user_data
      Log (MkUserUpdate user_data)
@@ -433,17 +436,28 @@ init_self = do
          h121 : Hom121
          h121 = MkH121 h1 [] h2 (applyHom2 h2 h1)  (MkH11 h1 (applyHom2 h2 h1)   )
          
+         
          je : FxEvent
          je = Fx121 InitDate h121          
          je_dx : FxEvent
          je_dx = Fx11 InitDate (MkH11 h1 [])         
          fx : FxData
-         fx = MkFx InitDate Sale self_company self_company h121         
+         fx = MkFx InitDate Sale self_company self_company h121   
+               
          fx_empty : FxEvent
          fx_empty = Fx121 (date fx) (MkH121 [] [] (appl $ h3 fx) [] emptyHom11)
          
+         to_bank : Hom11
+         to_bank = justCX $ h11 h121 
+         
      ref_init <- NewRoute InitDate InitRouteT       
      SetFxData (ref_init) fx
+     
+     
+     let bank_item : AllocationItem
+         bank_item = MkAI InitRouteKey BankRouteKey (Fx11 InitDate to_bank )
+         
+     --aref <- Allocate (MkAE Forecast [bank_item])
      --Log (MkOpen fx)
      --Log (MkNewRoute InitRouteT je)       
      
@@ -459,7 +473,10 @@ init_self = do
      -}
      
      inventory_input_route <- NewRoute InitDate InventoryInputRouteT
-     inventory_output_route <- NewRoute InitDate InventoryOutputRouteT     
+     inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
+     
+        
+              
      --Log (MkNewRoute InventoryInputRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          
@@ -471,6 +488,9 @@ init_self = do
 
 export
 toWhs : OwnerEvent a -> WhsEvent a
+toWhs (NewRoute date rst ) = do  
+      x <-NewRoute date rst
+      Pure x
 toWhs (ConfirmOrder fx) = do
        Log (MkOpen fx)       
        let fx_ev : FxEvent
@@ -508,9 +528,6 @@ toWhs (GetRoute key) = do
        r <- GetRoute key
        Pure r
                       
-toWhs (Init) = do  
-      init_self                     
-       
 toWhs (UpdateUserData user_data) = do
        UpdateUserData user_data
        Log (MkUserUpdate user_data)       

@@ -22,6 +22,16 @@ trade_price Nothing = (pkPriceEX20 GBP, 0)
 trade_price (Just (MkRecordModel pk product_tmpl_id Nothing retail contract default_code)) = (pkPriceEX20 GBP, 0)
 trade_price (Just (MkRecordModel pk product_tmpl_id (Just x) retail contract default_code)) = x
 
+
+company_shares : BrowseProduct.RecordModel
+company_shares = MkRecordModel 
+          {pk=999,
+           product_tmpl_id=[MkRecordModel {pk=999,name="Company Shares",list_price = Just (pkPriceEX20 GBP, 1000)}], 
+           trade = Just (pkPriceEX20 GBP, 1000), 
+           retail = Just (pkPriceINC20 GBP, 0), 
+           contract = Just (pkPriceEX20 GBP, 0), 
+           default_code ="GTX" }
+
 export
 static_products : List BrowseProduct.RecordModel
 static_products = [make_prod 1 "Na pravdě záleží?" (239/30) "9788090392380",
@@ -32,7 +42,8 @@ static_products = [make_prod 1 "Na pravdě záleží?" (239/30) "9788090392380",
                    make_prod 6 "Reality in Advertising" (14.95/1.8) "9780982694145",
                    make_prod 7 "Global Warming Disaster" (44) "9781441110527",
                    make_prod 8 "AD Bundle" (239/30 + 200/29 - 5) "bundle1",
-                   make_prod 9 "Programming Bundle" (34 + 49.99 - 4) "bundle2"]
+                   make_prod 9 "Programming Bundle" (34 + 49.99 - 4) "bundle2",
+                   company_shares]
 
 
 

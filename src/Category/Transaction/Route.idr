@@ -215,6 +215,9 @@ export
 InitRouteT : RouteSumT     
 InitRouteT = MkReR InitRoute
 export
+InitRouteKey : RouteKey
+InitRouteKey = (MkRK InitDate (routeSha InitDate InitRouteT) Progress)
+export
 InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate InitRouteT ) Progress)
 
@@ -249,6 +252,10 @@ BankRoute =  ret where
 export     
 BankRouteT : RouteSumT
 BankRouteT = MkReR BankRoute
+export
+BankRouteKey : RouteKey
+BankRouteKey = (MkRK InitDate (routeSha InitDate BankRouteT) Progress)
+
 export
 BankRouteRef : Ref
 BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankRouteT) Progress)
