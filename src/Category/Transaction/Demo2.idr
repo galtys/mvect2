@@ -67,7 +67,7 @@ init_self = do
 
 
 export
-run_demo_so : OwnerEvent (RouteData,UserDataMap) --(List WhsEntry)
+run_demo_so : OwnerEvent (RouteData) --(List WhsEntry)
 run_demo_so = do
   let date1 : Date
       date1 = "2021-11-02"
@@ -146,8 +146,9 @@ read_ref_data (MkAllocationRef x) = do
        u <- GetUserData
        Pure (Nothing,u) --?open_ref_rhs_0
 read_ref_data (MkRouteKeyRef x) = do
-       (rd,u) <- get_hom' x
-       Pure (Just rd, u)
+       user_data_map <- GetUserData
+       rd <- get_hom' x
+       Pure (Just rd, user_data_map)
 export
 read_allocation : AllocationRef -> OwnerEvent (Maybe AllocationEntry,UserDataMap)
 read_allocation ref = do
@@ -159,7 +160,8 @@ read_allocation ref = do
 export
 read_route1 : RouteKey -> OwnerEvent ( List1 (RouteData,UserDataMap) )
 read_route1 x = do
-       (rd,u) <- get_hom' x
+       user_data_map <- GetUserData
+       rd <- get_hom' x
        let related:List RouteKey
            related = listRouteKeys rd                      
            get_related: List RouteKey -> OwnerEvent ( List (RouteData,UserDataMap) )
@@ -167,9 +169,9 @@ read_route1 x = do
            get_related (y :: xs) = do
                            this <- get_hom' y
                            there <- get_related xs
-                           Pure ( this::there )                      
+                           Pure ( (this,user_data_map)::there )                      
        rel <- get_related related
-       Pure ( (rd,u):::rel)
+       Pure ( (rd,user_data_map):::rel)
 
 
 export

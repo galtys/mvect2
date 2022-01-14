@@ -245,36 +245,11 @@ show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
 
-show_whsentry : UserDataMap -> (WhsEntry) -> Node Ev
-show_whsentry udm ( we@(MkWE ref (Fx121 date y) mk)) = 
-                         div [class "callout"] [
-                                span  [] [fromString date ]
-                                , span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
-                                --,p [] [fromString $ show $    $encode we
-                                ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
-
-                         ]
-show_whsentry udm ( we@(MkWE ref (Fx11 date y) mk)) = 
-                         div [class "callout"] [
-                                span  [] [fromString date]
-                                , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
-                                ,((show_Hom1 udm) $ toHom1 y)
-                         ]
 
 
 data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry) | MkOwn RouteTypes.Location
 
-route_grid_items : (List RouteLine) -> List RouteLineGridItem
-route_grid_items [] = []
-route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
-route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
 
-show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
-show_route_grid_item udm (MkLoc x) = (show_Location x)
-show_route_grid_item udm (MkOwn x) = (show_Owner x)
-show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
 
 show_FxEvent : UserDataMap -> FxEvent -> Node Ev
 show_FxEvent udm (Fx121 date y) =
@@ -287,8 +262,6 @@ show_FxEvent udm (Fx11 date y) =
                                 span  [] [fromString date]
                                 ,((show_Hom1 udm) $ toHom1 y)
                          ]
-
-
 show_allocation_item : UserDataMap -> Ledger -> AllocationItem -> Node Ev
 show_allocation_item ud ledger (MkAI supplier customer fx) =
         div [class "grid-x grid-padding-x"] [
@@ -296,36 +269,13 @@ show_allocation_item ud ledger (MkAI supplier customer fx) =
             ,div [class "large-2 cell"] [fromString $ show_RouteKey customer]        
             ,div [class "large-8 cell"] [show_FxEvent ud fx]--[fromString $ show_RouteKey customer]        
         
-        ]
-                  
-
-
+        ]                  
 show_allocation_maybe : (Maybe AllocationEntry,UserDataMap) -> Node Ev 
 show_allocation_maybe (Nothing, ud) = section [] []
 show_allocation_maybe (Just (MkAE ledger moves), ud) = 
   section [] [
     div [class "callout"] (map (show_allocation_item ud ledger) moves)
   ]
-
-
-show_route_maybe : (Maybe RouteData,UserDataMap) -> Node Ev
-show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) = 
-      section [] [
-        div [class "grid-y grid-padding-x"] [ 
-
-          div [class "large-1 cell"] [
-            h5 [] [fromString $ show_route_dt m_rst dir ]
-            ,p [] [fromString $ show_RouteKey rk]
-          ]
-        ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
-        ]
-      ] where  
-  show_route_dt : Maybe RouteSumT -> DirectionTag -> String
-  show_route_dt Nothing dir = "\{show dir} Route"  
-  show_route_dt m_rst y = show_route_doc_type m_rst
-show_route_maybe _ = section [] []
-
-
 get_route_number : SystemState -> RouteKey -> String
 get_route_number ss rk@(MkRK date ref state) = 
        case (lookup rk (route_number ss)) of
@@ -369,8 +319,8 @@ drop_duplicates xs = ret where
 show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
 show_refs_udm (xx, y) ss = show_refs xx ss
 
-show_route : SystemState -> (RouteData,UserDataMap) -> Node Ev
-show_route ss ( rd@(MkRD  rk dir lines m_rst), udm ) = 
+show_route : SystemState -> RouteData -> Node Ev
+show_route ss ( rd@(MkRD  rk dir lines m_rst) ) = 
   div [] [
      section [] [
        div [class "grid-y grid-padding-x"] [ 
@@ -394,11 +344,42 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst), udm ) =
   
   toref : List RouteKey -> List Ref
   toref xs = map MkRouteKeyRef xs
+  udm : UserDataMap
+  udm = (user_data ss)
   
+  route_grid_items : (List RouteLine) -> List RouteLineGridItem
+  route_grid_items [] = []
+  route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
+  route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
+  
+  show_whsentry : UserDataMap -> (WhsEntry) -> Node Ev
+  show_whsentry udm ( we@(MkWE ref (Fx121 date y) mk)) = 
+                         div [class "callout"] [
+                                span  [] [fromString date ]
+                                , span [class "doc-ref"] [fromString $ show_Ref ref]
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
+                                --,p [] [fromString $ show $    $encode we
+                                ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
 
+                         ]
+  show_whsentry udm ( we@(MkWE ref (Fx11 date y) mk)) = 
+                         div [class "callout"] [
+                                span  [] [fromString date]
+                                , span [class "doc-ref"] [fromString $ show_Ref ref]                                
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
+                                ,((show_Hom1 udm) $ toHom1 y)
+                         ]
+  
+  show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
+  show_route_grid_item udm (MkLoc x) = (show_Location x)
+  show_route_grid_item udm (MkOwn x) = (show_Owner x)
+  show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
+  
+  
+{-
 show_route1 : List1 (RouteData,UserDataMap) -> Node Ev
 show_route1 (head ::: tail) = ?dasdfasd--(show_route head)
-{-
+
   div [class "grid-y"] [
      h3 [] ["Main"]
      ,(show_route head)
@@ -443,7 +424,7 @@ routeRefM (OpenRef rf) = do
             pure (Ev (we) ) 
 routeRefM _            = pure NoEv
 -}
-routeKeyM : Ev -> StateT SystemState M (Event (SystemState,(RouteData,UserDataMap)) )   --JSIO (Event String)
+routeKeyM : Ev -> StateT SystemState M (Event (SystemState,RouteData) )   --JSIO (Event String)
 routeKeyM (OpenRoute rk) = do
             ss <- get
             ret <- runStateT ss (JSMem.interpret_js (toWhs (get_hom' rk)  ))   
