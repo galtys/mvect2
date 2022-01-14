@@ -165,14 +165,6 @@ initRoute : Route --List Location
 initRoute = [Init, In self_company, Self]
 -}
 
-export
-toRouteDoc : DocumentNumber -> DocumentNumber
-toRouteDoc (DocNr dt code number) = (RouteNr dt code number)
-toRouteDoc (DocName x) = (RouteName x)
-
-toRouteDoc (RouteNr dt code number) = (RouteNr dt code number)
-toRouteDoc (RouteName x) = (RouteName x)
-
 
 
 

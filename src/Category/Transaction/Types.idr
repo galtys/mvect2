@@ -69,6 +69,14 @@ data DocumentNumber : Type where
      RouteName : String -> DocumentNumber
      DocName : String -> DocumentNumber     
 
+export
+toRouteDoc : DocumentNumber -> DocumentNumber
+toRouteDoc (DocNr dt code number) = (RouteNr dt code number)
+toRouteDoc (DocName x) = (RouteName x)
+toRouteDoc (RouteNr dt code number) = (RouteNr dt code number)
+toRouteDoc (RouteName x) = (RouteName x)
+
+
 repeat_zeros : Int -> String
 repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
 with_zeros : DocumentType -> Int -> String
@@ -91,7 +99,7 @@ export
 Show DocumentNumber where
    show = show_document_number
      
-%runElab derive "DocumentNumber" [Generic, Meta, Eq, Show,Ord,ToJSON,FromJSON]
+%runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
 
 public export
 data TreeB = Leaf String | Node TreeB String TreeB

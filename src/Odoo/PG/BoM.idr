@@ -53,8 +53,6 @@ toBoM_map [] = empty
 toBoM_map ((MkRecordModel pk product_qty bom_id bom_lines product_id) :: xs) = insert (ProdKey.pk32DX product_id) bom_lines (toBoM_map xs)
 
 
-
-
 export
 toProduct_map : List BrowseProduct.RecordModel -> SortedMap ProdKey BrowseProduct.RecordModel
 toProduct_map [] = empty

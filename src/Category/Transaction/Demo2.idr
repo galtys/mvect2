@@ -99,13 +99,17 @@ demo_po_so = do
    let user_data = (MkUD static_products [] static_boms [])
    UpdateUserData user_data
        --Log (MkUserUpdate user_data)
-   init_route_key <- NewRoute InitDate InitRouteT            
+   --init_route_key <- NewRoute InitDate InitRouteT            
    inventory_input_route <- NewRoute InitDate InventoryInputRouteT
    inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
    bank_input_route <- NewRoute InitDate BankInputRouteT     
    bank_output_route <- NewRoute InitDate BankOutputRouteT        
    --init_self
-
+   SetRouteNumber (RouteName "InventoryInput") inventory_input_route
+   SetRouteNumber (RouteName "InventoryOutput") inventory_output_route   
+   SetRouteNumber (RouteName "BankInput") bank_input_route
+   SetRouteNumber (RouteName "BankOutput") bank_output_route
+   
    --init_self
    let date1 : Date
        date1 = "2021-10-01"

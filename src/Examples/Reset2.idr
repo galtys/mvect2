@@ -82,10 +82,6 @@ export
 lbl : (text: String) -> (class : String) -> Node ev
 lbl txt cl = label [classes [widgetLabel, cl]] [Text txt]
 -}
-unMaybe : Maybe String -> String
-unMaybe Nothing = ""
-unMaybe (Just x) = x
-
 show_ResPartner : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_ResPartner x Nothing = 
      div [class "grid-x route-item-head callout"] [

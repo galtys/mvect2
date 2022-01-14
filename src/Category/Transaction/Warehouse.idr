@@ -218,6 +218,12 @@ namespace MemoryMap
             
         put (record {route_number = route_number', route_key=route_key'} ss)
         pure ()
+   interpret (GetRouteNumber rk) = do
+        ss <- get
+        let num : Maybe DocumentNumber
+            num = lookup rk (route_number ss)
+        pure num
+        
    interpret ListRoute = do
         ss <- get
         pure (keys (route_key ss))
@@ -375,6 +381,8 @@ namespace DirMap
                  Just lst => pure lst
    interpret_d (SetRouteNumber doc rk) = do
         pure ()
+   interpret_d (GetRouteNumber rk) = pure Nothing
+           
    interpret_d (ListRoute ) = do
         pure []
         

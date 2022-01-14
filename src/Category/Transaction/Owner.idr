@@ -514,6 +514,8 @@ toWhs : OwnerEvent a -> WhsEvent a
 toWhs (NewRoute date rst ) = do  
       x <-NewRoute date rst
       Pure x
+toWhs (SetRouteNumber doc rk) = do
+      SetRouteNumber doc rk
 toWhs (ConfirmOrder fx) = do
        Log (MkOpen fx)       
        let fx_ev : FxEvent
@@ -581,16 +583,18 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
            a_ref : Ref
            a_ref = (MkAllocationRef (sha256 a_cnt))
                       
-           muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteSumT,FxEvent))
+           muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (supplier ai)
                rt <- GetRoute (customer ai)
                case (rf,rt) of
-                  (Just rx, Just ry) => Pure (Just (rx,ry,fx ai))
+                  (Just rx, Just ry) => Pure (Just (rx,(supplier ai),ry,(customer ai),fx ai))
                   _ => Pure Nothing
                   
-           allocateItem : (RouteSumT,RouteSumT,FxEvent) -> WhsEvent () 
-           allocateItem (rx,ry,fe) = do
+           allocateItem : (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent) -> WhsEvent () 
+           allocateItem (rx,rk_f,ry,rk_t,fe) = do
+               f_doc <- GetRouteNumber rk_f
+               t_doc <- GetRouteNumber rk_t
                case ledger of
                   Forecast => do
                     let rec_route : ReconciliationRoute 
@@ -599,6 +603,10 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                     new_r <- NewRoute "?date" (MkReR rec_route)
                     let route_ref : Ref
                         route_ref = MkRouteKeyRef new_r
+                        
+                        alloc_doc : DocumentNumber
+                        alloc_doc = RouteName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
+                    SetRouteNumber alloc_doc new_r
                     
                     doc1<-Put route_ref (allocationMove rx) fe
                     doc2<-Put route_ref (allocationMove ry) fe

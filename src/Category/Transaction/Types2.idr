@@ -56,6 +56,7 @@ namespace OwnerEventDo
        --Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
        --Init : OwnerEvent ()
        NewRoute : Date -> RouteSumT -> OwnerEvent RouteKey
+       SetRouteNumber : DocumentNumber->RouteKey-> OwnerEvent ()
        
        UpdateUserData : UserData -> OwnerEvent ()       
        GetUserData : OwnerEvent UserDataMap
@@ -98,6 +99,7 @@ namespace WhsEventDo
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        SetRouteNumber : DocumentNumber->RouteKey-> WhsEvent ()
+       GetRouteNumber : RouteKey -> WhsEvent (Maybe DocumentNumber)
        ListRefs : WhsEvent (List Ref)
        ListDocs : WhsEvent (List DocumentNumber)
        ListRoute : WhsEvent (List DocumentNumber)
@@ -158,3 +160,8 @@ namespace SystemState
    Show SystemState where
       show (MkSS fx_map routes led_map jm j user_data ws ae  n2h h2n dcouners) = "system state"
    -}
+export
+unMaybe : Maybe String -> String
+unMaybe Nothing = ""
+unMaybe (Just x) = x
+
