@@ -204,12 +204,24 @@ namespace MemoryMap
                       let rjm' = insert key (whs_e::je_list) (jm ss) --rjm
                       put (record {led_map=led', jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
                       --put (MkSS fx_map routes led' rjm' j user_data ws ae)
-                pure ()
+                pure new_doc_nr
    --interpret Get = Get               
    --interpret (Put ref (MkMK f t ledger) je) = do
    --             pure ()
    --interpret Get = Get
-
+   interpret (SetRouteNumber doc rk) = do
+        ss <- get
+        let route_key' : SortedMap DocumentNumber RouteKey
+            route_key' = insert doc rk (route_key ss)
+            route_number' : SortedMap RouteKey DocumentNumber
+            route_number' = insert rk doc (route_number ss)
+            
+        put (record {route_number = route_number', route_key=route_key'} ss)
+        pure ()
+   interpret ListRoute = do
+        ss <- get
+        pure (keys (route_key ss))
+        
    interpret (Get key) = do 
         --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get
         ss <- get
@@ -345,12 +357,12 @@ namespace DirMap
                       p_new <- runHCommandST (new_list lt_whse) HCMD_DIR
                       ret <- runHCommandST (append_WhsEntry lt_whse p_new whs_e) HCMD_DIR
                       retx<-DirectoryMap.insert mkey ret ROUTE_JOURNAL_DIR
-                      pure ()
+                      pure (DocName "interpret_d")
                    Just p_list => do
                       ret <- runHCommandST (append_WhsEntry lt_whse p_list whs_e) HCMD_DIR
                       retx<-DirectoryMap.insert mkey ret ROUTE_JOURNAL_DIR
-                      pure ()
-                pure ()
+                      pure (DocName "interpret_d")
+                
    interpret_d (Get mkey) = do 
         --(MkSS fx_map routes led_map rjm j user_data)<-get
         mp_x <- lookup_typeptr mkey
@@ -361,6 +373,11 @@ namespace DirMap
               case ret of
                  Nothing => pure []
                  Just lst => pure lst
+   interpret_d (SetRouteNumber doc rk) = do
+        pure ()
+   interpret_d (ListRoute ) = do
+        pure []
+        
    interpret_d (Log x) = do
         p_head<-DirectoryMap.lookup "journal_head" STATE_DIR        
         --let --js'= (x::js)

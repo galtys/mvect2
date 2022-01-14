@@ -63,7 +63,7 @@ namespace OwnerEventDo
        ConfirmOrder : (fx:FxData) -> OwnerEvent RouteKey
        GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
        GetRoute : (key:RouteKey) -> OwnerEvent (Maybe RouteSumT)
-       Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent ()  --post to rote  
+       Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent DocumentNumber
             
        Get : MoveKey -> OwnerEvent Hom11
        --Get : MoveKey -> OwnerEvent (List WhsEntry)       
@@ -97,8 +97,10 @@ namespace WhsEventDo
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
+       SetRouteNumber : DocumentNumber->RouteKey-> WhsEvent ()
        ListRefs : WhsEvent (List Ref)
        ListDocs : WhsEvent (List DocumentNumber)
+       ListRoute : WhsEvent (List DocumentNumber)
        SetAE : Ref -> AllocationEntry -> WhsEvent ()
        GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        
@@ -110,7 +112,7 @@ namespace WhsEventDo
        GetUserDataW : WhsEvent UserDataMap       
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
-       Put   : Ref -> MoveKey -> FxEvent -> WhsEvent ()
+       Put   : Ref -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
        Get :   MoveKey -> WhsEvent (List WhsEntry)
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
@@ -149,7 +151,8 @@ namespace SystemState
       hash2name : SortedMap H256 DocumentNumber
       counters : SortedMap DocumentType Int
       docs : SortedMap H256 WhsEntry
-   
+      route_number : SortedMap RouteKey DocumentNumber
+      route_key : SortedMap DocumentNumber RouteKey
    {-
    export
    Show SystemState where

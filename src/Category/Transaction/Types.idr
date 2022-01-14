@@ -65,9 +65,10 @@ public export
 data DocumentNumber : Type where
      DocNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
      RouteNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
-     --RouteNr : DocumentRouteType ->(number:Int)-> DocumentNumber
-     
+     RouteName : String -> DocumentNumber
+     --RouteNr : DocumentRouteType ->(number:Int)-> DocumentNumber     
      DocName : String -> DocumentNumber     
+     
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Show,Ord,ToJSON,FromJSON]
 
 public export

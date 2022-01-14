@@ -166,6 +166,18 @@ initRoute = [Init, In self_company, Self]
 -}
 
 export
+toRouteDoc : DocumentNumber -> DocumentNumber
+toRouteDoc (DocNr dt code number) = (RouteNr dt code number)
+toRouteDoc (DocName x) = (RouteName x)
+
+toRouteDoc (RouteNr dt code number) = (RouteNr dt code number)
+toRouteDoc (RouteName x) = (RouteName x)
+
+
+
+
+
+export
 InitDate : Date
 InitDate = "2021-11-01"
 export
@@ -240,25 +252,44 @@ TaxRouteRef : Ref
 TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxRouteT) Progress)
      
 export
-BankRoute : ReconciliationRoute
-BankRoute =  ret where
+BankInputRoute : ReconciliationRoute
+BankInputRoute =  ret where
      r : MoveKey
      r = MkMK (Bank self_bank) (In self_bank) Forecast
      a : MoveKey
      a = MkMK (In self_bank) Self Forecast
      ret : ReconciliationRoute
-     ret = MkRR a r Sale
-     
+     ret = MkRR a r Sale     
 export     
-BankRouteT : RouteSumT
-BankRouteT = MkReR BankRoute
+BankInputRouteT : RouteSumT
+BankInputRouteT = MkReR BankInputRoute
 export
-BankRouteKey : RouteKey
-BankRouteKey = (MkRK InitDate (routeSha InitDate BankRouteT) Progress)
+BankInputRouteKey : RouteKey
+BankInputRouteKey = (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
 
 export
-BankRouteRef : Ref
-BankRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankRouteT) Progress)
+BankInputRouteRef : Ref
+BankInputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
+
+export
+BankOutputRoute : ReconciliationRoute
+BankOutputRoute =  ret where
+     r : MoveKey
+     r = MkMK (Bank self_bank) (Out self_bank) Forecast
+     a : MoveKey
+     a = MkMK (Out self_bank) Self Forecast
+     ret : ReconciliationRoute
+     ret = MkRR a r Sale     
+export     
+BankOutputRouteT : RouteSumT
+BankOutputRouteT = MkReR BankOutputRoute
+export
+BankOutputRouteKey : RouteKey
+BankOutputRouteKey = (MkRK InitDate (routeSha InitDate BankOutputRouteT) Progress)
+
+export
+BankOutputRouteRef : Ref
+BankOutputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankOutputRouteT) Progress)
 
 export
 FxRoute : ReconciliationRoute

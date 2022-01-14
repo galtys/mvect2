@@ -247,12 +247,15 @@ show_Ref (MkAllocationRef x) = " Allocation: \{x}"
 show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
 
 
+
+
 show_whsentry : UserDataMap -> (WhsEntry) -> Node Ev
 show_whsentry udm ( we@(MkWE ref (Fx121 date y) mk)) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
                                 ,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
+                                --,p [] [fromString $ show $    $encode we
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
 
                          ]
@@ -325,6 +328,9 @@ show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) =
   show_route_dt Nothing dir = "\{show dir} Route"  
   show_route_dt m_rst y = show_route_doc_type m_rst
 show_route_maybe _ = section [] []
+
+
+--get_route_number : SystemState -> rk
 
 show_ref : SystemState -> Ref -> Node Ev
 show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]

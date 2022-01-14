@@ -102,7 +102,8 @@ demo_po_so = do
    init_route_key <- NewRoute InitDate InitRouteT            
    inventory_input_route <- NewRoute InitDate InventoryInputRouteT
    inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
-   bank_route <- NewRoute InitDate BankRouteT     
+   bank_input_route <- NewRoute InitDate BankInputRouteT     
+   bank_output_route <- NewRoute InitDate BankOutputRouteT        
    --init_self
 
    --init_self

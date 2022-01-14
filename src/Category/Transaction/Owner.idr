@@ -51,7 +51,7 @@ emptyUserData = (MkUD [] [] [] [])
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing empty empty empty empty empty)
+initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing empty empty empty empty empty empty empty)
 
 export
 StockMoveMap : Type
@@ -111,7 +111,7 @@ new_po date1 dx1 supp invoice = do
                    aitem = MkAI new_rk InventoryInputRouteKey (Fx11 date1 (justDX xfc) )
                    
                    bank_item : AllocationItem
-                   bank_item = MkAI new_rk BankRouteKey (Fx11 date1 (justCX xfc) )
+                   bank_item = MkAI new_rk BankInputRouteKey (Fx11 date1 (justCX xfc) )
                
                aref <- Allocate (MkAE Forecast [aitem,bank_item])       
                
@@ -147,7 +147,8 @@ transit_po_full rk date1 = do
           (MkOR (MkORrec allocation control order Purchase)) => do
                let transit_key  = convMovekey order                   
                xfc <- Get order --transit_fcast_key
-               Post rk transit_key (Fx11 date1 xfc)                         
+               doc<-Post rk transit_key (Fx11 date1 xfc)                         
+               Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
 export
@@ -167,7 +168,7 @@ receive_po_full rk date1 = do
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
                    aitem = MkAI rk InventoryInputRouteKey fx11
-               Post rk recv_key fx11
+               doc<-Post rk recv_key fx11
                aref <- Allocate (MkAE OnHand [aitem])
                Pure ()
           (MkReR re) => Pure ()
@@ -210,7 +211,7 @@ deliver_so_full rk date1 = do
                x <- Get so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
-               Post rk so_delivery_key fx11
+               doc<-Post rk so_delivery_key fx11
                Pure ()                    
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkReR re) => Pure ()
@@ -231,7 +232,7 @@ invoice_so_full rk date1 = do
                x <- Get so_delivery_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
-               Post rk so_invoice_key fx11
+               doc<-Post rk so_invoice_key fx11
                Pure ()
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkReR re) => Pure ()
@@ -252,7 +253,7 @@ shipping_done_so_full rk date1 = do
                x <- Get so_delivery_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
-               Post rk so_shipping_key fx11
+               doc<-Post rk so_shipping_key fx11
                Pure ()                    
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkReR re) => Pure ()
@@ -300,7 +301,7 @@ new_so date1 dx cust cust_inv = do
                    aitem = MkAI new_rk InventoryOutputRouteKey (Fx11 date1 (justDX xfc) )
                    
                    bank_item : AllocationItem
-                   bank_item = MkAI new_rk BankRouteKey (Fx11 date1 (justCX xfc) )
+                   bank_item = MkAI new_rk BankOutputRouteKey (Fx11 date1 (justCX xfc) )
                
                rf<-Allocate (MkAE Forecast [aitem,bank_item])       
                Pure new_rk
@@ -477,15 +478,15 @@ init_self_whs = do
      
      
      let bank_item : AllocationItem
-         bank_item = MkAI InitRouteKey BankRouteKey (Fx11 InitDate to_bank )
+         bank_item = MkAI InitRouteKey BankInputRouteKey (Fx11 InitDate to_bank )
          
      --aref <- Allocate (MkAE Forecast [bank_item])
      --Log (MkOpen fx)
      --Log (MkNewRoute InitRouteT je)       
      
      
-     Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
-     Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
+     x1<-Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
+     x2<-Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
      
      
      --Show je     
@@ -502,8 +503,8 @@ init_self_whs = do
      --Log (MkNewRoute InventoryInputRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          
-     bank_route <- NewRoute InitDate BankRouteT
-     --Log (MkNewRoute BankRouteT fx_empty)     
+     bank_route <- NewRoute InitDate BankInputRouteT
+     --Log (MkNewRoute BankInputRouteT fx_empty)     
      --fx_route <- NewRoute InitDate FxRouteT
      --Log (MkNewRoute FxRouteT fx_empty)       
      Pure ()
@@ -530,18 +531,14 @@ toWhs (ConfirmOrder fx) = do
                new_r <- NewRoute (date fx) (MkOR po)
                SetFxData new_r fx
                let route_key = MkRouteKeyRef new_r
-               --Put route_key  (control po) fx_empty               
-               Put route_key  (order po) fx_ev
-               --Put route_key (allocation po) fx_ev               
+               doc<-Put route_key  (order po) fx_ev
+               -- toRouteDoc
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) (MkOR so)
                SetFxData new_r fx               
                let route_key = MkRouteKeyRef new_r  
-                            
-               Put route_key (order so) fx_ev               
-               --Put route_key (allocation so) fx_ev               
-               --Put route_key (control so) fx_empty
+               doc<-Put route_key (order so) fx_ev               
                Pure new_r
 toWhs (GetFxData key) = do
        r <- GetFxData key
@@ -557,9 +554,9 @@ toWhs (GetUserData) = do
        ret <- GetUserDataW
        Pure ret                      
 toWhs (Post ref key fx) = do
-      Put (MkRouteKeyRef ref) key fx
+      doc<-Put (MkRouteKeyRef ref) key fx
       Log (MkPost ref key fx)
-
+      Pure doc
 toWhs (GetWhs key)= do
       ret <- Get key
       Pure ret
@@ -601,9 +598,9 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                     let route_ref : Ref
                         route_ref = MkRouteKeyRef new_r
                     
-                    Put route_ref (allocationMove rx) fe
-                    Put route_ref (allocationMove ry) fe
-                    
+                    doc1<-Put route_ref (allocationMove rx) fe
+                    doc2<-Put route_ref (allocationMove ry) fe
+                    Pure ()
                   OnHand => do
                     Pure ()
                     {-
