@@ -29,6 +29,16 @@ public export
 formContentDiv : ElemRef HTMLDivElement
 formContentDiv = Id Div "form_content"
 
+public export
+relatedRouteListDiv : ElemRef HTMLDivElement
+relatedRouteListDiv = Id Div "related_route_list"
+public export
+relatedRoutesDiv : ElemRef HTMLDivElement
+relatedRoutesDiv = Id Div "related_routes"
+
+
+
+
 ||| ID of a `<style>` element in the page header.
 ||| The generated CSS rules will go here.
 public export

@@ -57,6 +57,11 @@ content =
            div [class "large-4 cell", ref exampleDiv] []
            ,div [class "large-8 cell", ref formContentDiv] []      
            ]
+    , div [class "grid-x"] [
+           div [class "large-4 cell", ref relatedRouteListDiv ] []
+           ,div [class "large-8 cell", ref relatedRoutesDiv ] []      
+           ]
+           
  ]
 cleanup : LiftJSIO io => (clean : JSIO ()) -> io ()
 cleanup = liftJSIO

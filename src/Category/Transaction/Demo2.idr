@@ -100,6 +100,7 @@ read_allocation ref = do
        ma <- GetAE (MkAllocationRef ref)
        Pure (ma,u)
        
+       
 export
 read_route1 : RouteKey -> OwnerEvent ( List1 (RouteData,UserDataMap) )
 read_route1 x = do
@@ -109,10 +110,10 @@ read_route1 x = do
            get_related: List RouteKey -> OwnerEvent ( List (RouteData,UserDataMap) )
            get_related [] = Pure []
            get_related (y :: xs) = do
-                 this <- get_hom' y
-                 there <- get_related xs
-                 Pure ( [this]++there )
-       rel <- get_related related    
+                           this <- get_hom' y
+                           there <- get_related xs
+                           Pure ( this::there )                      
+       rel <- get_related related
        Pure ( (rd,u):::rel)
 
 

@@ -7,13 +7,13 @@ import Rhone.JS
 import Data.MSF.Trans
 import Browser.WS2
 import Browser.WebSocket
-
+import Data.List1
 
 import Data.IORef
 import Data.MSF
 import JS
-
-
+import Data.List
+import Data.List1
 {-
 import Data.Ratio
 import Category.Transaction.Types
@@ -326,25 +326,6 @@ show_route_maybe (Just (MkRD  rk dir lines m_rst), udm) =
   show_route_dt m_rst y = show_route_doc_type m_rst
 show_route_maybe _ = section [] []
 
-
-show_route :( RouteData,UserDataMap) -> Node Ev
-show_route (MkRD  rk dir lines m_rst, udm ) = 
-  section [] [
-    div [class "grid-y grid-padding-x"] [ 
-  
-      div [class "large-1 cell"] [
-        h5 [] [fromString $ show_route_dt m_rst dir   ]
-        ,p [] [fromString $ show_RouteKey rk]
-      ]
-    ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
-    ]
-  ] where  
-  show_route_dt : Maybe RouteSumT -> DirectionTag -> String
-  show_route_dt Nothing dir = "\{show dir} Route"  
-  show_route_dt m_rst y = show_route_doc_type m_rst
-
-
-
 show_ref : SystemState -> Ref -> Node Ev
 show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        , td [] []
@@ -370,8 +351,60 @@ show_refs xs ss = section [] [table [class "hover"]
                                      ]     
                              ] 
 
+
+drop_duplicates : Eq ty=>Ord ty=>List ty -> List ty
+drop_duplicates xs = ret where 
+    gs : List (List1 ty)
+    gs = group $ sort xs
+    
+    ret : List ty
+    ret = (map head gs)
+
 show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
 show_refs_udm (xx, y) ss = show_refs xx ss
+
+show_route : SystemState -> (RouteData,UserDataMap) -> Node Ev
+show_route ss ( rd@(MkRD  rk dir lines m_rst), udm ) = 
+  div [] [
+     section [] [
+       div [class "grid-y grid-padding-x"] [ 
+
+         div [class "large-1 cell"] [
+           h5 [] [fromString $ show_route_dt m_rst dir   ]
+           ,p [] [fromString $ show_RouteKey rk]
+         ]
+       ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
+       ]
+     ]
+     ,section [] [
+        h4 [class "h4-center"] ["Allocation"]
+        ,(show_refs (toref $ drop_duplicates $listRouteKeys rd) ss)
+     ]
+  
+  ] where  
+  show_route_dt : Maybe RouteSumT -> DirectionTag -> String
+  show_route_dt Nothing dir = "\{show dir} Route"  
+  show_route_dt m_rst y = show_route_doc_type m_rst
+  
+  toref : List RouteKey -> List Ref
+  toref xs = map MkRouteKeyRef xs
+  
+
+show_route1 : List1 (RouteData,UserDataMap) -> Node Ev
+show_route1 (head ::: tail) = ?dasdfasd--(show_route head)
+{-
+  div [class "grid-y"] [
+     h3 [] ["Main"]
+     ,(show_route head)
+     ,h3 [] ["Related"]
+     
+  
+  ]
+-}
+
+
+
+
 
 export
 get_msg' : LiftJSIO m => BrowserEvent -> m String 
@@ -395,7 +428,7 @@ onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  ) >>> Trans.get >>> web_socket
 openM : Ev -> StateT SystemState M (Event () )   --JSIO (Event String)
 openM (Open d) = pure (Ev ()) 
 openM _        = pure NoEv
-
+{-
 routeRefM : Ev -> StateT SystemState M (Event (Maybe RouteData,UserDataMap) )   --JSIO (Event String)
 routeRefM (OpenRef rf) = do
             ss <- get
@@ -403,14 +436,15 @@ routeRefM (OpenRef rf) = do
             --printLn $ lines $ (fst we)
             pure (Ev (we) ) 
 routeRefM _            = pure NoEv
-
-routeKeyM : Ev -> StateT SystemState M (Event (RouteData,UserDataMap) )   --JSIO (Event String)
+-}
+routeKeyM : Ev -> StateT SystemState M (Event (SystemState,(RouteData,UserDataMap)) )   --JSIO (Event String)
 routeKeyM (OpenRoute rk) = do
             ss <- get
-            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (get_hom' rk)  ))   
+            ret <- runStateT ss (JSMem.interpret_js (toWhs (get_hom' rk)  ))   
             --printLn $ lines $ (fst we)
-            pure (Ev (we) )             
+            pure (Ev ret )             
 routeKeyM _            = pure NoEv
+
 
 allocationM : Ev -> StateT SystemState M (Event (Maybe AllocationEntry,UserDataMap) )   --JSIO (Event String)
 allocationM (OpenAlloc ref) = do
@@ -420,21 +454,40 @@ allocationM (OpenAlloc ref) = do
             pure (Ev (we) )             
 allocationM _            = pure NoEv
 
+routeList1 : Ev -> StateT SystemState M (Event (List1 (RouteData,UserDataMap)) )   --JSIO (Event String)
+routeList1 (OpenRoute rk) = do
+            
+            ss <- get
+            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (read_route1 rk)  ))   
+            --printLn $ lines $ (fst we)
+            --pure (Ev (we) )             
+            pure NoEv
+            
+routeList1 _            = pure NoEv
+
+
+onRouteList1 : MSF (StateT SystemState M) Ev () 
+onRouteList1 = (arrM routeList1) ?>> (arrM  (\xrf=>printLn "ocas") ) --(arrM $ \rf=> (innerHtmlAt formContentDiv (show_route1 rf))  )
+
 -- read_allocation
 
-
+{-
 onOpenRef :  MSF (StateT SystemState M) Ev () 
 onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_route_maybe rf)  )
-
+-}
 
 onOpen :  MSF (StateT SystemState M) Ev () 
 onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
 
+
+
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg,
               onOpen,
-              onOpenRef,
-              (arrM routeKeyM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_route rf)  ),
+              --onRouteList1,
+              (arrM routeKeyM) ?>> (arrM $ \(sstate,ret)=> innerHtmlAt formContentDiv (show_route sstate ret)  ),
+              
+                            
               (arrM allocationM) ?>> (arrM $ \ae=> innerHtmlAt formContentDiv (show_allocation_maybe ae)  ) ]
 --msf2 =  fan_ [onMsg,
 --              onOpen]

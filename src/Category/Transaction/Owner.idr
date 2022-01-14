@@ -498,7 +498,7 @@ toWhs (ConfirmOrder fx) = do
                let route_key = MkRouteKeyRef new_r  
                             
                Put route_key (order so) fx_ev               
-               Put route_key (allocation so) fx_ev               
+               --Put route_key (allocation so) fx_ev               
                --Put route_key (control so) fx_empty
                Pure new_r
 toWhs (GetFxData key) = do
