@@ -104,11 +104,19 @@ demo_po_so = do
    inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
    bank_input_route <- NewRoute InitDate BankInputRouteT     
    bank_output_route <- NewRoute InitDate BankOutputRouteT        
+   
+   tax_input_route <- NewRoute InitDate TaxmanInputRouteT     
+   tax_output_route <- NewRoute InitDate TaxmanOutputRouteT        
+   
+   
    --init_self
    SetRouteNumber (RouteName "InventoryInput") inventory_input_route
    SetRouteNumber (RouteName "InventoryOutput") inventory_output_route   
    SetRouteNumber (RouteName "BankInput") bank_input_route
    SetRouteNumber (RouteName "BankOutput") bank_output_route
+   
+   SetRouteNumber (RouteName "TaxInput") tax_input_route
+   SetRouteNumber (RouteName "TaxOutput") tax_output_route
    
    --init_self
    let date1 : Date
@@ -129,10 +137,10 @@ demo_po_so = do
    --receive_po_full po1 "2021-10-25"
 
 
-   --po2 <- new_po date2 dx2 factory1 factory2 
+   po2 <- new_po date2 dx2 factory1 factory2 
    --reserve_po_full so1 "2021-11-02"
    --transit_po_full po2 "2021-10-18"
-   --po3 <- new_po date3 dx1 factory1 factory1   
+   po3 <- new_po date3 dx1 factory1 factory1   
    {- 
 
    -}

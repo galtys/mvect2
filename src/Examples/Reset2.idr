@@ -235,21 +235,12 @@ show_HomQLine udm xs = div [] [
         ]
    ]
    
-show_RouteKey : RouteKey -> String
-show_RouteKey (MkRK date ref state) = "Date: \{date}, Ref: \{ref}, State: \{show state}"
-
-show_Ref : Ref -> String --Node Ev
-show_Ref (MkAllocationRef x) = " Allocation: \{x}"
-show_Ref (MkRouteKeyRef (MkRK date ref state)) = " Route: \{ref}"
-
-
-
-
-
 
 data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry) | MkOwn RouteTypes.Location
 
 
+show_RouteKey : RouteKey -> String
+show_RouteKey (MkRK date ref state) = "Date: \{date}, Ref: \{ref}, State: \{show state}"
 
 show_FxEvent : UserDataMap -> FxEvent -> Node Ev
 show_FxEvent udm (Fx121 date y) =
@@ -267,9 +258,8 @@ show_allocation_item ud ledger (MkAI supplier customer fx) =
         div [class "grid-x grid-padding-x"] [
             div [class "large-2 cell"] [fromString $ show_RouteKey supplier]
             ,div [class "large-2 cell"] [fromString $ show_RouteKey customer]        
-            ,div [class "large-8 cell"] [show_FxEvent ud fx]--[fromString $ show_RouteKey customer]        
-        
-        ]                  
+            ,div [class "large-8 cell"] [show_FxEvent ud fx]
+        ]
 show_allocation_maybe : (Maybe AllocationEntry,UserDataMap) -> Node Ev 
 show_allocation_maybe (Nothing, ud) = section [] []
 show_allocation_maybe (Just (MkAE ledger moves), ud) = 
@@ -324,12 +314,11 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   div [] [
      section [] [
        div [class "grid-y grid-padding-x"] [ 
-
          div [class "large-1 cell"] [
            h5 [] [fromString $ show_route_dt m_rst dir   ]
-           ,p [] [fromString $ show_RouteKey rk]
+           ,p [] [fromString $ show_RouteKeyX rk]
          ]
-       ,div [class "route-data large-11 cell"] (map (show_route_grid_item udm) (route_grid_items ( lines) ) )    
+       ,div [class "route-data large-11 cell"] (map show_route_grid_item (route_grid_items lines) )    
        ]
      ]
      ,section [] [
@@ -338,6 +327,13 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
      ]
   
   ] where  
+  r_no : String
+  r_no = unMaybe $ map show (lookup rk (route_number ss))
+  
+  show_RouteKeyX : RouteKey -> String
+  show_RouteKeyX (MkRK date ref state) = "Date: \{date}, \{r_no}, State: \{show state}"
+  
+  
   show_route_dt : Maybe RouteSumT -> DirectionTag -> String
   show_route_dt Nothing dir = "\{show dir} Route"  
   show_route_dt m_rst y = show_route_doc_type m_rst
@@ -352,28 +348,38 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
   route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
   
-  show_whsentry : UserDataMap -> (WhsEntry) -> Node Ev
-  show_whsentry udm ( we@(MkWE ref (Fx121 date y) mk)) = 
+  show_Ref : Ref -> String
+  show_Ref (MkAllocationRef x) = " Allocation: \{x}"
+  show_Ref (MkRouteKeyRef this_rk@(MkRK date ref state)) = "  \{this_ref}" where
+     this_ref : String
+     this_ref = unMaybe $ map show (lookup this_rk (route_number ss))
+
+  h2n : SortedMap H256 DocumentNumber
+  h2n = (hash2name ss)
+  
+  show_whsentry : (WhsEntry) -> Node Ev
+  show_whsentry ( we@(MkWE ref (Fx121 date y) mk)) = 
                          div [class "callout"] [
                                 span  [] [fromString date ]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we) ] 
-                                --,p [] [fromString $ show $    $encode we
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] --, " ",fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n)] 
+                                ,h6 [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
 
                          ]
-  show_whsentry udm ( we@(MkWE ref (Fx11 date y) mk)) = 
+  show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = 
                          div [class "callout"] [
                                 span  [] [fromString date]
                                 , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] 
+                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] --, " ",fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n)] 
+                                ,h6 [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
                                 ,((show_Hom1 udm) $ toHom1 y)
                          ]
   
-  show_route_grid_item : UserDataMap -> RouteLineGridItem -> Node Ev
-  show_route_grid_item udm (MkLoc x) = (show_Location x)
-  show_route_grid_item udm (MkOwn x) = (show_Owner x)
-  show_route_grid_item udm (MkWE xs) = div [class "route-item"] (map (show_whsentry udm) xs)
+  show_route_grid_item : RouteLineGridItem -> Node Ev
+  show_route_grid_item (MkLoc x) = (show_Location x)
+  show_route_grid_item (MkOwn x) = (show_Owner x)
+  show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
   
   
 {-
@@ -405,25 +411,12 @@ nextM (Msg d) = do
     pure (Ev x)
 nextM _        = pure NoEv
 
-
-
-
 onMsg :  MSF (StateT SystemState M) Ev () 
 onMsg = (arrM nextM) ?>> arrM (\xl => printLn xl  ) >>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_close ws)
-
 
 openM : Ev -> StateT SystemState M (Event () )   --JSIO (Event String)
 openM (Open d) = pure (Ev ()) 
 openM _        = pure NoEv
-{-
-routeRefM : Ev -> StateT SystemState M (Event (Maybe RouteData,UserDataMap) )   --JSIO (Event String)
-routeRefM (OpenRef rf) = do
-            ss <- get
-            (sstate,we) <- runStateT ss (JSMem.interpret_js (toWhs (read_ref_data rf)  ))   
-            --printLn $ lines $ (fst we)
-            pure (Ev (we) ) 
-routeRefM _            = pure NoEv
--}
 routeKeyM : Ev -> StateT SystemState M (Event (SystemState,RouteData) )   --JSIO (Event String)
 routeKeyM (OpenRoute rk) = do
             ss <- get
@@ -431,7 +424,6 @@ routeKeyM (OpenRoute rk) = do
             --printLn $ lines $ (fst we)
             pure (Ev ret )             
 routeKeyM _            = pure NoEv
-
 
 allocationM : Ev -> StateT SystemState M (Event (Maybe AllocationEntry,UserDataMap) )   --JSIO (Event String)
 allocationM (OpenAlloc ref) = do
@@ -456,30 +448,14 @@ routeList1 _            = pure NoEv
 onRouteList1 : MSF (StateT SystemState M) Ev () 
 onRouteList1 = (arrM routeList1) ?>> (arrM  (\xrf=>printLn "ocas") ) --(arrM $ \rf=> (innerHtmlAt formContentDiv (show_route1 rf))  )
 
--- read_allocation
-
-{-
-onOpenRef :  MSF (StateT SystemState M) Ev () 
-onOpenRef = (arrM routeRefM) ?>> (arrM $ \rf=> innerHtmlAt formContentDiv (show_route_maybe rf)  )
--}
-
 onOpen :  MSF (StateT SystemState M) Ev () 
 onOpen = (arrM openM) ?>> Trans.get >>> web_socket ^>> ifJust ( arrM $ \ws=>ws_send ws "Hello!" >> printLn "send Hello!")
-
-
 
 msf2 : MSF (StateT SystemState M) Ev ()
 msf2 =  fan_ [onMsg,
               onOpen,
-              --onRouteList1,
               (arrM routeKeyM) ?>> (arrM $ \(sstate,ret)=> innerHtmlAt formContentDiv (show_route sstate ret)  ),
-              
-                            
               (arrM allocationM) ?>> (arrM $ \ae=> innerHtmlAt formContentDiv (show_allocation_maybe ae)  ) ]
---msf2 =  fan_ [onMsg,
---              onOpen]
-
-
 
 export
 ui2 : M (MSF M Ev (), JSIO ())
@@ -490,22 +466,17 @@ ui2 = do
   op <-  addEventListenerBE "open"  w_sock (h_open . Open)
   
   h_msg   <- DomEnv.handler <$> DomIO.env
-  msg <-  addEventListenerBE "message"  w_sock (h_open . Msg)
-  
+  msg <-  addEventListenerBE "message"  w_sock (h_open . Msg)  
   --msg <-  addEventListenerBE "open"  ws h_msg
   --msg <- ws_on_message ws (h_msg . Msg)
   --innerHtmlAt exampleDiv (content EN)
-  
   (sstate,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
   
   
   (sstate,refs) <- runStateT sstate (JSMem.interpret_js (toWhs   list_refs )   )   
-
-  
   innerHtmlAt exampleDiv (show_refs_udm  refs sstate)
   
-  --innerHtmlAt formContentDiv (show_route_maybe we)
-    
+  --innerHtmlAt formContentDiv (show_route_maybe we)    
   --ini <- randomGame EN
   --ws_send ws "Test message"
   --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()

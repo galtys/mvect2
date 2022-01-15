@@ -153,21 +153,6 @@ poForecastFromFx fx = ret where
            -}
            ret : OrderControlRoute --PurchaseForecastRoute 
            ret = MkORrec forecastIn purchaseInvoice purchaseOrder Purchase
-{-
-export
-custWiRoute : (c:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
-custWiRoute c i = [Partner Sale c, Control Sale i, Out c, Self] -- Border p
-export
-suppWiRoute : (s:BrowseResPartner.RecordModel) -> (i:BrowseResPartner.RecordModel) -> Route --List Location
-suppWiRoute s i = [Self, In s, Control Purchase i, Partner Purchase s]
-export
-initRoute : Route --List Location
-initRoute = [Init, In self_company, Self]
--}
-
-
-
-
 
 export
 InitDate : Date
@@ -191,7 +176,7 @@ export
 InventoryOutputRoute : ListRoute
 InventoryOutputRoute = (MkListR i [] Sale) where
      i : MoveKey
-     i = MkMK Self (Out self_company) Forecast
+     i = MkMK (Out self_company) Self Forecast
 export     
 InventoryOutputRouteT : RouteSumT     
 InventoryOutputRouteT =MkAl InventoryOutputRoute
@@ -226,7 +211,41 @@ InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate InitRouteT ) Progress)
 
 
-     
+
+export
+TaxmanInputRoute : ListRoute
+TaxmanInputRoute = (MkListR i [] Purchase) where
+     i : MoveKey
+     i = MkMK (Taxman self_company) (In self_company) Forecast     
+export     
+TaxmanInputRouteT : RouteSumT
+TaxmanInputRouteT = MkAl TaxmanInputRoute
+export
+TaxmanInputRouteKey : RouteKey
+TaxmanInputRouteKey = (MkRK InitDate (routeSha InitDate TaxmanInputRouteT) Progress)
+
+export
+TaxmanInputRouteRef : Ref
+TaxmanInputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxmanInputRouteT) Progress)
+
+export
+TaxmanOutputRoute : ListRoute
+TaxmanOutputRoute = (MkListR i [] Sale) where
+     i : MoveKey
+     i = MkMK (Out self_company) (Taxman self_company) Forecast
+
+export     
+TaxmanOutputRouteT : RouteSumT
+TaxmanOutputRouteT = MkAl TaxmanOutputRoute
+export
+TaxmanOutputRouteKey : RouteKey
+TaxmanOutputRouteKey = (MkRK InitDate (routeSha InitDate TaxmanOutputRouteT) Progress)
+
+export
+TaxmanOutputRouteRef : Ref
+TaxmanOutputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxmanOutputRouteT) Progress)
+
+{-     
 export
 TaxRoute : ReconciliationRoute
 TaxRoute = ret where
@@ -242,7 +261,9 @@ TaxRouteT = MkReR TaxRoute
 export
 TaxRouteRef : Ref
 TaxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxRouteT) Progress)
-     
+-}
+
+{-     
 export
 BankInputRoute : ReconciliationRoute
 BankInputRoute =  ret where
@@ -252,9 +273,16 @@ BankInputRoute =  ret where
      a = MkMK (In self_bank) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR a r Sale     
+-}     
+export
+BankInputRoute : ListRoute
+BankInputRoute = (MkListR i [] Purchase) where
+     i : MoveKey
+     i = MkMK (Bank self_company) (In self_company) Forecast
+     
 export     
 BankInputRouteT : RouteSumT
-BankInputRouteT = MkReR BankInputRoute
+BankInputRouteT = MkAl BankInputRoute
 export
 BankInputRouteKey : RouteKey
 BankInputRouteKey = (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
@@ -262,7 +290,7 @@ BankInputRouteKey = (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
 export
 BankInputRouteRef : Ref
 BankInputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
-
+{-
 export
 BankOutputRoute : ReconciliationRoute
 BankOutputRoute =  ret where
@@ -272,9 +300,16 @@ BankOutputRoute =  ret where
      a = MkMK (Out self_bank) Self Forecast
      ret : ReconciliationRoute
      ret = MkRR a r Sale     
+-}     
+export
+BankOutputRoute : ListRoute
+BankOutputRoute = (MkListR i [] Sale) where
+     i : MoveKey
+     i = MkMK (Out self_company) (Bank self_company) Forecast
+
 export     
 BankOutputRouteT : RouteSumT
-BankOutputRouteT = MkReR BankOutputRoute
+BankOutputRouteT = MkAl BankOutputRoute
 export
 BankOutputRouteKey : RouteKey
 BankOutputRouteKey = (MkRK InitDate (routeSha InitDate BankOutputRouteT) Progress)
@@ -330,10 +365,13 @@ export
 getDocRouteType : RouteSumT -> DocumentRouteType
 getDocRouteType (MkReR (MkRR allocation (MkMK Init to ledger) direction)) = InitRoute
 getDocRouteType (MkReR (MkRR allocation (MkMK Loss to ledger) direction)) = StockLossRoute
-getDocRouteType (MkReR (MkRR allocation (MkMK (Taxman x) to ledger) Sale)) = TaxSaleRoute
-getDocRouteType (MkReR (MkRR allocation (MkMK (Taxman x) to ledger) Purchase)) = TaxPurchaseRoute
-getDocRouteType (MkReR (MkRR allocation (MkMK (Bank x) to ledger) direction)) = BankRoute
-getDocRouteType (MkReR (MkRR allocation (MkMK from to ledger) direction)) = DocumentRouteType.NA
+getDocRouteType (MkAl (MkListR (MkMK (Out y) (Taxman x) ledger) [] Sale)) = TaxSaleRoute
+getDocRouteType (MkAl (MkListR (MkMK (Taxman x) (In y) ledger) [] Purchase)) = TaxPurchaseRoute
+
+getDocRouteType (MkAl (MkListR (MkMK (Bank x) (In y) ledger) [] Purchase)) = BankRoute
+getDocRouteType (MkAl (MkListR (MkMK (Out y) (Bank x) ledger) [] Sale)) = BankRoute
+
+getDocRouteType (MkReR (MkRR allocation (MkMK from to ledger) direction)) = DocumentRouteType.Allocation
 {-
 getDocRouteType (MkReR (MkRR allocation (MkMK Self to ledger) direction)) = DocumentRouteType.NA
 getDocRouteType (MkReR (MkRR allocation (MkMK (In x) to ledger) direction)) = DocumentRouteType.NA
@@ -350,7 +388,7 @@ getDocRouteType (MkReR (MkRR allocation (MkMK (Transit x y) to ledger) direction
 
 
 getDocRouteType (MkAl (MkListR (MkMK Self (In x) ledger) [] Purchase)) = DocumentRouteType.StockInputRoute -- ?kkkdfasdflas_3 --DocumentRouteType.NA
-getDocRouteType (MkAl (MkListR (MkMK Self (Out x) ledger) [] Sale)) = DocumentRouteType.StockOutputRoute 
+getDocRouteType (MkAl (MkListR (MkMK (Out x) Self ledger) [] Sale)) = DocumentRouteType.StockOutputRoute 
 
 
 
@@ -427,7 +465,7 @@ negateDocumentType SaleAllocation = SaleAllocation
 negateDocumentType GoodsReceipt = Delivery
 --negateDocumentType RouteDoc = RouteDocInv
 --negateDocumentType RouteDocInv = RouteDoc
-
+{-
 export
 isAllocationDocument : DocumentType -> Bool
 isAllocationDocument SaleOrder = False
@@ -457,7 +495,7 @@ isAllocationDocument SaleAllocation = True
 isAllocationDocument GoodsReceipt = True
 --isAllocationDocument RouteDoc = False
 --isAllocationDocument RouteDocInv = False
-
+-}
 export
 getDocumentType : WhsEntry -> DocumentType
 getDocumentType (MkWE ref fx move_key) = getDxDocumentType move_key

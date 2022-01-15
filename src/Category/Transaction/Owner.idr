@@ -298,10 +298,10 @@ new_so date1 dx cust cust_inv = do
           (MkOR (MkORrec allocation control order Sale)) => do
                xfc <- Get order 
                let aitem : AllocationItem
-                   aitem = MkAI new_rk InventoryOutputRouteKey (Fx11 date1 (justDX xfc) )
+                   aitem = MkAI InventoryOutputRouteKey new_rk (Fx11 date1 (justDX xfc) )
                    
                    bank_item : AllocationItem
-                   bank_item = MkAI new_rk BankOutputRouteKey (Fx11 date1 (justCX xfc) )
+                   bank_item = MkAI BankOutputRouteKey new_rk (Fx11 date1 (justCX xfc) )
                
                rf<-Allocate (MkAE Forecast [aitem,bank_item])       
                Pure new_rk

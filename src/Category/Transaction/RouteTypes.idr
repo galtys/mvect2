@@ -15,7 +15,17 @@ import Odoo.Schema.PJBRecDef
 %language ElabReflection
 
 public export
-data Location =  Self | In BrowseResPartner.RecordModel | Out BrowseResPartner.RecordModel | Border BrowseResPartner.RecordModel |Init | Loss | Control DirectionTag BrowseResPartner.RecordModel |Partner DirectionTag BrowseResPartner.RecordModel | Transit DirectionTag BrowseResPartner.RecordModel | Taxman BrowseResPartner.RecordModel | Bank BrowseResPartner.RecordModel
+data Location =  Self | 
+                 In BrowseResPartner.RecordModel | 
+                 Out BrowseResPartner.RecordModel | 
+                 Border BrowseResPartner.RecordModel |
+                 Init | 
+                 Loss | 
+                 Control DirectionTag BrowseResPartner.RecordModel |
+                 Partner DirectionTag BrowseResPartner.RecordModel | 
+                 Transit DirectionTag BrowseResPartner.RecordModel | 
+                 Taxman BrowseResPartner.RecordModel | 
+                 Bank BrowseResPartner.RecordModel
 
 %runElab derive "Location" [Generic, Meta, Eq, Ord,Show,ToJSON,FromJSON]
 
@@ -38,9 +48,7 @@ record FxData where
    delivery:BrowseResPartner.RecordModel -- Delivery
    invoice:BrowseResPartner.RecordModel  -- Invoice
    h3: Hom121
-   -- origin : Maybe FxRef --list of origins, a PO can have multiple origins
 %runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-
 
 public export
 data RouteState = Progress | Completed
@@ -89,14 +97,7 @@ record ListRoute where
    lst : List MoveKey      
    direction : DirectionTag 
 %runElab derive "ListRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-{-
-public export
-record VectRoute (n:Nat) where 
-   constructor MkVectR
-   allocation : MoveKey 
-   lst : Vect n MoveKey      
-%runElab derive "VectRoute" [Generic, Meta]      
--}
+
 public export
 data RouteSumT =   MkReR ReconciliationRoute | MkAl ListRoute | MkOR OrderControlRoute 
 %runElab derive "RouteSumT" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
@@ -105,14 +106,6 @@ allocationMove : RouteSumT -> MoveKey
 allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
-
---<<<<<<< HEAD
---namespace GridPlacement
---  public export
---  data DocumentType = Order | Invoice |CreditNote| Payment | Refund | Delivery | Return | Reservation |Allocation|Shipping | Control | Input |Output |Self|Border |Init |Loss| Customer | Supplier |Transit|Taxman|Bank
---  %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
---=======
--->>>>>>> 567bb1ad731c387925299e2849e4c6a5e99fcdf9
 
 public export
 data Ref = MkAllocationRef AllocationRef | MkRouteKeyRef RouteKey
