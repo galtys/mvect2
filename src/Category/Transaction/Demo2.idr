@@ -110,10 +110,10 @@ demo_po_so = do
    
    
    --init_self
-   SetRouteNumber (RouteName "InventoryInput") inventory_input_route
-   SetRouteNumber (RouteName "InventoryOutput") inventory_output_route   
-   SetRouteNumber (RouteName "BankInput") bank_input_route
-   SetRouteNumber (RouteName "BankOutput") bank_output_route
+   SetRouteNumber (DocName "InventoryInput") inventory_input_route
+   SetRouteNumber (DocName "InventoryOutput") inventory_output_route   
+   SetRouteNumber (DocName "BankInput") bank_input_route
+   SetRouteNumber (DocName "BankOutput") bank_output_route
    
    --SetRouteNumber (RouteName "TaxInput") tax_input_route
    --SetRouteNumber (RouteName "TaxOutput") tax_output_route

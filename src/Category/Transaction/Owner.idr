@@ -298,10 +298,10 @@ new_so date1 dx cust cust_inv = do
           (MkOR (MkORrec allocation control order Sale)) => do
                xfc <- Get order 
                let aitem : AllocationItem
-                   aitem = MkAI InventoryOutputRouteKey new_rk (Fx11 date1 (justDX xfc) )
+                   aitem = MkAI new_rk InventoryOutputRouteKey (Fx11 date1 (justDX xfc) )
                    
                    bank_item : AllocationItem
-                   bank_item = MkAI BankOutputRouteKey new_rk (Fx11 date1 (justCX xfc) )
+                   bank_item = MkAI new_rk BankOutputRouteKey (Fx11 date1 (justCX xfc) )
                
                rf<-Allocate (MkAE Forecast [aitem,bank_item])       
                Pure new_rk
@@ -604,9 +604,20 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                     let route_ref : RouteKey
                         route_ref =  new_r
                         
-                        alloc_doc : DocumentNumber
-                        alloc_doc = RouteName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
-                    SetRouteNumber alloc_doc new_r
+                        alloc_doc : Maybe DocumentNumber -> String -> DocumentNumber
+                        alloc_doc Nothing z = (DocName "Nothing")
+                        alloc_doc (Just (DocNr x)) z  = (AllocRoute x z)
+                        alloc_doc (Just (AllocRoute x y)) z= (AllocRoute x y)
+                        alloc_doc (Just (DocName x)) z = (DocName x) 
+                        
+                        alloc_doc1 : DocumentNumber
+                        alloc_doc1 = alloc_doc f_doc (unMaybe $ map show t_doc )
+                        
+                        --alloc_doc = ?alloc_doc_rhs
+                        --alloc_doc = RouteName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
+                        --alloc_doc = DocName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
+                        
+                    SetRouteNumber alloc_doc1 new_r
                     
                     doc1<-Put route_ref (allocationMove rx) fe
                     doc2<-Put route_ref (allocationMove ry) fe

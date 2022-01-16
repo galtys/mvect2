@@ -96,19 +96,20 @@ record DocumentNumberItem where
 public export
 data DocumentNumber : Type where
      DocNr : DocumentNumberItem -> DocumentNumber
-     RouteNr : DocumentNumberItem -> DocumentNumber
-     RouteName : String -> DocumentNumber
+     --RouteNr : DocumentNumberItem -> DocumentNumber
+     AllocRoute : DocumentNumberItem -> String ->  DocumentNumber
+     --RouteName : String -> DocumentNumber
      DocName : String -> DocumentNumber     
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
 
-
+{-
 export
 toRouteDoc : DocumentNumber -> DocumentNumber
 toRouteDoc (DocNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
-toRouteDoc (DocName x) = (RouteName x)
+toRouteDoc (DocName x) = (DocName x)
 toRouteDoc (RouteNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
-toRouteDoc (RouteName x) = (RouteName x)
-
+--toRouteDoc (RouteName x) = (RouteName x)
+-}
 
 repeat_zeros : Int -> String
 repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
@@ -119,13 +120,18 @@ with_zeros dt a = ret where
      ret : String
      ret = ( repeat_zeros ( (docDigits dt) - (cast $length str)) ) ++ str
 
+
+export
+show_dni : DocumentNumberItem -> String
+show_dni (MkDNI dt Nothing number) = (docPrefix dt)++(with_zeros dt number)
+show_dni (MkDNI dt (Just x) number) = (docPrefix dt)++x++(with_zeros dt number)
+
 export 
 show_document_number : DocumentNumber -> String
-show_document_number (DocNr (MkDNI dt Nothing number)) = (docPrefix dt)++(with_zeros dt number) --?show_document_number_rhs_0
-show_document_number (DocNr (MkDNI dt (Just x) number)) = (docPrefix dt)++x++(with_zeros dt number) --?show_document_number_rhs_1
-show_document_number (RouteNr (MkDNI dt Nothing number)) = "Allocation "++(docPrefix dt)++(with_zeros dt number)
-show_document_number (RouteNr (MkDNI dt (Just x) number)) = "Allocation "++(docPrefix dt)++x++(with_zeros dt number)
-show_document_number (RouteName x) = x
+show_document_number (DocNr dni) = show_dni dni
+--show_document_number (RouteNr dni) = "Allocation "++(show_dni dni)
+show_document_number (AllocRoute dni x) = (show_dni dni)++" "++x
+--show_document_number (RouteName x) = x
 show_document_number (DocName x) = x
 
 export
