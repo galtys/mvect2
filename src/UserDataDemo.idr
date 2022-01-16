@@ -5,6 +5,82 @@ import Data.Ratio
 import Category.Transaction.Types
 import Odoo.Schema.PJBRecDef
 
+
+export
+self_company : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+self_company = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "Self Main Company", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Self Street", 
+         contract = Just False, 
+         city = Just "Mid London", 
+         zip = Just "CE6 SS", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "self@btconnect.com", 
+         street2 = Just "Mid Lane" }
+
+export
+self_bank : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+self_bank = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "Self Bank", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Bank Street", 
+         contract = Just False, 
+         city = Just "City of London", 
+         zip = Just "CE6 BANK", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "bank@btconnect.com", 
+         street2 = Just "Mid bank Lane" }
+
+export
+self_fx : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+self_fx = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "Foreign Currency Exchange", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "fx Street", 
+         contract = Just False, 
+         city = Just "City of London", 
+         zip = Just "FX FEA", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "fx@btconnect.com", 
+         street2 = Just "Mid fx Lane" }
+
+export
+self_taxman : BrowseResPartner.RecordModel --BrowseResPartner.RecordModel
+self_taxman = BrowseResPartner.MkRecordModel 
+       { pk = 31587, 
+         name = "Taxman (HMRC)", 
+         use_parent_address = Just False, 
+         active = Just True, 
+         street = Just "Taxman Street", 
+         contract = Just False, 
+         city = Just "Exeter or wales", 
+         zip = Just "T4 T5", 
+         country_id = Just 284, 
+         parent_id = Nothing, 
+         child_ids = [], 
+         email = "taxman@btconnect.com", 
+         street2 = Just "Mid fx Lane" }
+
+
+export
+InitDate : Date
+InitDate = "2021-11-01"
+
+
+
 make_bom : Bits32 -> EQty -> List BrowseBoM.RecordModel  -> Bits32 -> BrowseBoM.RecordModel
 make_bom pk_ qty_ boms p_id= MkRecordModel {pk=pk_,product_qty=qty_,bom_id=Nothing,bom_lines=boms, product_id=p_id }
 

@@ -105,8 +105,8 @@ demo_po_so = do
    bank_input_route <- NewRoute InitDate BankInputRouteT     
    bank_output_route <- NewRoute InitDate BankOutputRouteT        
    
-   tax_input_route <- NewRoute InitDate TaxmanInputRouteT     
-   tax_output_route <- NewRoute InitDate TaxmanOutputRouteT        
+   --tax_input_route <- NewRoute InitDate TaxmanInputRouteT     
+   --tax_output_route <- NewRoute InitDate TaxmanOutputRouteT        
    
    
    --init_self
@@ -115,8 +115,8 @@ demo_po_so = do
    SetRouteNumber (RouteName "BankInput") bank_input_route
    SetRouteNumber (RouteName "BankOutput") bank_output_route
    
-   SetRouteNumber (RouteName "TaxInput") tax_input_route
-   SetRouteNumber (RouteName "TaxOutput") tax_output_route
+   --SetRouteNumber (RouteName "TaxInput") tax_input_route
+   --SetRouteNumber (RouteName "TaxOutput") tax_output_route
    
    --init_self
    let date1 : Date

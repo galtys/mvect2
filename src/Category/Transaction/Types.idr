@@ -85,19 +85,28 @@ export
 docDigits : DocumentType -> Int
 docDigits d = 3
 
+public export
+record DocumentNumberItem where
+    constructor MkDNI
+    dt:DocumentType
+    code:Maybe String
+    number:Int
+%runElab derive "DocumentNumberItem" [Generic, Meta, Eq, Show,Ord,RecordToJSON,RecordFromJSON]
 
 public export
 data DocumentNumber : Type where
-     DocNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
-     RouteNr : (dt:DocumentType) -> (code:Maybe String) -> (number:Int) -> DocumentNumber
+     DocNr : DocumentNumberItem -> DocumentNumber
+     RouteNr : DocumentNumberItem -> DocumentNumber
      RouteName : String -> DocumentNumber
      DocName : String -> DocumentNumber     
+%runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
+
 
 export
 toRouteDoc : DocumentNumber -> DocumentNumber
-toRouteDoc (DocNr dt code number) = (RouteNr dt code number)
+toRouteDoc (DocNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
 toRouteDoc (DocName x) = (RouteName x)
-toRouteDoc (RouteNr dt code number) = (RouteNr dt code number)
+toRouteDoc (RouteNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
 toRouteDoc (RouteName x) = (RouteName x)
 
 
@@ -112,18 +121,16 @@ with_zeros dt a = ret where
 
 export 
 show_document_number : DocumentNumber -> String
-show_document_number (DocNr dt Nothing number) = (docPrefix dt)++(with_zeros dt number) --?show_document_number_rhs_0
-show_document_number (DocNr dt (Just x) number) = (docPrefix dt)++x++(with_zeros dt number) --?show_document_number_rhs_1
-show_document_number (RouteNr dt Nothing number) = "Allocation "++(docPrefix dt)++(with_zeros dt number)
-show_document_number (RouteNr dt (Just x) number) = "Allocation "++(docPrefix dt)++x++(with_zeros dt number)
+show_document_number (DocNr (MkDNI dt Nothing number)) = (docPrefix dt)++(with_zeros dt number) --?show_document_number_rhs_0
+show_document_number (DocNr (MkDNI dt (Just x) number)) = (docPrefix dt)++x++(with_zeros dt number) --?show_document_number_rhs_1
+show_document_number (RouteNr (MkDNI dt Nothing number)) = "Allocation "++(docPrefix dt)++(with_zeros dt number)
+show_document_number (RouteNr (MkDNI dt (Just x) number)) = "Allocation "++(docPrefix dt)++x++(with_zeros dt number)
 show_document_number (RouteName x) = x
 show_document_number (DocName x) = x
 
 export
 Show DocumentNumber where
-   show = show_document_number
-     
-%runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
+   show = show_document_number     
 
 public export
 data TreeB = Leaf String | Node TreeB String TreeB
@@ -162,18 +169,6 @@ export
 toCurrency : String -> Maybe Currency
 toCurrency s = lookup s [ (show x,x) | x <- currencyAll ] 
 
-{-
-export
-taxCodeAll : List TaxCode
-taxCodeAll = [INC20, EX20, TAXAMOUNT]
-export
-toTaxCode : String -> Maybe TaxCode
-toTaxCode tc = lookup tc [ (show x,x) | x <- taxCodeAll ]
--}
-
-
---get_tc_prodkey : List TaxCode -> Currency -> ProdKey
---get_tc_prodkey xs cy = PKTax cy (concat [(show x) | x <- xs] )
 
 namespace ProdKey
   export
