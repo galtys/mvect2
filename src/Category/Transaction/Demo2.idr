@@ -126,7 +126,7 @@ demo_po_so = do
        date2 : Date
        date2 = "2021-10-15"
        dx2 : Hom1 
-       dx2 = (map (mult_p 2) dx1) ++ [ (pk32DX 7,3) ]
+       dx2 = (map (mult_p 2) dx1) ++ [ (pk32DX 7, -3) ]
 
        date3 : Date
        date3 = "2021-11-05"
@@ -140,7 +140,7 @@ demo_po_so = do
    --po2 <- new_po date2 dx2 factory1 factory2 
    --reserve_po_full so1 "2021-11-02"
    --transit_po_full po2 "2021-10-18"
-   po3 <- new_po date3 dx1 factory1 factory1   
+   po2 <- new_po date3 dx2 factory1 factory1   
    {- 
 
    -}

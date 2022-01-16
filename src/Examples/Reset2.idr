@@ -332,15 +332,24 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
                                 ,h6   [class "h4-center"]  [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
                          ]
-  show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = 
-                         div [class "callout"] [
-                                span  []                  [fromString date]
-                                ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
-                                ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
-                                ,h6   [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
-                                ,((show_Hom1 udm) $ toHom1 y)
-                         ]
-  
+  show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = muf2 (toDxCx y) muf1  where
+          muf1 : Node Ev
+          muf1 =  
+            div [class "callout"] [
+               span  []                  [fromString date]
+               ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
+               ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
+               ,h6   [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
+               ,((show_Hom1 udm) $ toHom1 y)
+             ]
+          muf2 : DxCx -> (Node Ev) -> (Node Ev)
+          muf2 DX nd = div [class "grid-x"] [
+                           div [class "large-9 cell"] [nd]
+                           ,div [class "large-3 cell"] [] ]
+          muf2 CX nd = div [class "grid-x"] [
+                           div [class "large-3 cell"] []
+                           ,div [class "large-9 cell"] [nd] ]
+                           
   show_route_grid_item : RouteLineGridItem -> Node Ev
   show_route_grid_item (MkLoc x) = (show_Location x)
   show_route_grid_item (MkOwn x) = (show_Owner x)

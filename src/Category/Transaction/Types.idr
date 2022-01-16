@@ -100,6 +100,7 @@ export
 eq_doc_nr : DocumentNumber -> DocumentNumber -> Bool
 eq_doc_nr (AllocRoute x y) (DocNr z) = (x==z)
 eq_doc_nr (AllocRoute x y) (DocName z) = (y==z)
+eq_doc_nr (AllocRoute x1 y1) (AllocRoute x2 y2) = ((x1==x2)&&(y1==y2))
 eq_doc_nr (DocNr z) (AllocRoute x y) = (z==x)
 eq_doc_nr (DocName z) (AllocRoute x y) = (z==y)
 eq_doc_nr (DocNr x) (DocNr y) = (x==y)
@@ -130,6 +131,8 @@ show_document_number (DocName x) = x
 export
 Show DocumentNumber where
    show = show_document_number     
+
+
 {-
 public export
 data TreeB = Leaf String | Node TreeB String TreeB
@@ -332,8 +335,6 @@ namespace Hom1
      ret1 = map Product.toDrCr xs
      n : Int
      n = cast$length ret1
-     --n_dr : Int --List DrCr
-     --n_dr = cast $length $filter (\d => (d==Dr)) ret1
      n_cr : Int --List DrCr
      n_cr = cast $length $filter (\d => (d==Cr)) ret1
      

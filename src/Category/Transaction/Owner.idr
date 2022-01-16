@@ -121,19 +121,6 @@ new_po date1 dx1 supp invoice = do
           (MkReR re) => Pure new_rk       
           (MkAl lr) => Pure new_rk
    
-{-       
-       x <- Get $ allocationMove rt
-       let aitem : AllocationItem
-           aitem = MkAI new_r InventoryInputRouteKey (Fx11 date1 x) 
-                 
-       --aref <- Allocate (MkAE OnHand [aitem])
-       aref <- Allocate (MkAE Forecast [aitem])       
-       x <- Get (convMovekey $allocationMove rt)
-       Show "Can be allocated"
-       Show x
-Pure new_r       
--}       
- 
 
 export
 transit_po_full : RouteKey -> Date -> OwnerEvent ()
@@ -313,57 +300,6 @@ new_so date1 dx cust cust_inv = do
           (MkAl lr) => Pure new_rk
    
    Nothing => Pure new_rk 
- --Pure new_rk
- {-
- r <- GetRoute new_r
- case r of
-   Nothing => Pure ()
-   Just rt => do
-       x <- Get $ allocationMove rt
-       let aitem : AllocationItem
-           aitem = MkAI new_r InventoryInputRouteKey (Fx11 date1 x)  
-       --aref <- Allocate (MkAE Forecast [aitem])                   
-       --Show aref
-       Pure ()
- {-
- ff <- Get $ allocation InitRoute
- aa <- Get $ convMovekey $allocation InitRoute
- -}
- Pure new_r
- -}
-{-
-export
-filter_whs_dt : List WhsEntry -> RouteKey->List WhsEntry
-filter_whs_dt [] x = []
-filter_whs_dt ((whs@(MkWE ref fx mk)) :: xs) x = if (ref==x) then [ (whs)]++(filter_whs_dt xs x) else (filter_whs_dt xs x)
-
-
-export
-filter_rl : RouteKey -> RouteLine -> RouteLine
-filter_rl ref (MkRL move whse_f whse_oh)  = (MkRL move filtered_f filtered_oh) where
-           filtered_f : List (WhsEntry)
-           filtered_f = filter_whs_dt whse_f ref
-           
-           filtered_oh : List (WhsEntry)
-           filtered_oh = filter_whs_dt whse_oh ref
-           
-
-export
-filter_route_lines : List RouteLine -> RouteKey -> List RouteLine
-filter_route_lines [] x = []
-filter_route_lines xs ref = map (filter_rl ref) xs
-
-
-export
-filter_route_data : RouteData -> RouteKey -> RouteData
-filter_route_data (MkRD key dir lines m_rst) ref = (MkRD key dir (filter_route_lines lines ref) m_rst)
-
--}
-{-
-filter_route : RouteKey -> List WhsEntry -> List WhsEntry
-filter_route x xs = ?filter_route_rhs
-
--}
 
 export
 get_hom' : RouteKey -> OwnerEvent (RouteData) --(List WhsEntry) --HomQLine
@@ -485,26 +421,12 @@ init_self_whs = do
      let bank_item : AllocationItem
          bank_item = MkAI InitRouteKey BankInputRouteKey (Fx11 InitDate to_bank )
          
-     --aref <- Allocate (MkAE Forecast [bank_item])
-     --Log (MkOpen fx)
-     --Log (MkNewRoute InitRouteT je)       
-     
-     
      x1<-Put (ref_init) (reconcile InitRoute) je  --forecast
      x2<-Put (ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
-     
-     
-     --Show je     
-     {-
-     Put (MkRouteKeyRouteKey ref_init) (allocation InitRoute) je 
-     Put (MkRouteKeyRouteKey ref_init) (convMovekey $ allocation InitRoute) je --je_dx
-     -}
      
      inventory_input_route <- NewRoute InitDate InventoryInputRouteT
      inventory_output_route <- NewRoute InitDate InventoryOutputRouteT  
      
-        
-              
      --Log (MkNewRoute InventoryInputRouteT fx_empty)
      --tax_route <- NewRoute InitDate TaxRouteT
      --Log (MkNewRoute TaxRouteT fx_empty)          

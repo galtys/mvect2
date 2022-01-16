@@ -289,12 +289,12 @@ getDocumentType (MkWE ref (Fx11 x y) move_key) = ret_f where
            DX => muf2 dx_drcr ret --(muf1 DX)
            CX => muf2 cx_drcr (swapDxCx ret) --(muf1 CX)
 
-
+{-
 export
 getDxCxDocumentType : WhsEntry -> DxCx
 getDxCxDocumentType (MkWE ref (Fx121 x y) move_key) = DX 
 getDxCxDocumentType (MkWE ref (Fx11 x y) move_key) = (toDxCx y)
-
+-}
 getRouteKey : WhsEntry -> Maybe RouteKey
 getRouteKey (MkWE (rk) fx move_key) = Just rk
 

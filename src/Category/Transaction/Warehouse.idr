@@ -53,9 +53,10 @@ filter_by_doc_nr x (we@(MkWE ref fx move_key) :: xs) = do
      
      case m_d of
        Nothing => pure ([we]++ret)
-       Just doc => do
+       Just doc => if (eq_doc_nr x doc) then pure (we::ret) else pure ret
+          --printLn "\{show x} \{show doc} \{show $ eq_doc_nr x doc}"
           --printLn (show x ++ " " ++ (show doc) ++ " " ++(show (eq_doc_nr x doc)) )
-          if (eq_doc_nr x doc) then pure ([we]++ret) else pure ret
+          -- if (eq_doc_nr x doc) then pure (we::ret) else pure ret
           --pure ( we::ret)
 
 namespace MemoryMap
