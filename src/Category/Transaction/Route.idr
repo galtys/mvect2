@@ -168,10 +168,11 @@ InventoryInputRouteT =MkAl InventoryInputRoute
 export
 InventoryInputRouteKey : RouteKey
 InventoryInputRouteKey = (MkRK InitDate (routeSha InitDate InventoryInputRouteT) Progress)
+{-
 export
 InventoryInputRouteRef : Ref
 InventoryInputRouteRef = MkRouteKeyRef InventoryInputRouteKey
-
+-}
 export
 InventoryOutputRoute : ListRoute
 InventoryOutputRoute = (MkListR i [] Sale) where
@@ -183,10 +184,11 @@ InventoryOutputRouteT =MkAl InventoryOutputRoute
 export
 InventoryOutputRouteKey : RouteKey
 InventoryOutputRouteKey = (MkRK InitDate (routeSha InitDate InventoryOutputRouteT) Progress)
+{-
 export
 InventoryOutputRouteRef : Ref
 InventoryOutputRouteRef = MkRouteKeyRef InventoryOutputRouteKey
-
+-}
 
 export   
 InitRoute : ReconciliationRoute 
@@ -206,10 +208,11 @@ InitRouteT = MkReR InitRoute
 export
 InitRouteKey : RouteKey
 InitRouteKey = (MkRK InitDate (routeSha InitDate InitRouteT) Progress)
+{-
 export
 InitRouteRef : Ref
 InitRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate InitRouteT ) Progress)
-
+-}
 
 
 export
@@ -223,11 +226,11 @@ TaxmanInputRouteT = MkAl TaxmanInputRoute
 export
 TaxmanInputRouteKey : RouteKey
 TaxmanInputRouteKey = (MkRK InitDate (routeSha InitDate TaxmanInputRouteT) Progress)
-
+{-
 export
 TaxmanInputRouteRef : Ref
 TaxmanInputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxmanInputRouteT) Progress)
-
+-}
 export
 TaxmanOutputRoute : ListRoute
 TaxmanOutputRoute = (MkListR i [] Sale) where
@@ -240,10 +243,11 @@ TaxmanOutputRouteT = MkAl TaxmanOutputRoute
 export
 TaxmanOutputRouteKey : RouteKey
 TaxmanOutputRouteKey = (MkRK InitDate (routeSha InitDate TaxmanOutputRouteT) Progress)
-
+{-
 export
 TaxmanOutputRouteRef : Ref
 TaxmanOutputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate TaxmanOutputRouteT) Progress)
+-}
 
 {-     
 export
@@ -286,10 +290,13 @@ BankInputRouteT = MkAl BankInputRoute
 export
 BankInputRouteKey : RouteKey
 BankInputRouteKey = (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
-
+{-
 export
 BankInputRouteRef : Ref
 BankInputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankInputRouteT) Progress)
+-}
+
+
 {-
 export
 BankOutputRoute : ReconciliationRoute
@@ -313,11 +320,11 @@ BankOutputRouteT = MkAl BankOutputRoute
 export
 BankOutputRouteKey : RouteKey
 BankOutputRouteKey = (MkRK InitDate (routeSha InitDate BankOutputRouteT) Progress)
-
+{-
 export
 BankOutputRouteRef : Ref
 BankOutputRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate BankOutputRouteT) Progress)
-
+-}
 export
 FxRoute : ReconciliationRoute
 FxRoute = ret where
@@ -330,10 +337,11 @@ FxRoute = ret where
 export
 FxRouteT : RouteSumT
 FxRouteT = MkReR FxRoute
+{-
 export
 FxRouteRef : Ref
 FxRouteRef = MkRouteKeyRef (MkRK InitDate (routeSha InitDate FxRouteT ) Progress)
-
+-}
 export
 getDxDocumentType : MoveKey -> DocumentType
 {- Sale Route -}
@@ -503,8 +511,12 @@ getDocumentType (MkWE ref fx move_key) = getDxDocumentType move_key
 
 getRouteKey : WhsEntry -> Maybe RouteKey
 --getRouteKey (MkWE (MkAllocationRef x) fx move_key) = Nothing
-getRouteKey (MkWE (MkRouteKeyRef rk) fx move_key) = Just rk
-
+getRouteKey (MkWE (rk) fx move_key) = Just rk
+{-
+ret where
+       ret : RouteKey
+       ret = rk
+-}
 
 
 routeLineKeys : RouteLine -> List RouteKey

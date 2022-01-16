@@ -63,7 +63,7 @@ import Category.Transaction.Warehouse
 --import Examples.WsTest
 
 public export
-data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRoute RouteKey | OpenAlloc AllocationRef | OpenRef Ref --Open BrowserEvent
+data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRoute RouteKey | OpenAlloc AllocationRef | OpenRef RouteKey --Open BrowserEvent
 
      
 namespace JSMem
@@ -273,27 +273,27 @@ get_route_number ss rk@(MkRK date ref state) =
          Nothing => ref
          (Just doc) => show doc
 
-show_ref : SystemState -> Ref -> Node Ev
+show_ref : SystemState -> RouteKey -> Node Ev
 {-
 show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
                                        , td [] []
                                        ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]  ]
                                        ]  
 -}                                       
-show_ref ss route_ref@(MkRouteKeyRef rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
+show_ref ss route_ref@(rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
                                                           ,td [] [fromString "\{date}"]
                                                           ,td [] [a [href "#",onClick (OpenRoute rk)][ fromString $ get_route_number ss rk]] 
                                                         ] where
                      route : Maybe RouteSumT
                      route = lookup rk (routes ss)
 
-show_refs : List Ref -> SystemState -> Node Ev
+show_refs : List RouteKey -> SystemState -> Node Ev
 show_refs xs ss = section [] [table [class "hover"] 
                                     [thead []
                                           [tr []
                                              [ th [] ["Type"],
                                                th [] ["Date"],
-                                               th [] ["Ref"]
+                                               th [] ["RouteKey"]
                                              ]
                                           ]
                                      , tbody [] (map (show_ref ss) xs)
@@ -309,7 +309,7 @@ drop_duplicates xs = ret where
     ret : List ty
     ret = (map head gs)
 
-show_refs_udm : (List Ref,UserDataMap) -> SystemState -> Node Ev
+show_refs_udm : (List RouteKey,UserDataMap) -> SystemState -> Node Ev
 show_refs_udm (xx, y) ss = show_refs xx ss
 
 show_route : SystemState -> RouteData -> Node Ev
@@ -341,8 +341,8 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   show_route_dt Nothing dir = "\{show dir} Route"  
   show_route_dt m_rst y = show_route_doc_type m_rst
   
-  toref : List RouteKey -> List Ref
-  toref xs = map MkRouteKeyRef xs
+  toref : List RouteKey -> List RouteKey
+  toref xs =  xs
   udm : UserDataMap
   udm = (user_data ss)
   
@@ -351,9 +351,9 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
   route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
   
-  show_Ref : Ref -> String
+  show_Ref : RouteKey -> String
   --show_Ref (MkAllocationRef x) = " Allocation: \{x}"
-  show_Ref (MkRouteKeyRef this_rk@(MkRK date ref state)) = "  \{this_ref}" where
+  show_Ref (this_rk@(MkRK date ref state)) = "  \{this_ref}" where
      this_ref : String
      this_ref = unMaybe $ map show (lookup this_rk (route_number ss))
 

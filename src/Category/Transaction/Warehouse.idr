@@ -66,10 +66,10 @@ namespace MemoryMap
    interpret  (ListRefs) = do
               --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get
               ss <- get
-              let a_keys : List Ref
+              let a_keys : List RouteKey
                   a_keys = keys (allocentry ss) --ae
-                  r_keys : List Ref --RouteKey
-                  r_keys = map MkRouteKeyRef (keys $ routes ss)
+                  r_keys : List RouteKey --RouteKey
+                  r_keys = (keys $ routes ss)
                   
               pure (a_keys++r_keys)
    interpret ListDocs = do

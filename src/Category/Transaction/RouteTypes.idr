@@ -107,10 +107,16 @@ allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
+{-
 public export
 data Ref =  MkRouteKeyRef RouteKey  --| MkAllocationRef AllocationRef 
 %runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
-            
+
+
+export
+Ref : Type
+Ref = RouteKey
+-}          
 public export
 record AllocationItem where
   constructor MkAI
@@ -132,7 +138,7 @@ record AllocationEntry where
 public export
 record WhsEntry where
      constructor MkWE
-     ref : Ref   
+     ref : RouteKey   
      fx : FxEvent
      move_key : MoveKey --doc : Types.DocumentType
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   

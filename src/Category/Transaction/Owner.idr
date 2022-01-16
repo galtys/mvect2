@@ -333,13 +333,13 @@ new_so date1 dx cust cust_inv = do
  -}
 
 export
-filter_whs_dt : List WhsEntry -> Ref->List WhsEntry
+filter_whs_dt : List WhsEntry -> RouteKey->List WhsEntry
 filter_whs_dt [] x = []
 filter_whs_dt ((whs@(MkWE ref fx mk)) :: xs) x = if (ref==x) then [ (whs)]++(filter_whs_dt xs x) else (filter_whs_dt xs x)
 
 
 export
-filter_rl : Ref -> RouteLine -> RouteLine
+filter_rl : RouteKey -> RouteLine -> RouteLine
 filter_rl ref (MkRL move whse_f whse_oh)  = (MkRL move filtered_f filtered_oh) where
            filtered_f : List (WhsEntry)
            filtered_f = filter_whs_dt whse_f ref
@@ -349,13 +349,13 @@ filter_rl ref (MkRL move whse_f whse_oh)  = (MkRL move filtered_f filtered_oh) w
            
 
 export
-filter_route_lines : List RouteLine -> Ref -> List RouteLine
+filter_route_lines : List RouteLine -> RouteKey -> List RouteLine
 filter_route_lines [] x = []
 filter_route_lines xs ref = map (filter_rl ref) xs
 
 
 export
-filter_route_data : RouteData -> Ref -> RouteData
+filter_route_data : RouteData -> RouteKey -> RouteData
 filter_route_data (MkRD key dir lines m_rst) ref = (MkRD key dir (filter_route_lines lines ref) m_rst)
 
 
@@ -435,7 +435,7 @@ export
 get_hom : RouteKey -> OwnerEvent (RouteData,UserDataMap)
 get_hom rk = do
     w <- get_hom' rk
-    let rd = filter_route_data (fst w) (MkRouteKeyRef rk)
+    let rd = filter_route_data (fst w) (MkRouteKeyRouteKey rk)
   
     Pure (rd, snd w)
   -}  
@@ -485,14 +485,14 @@ init_self_whs = do
      --Log (MkNewRoute InitRouteT je)       
      
      
-     x1<-Put (MkRouteKeyRef ref_init) (reconcile InitRoute) je  --forecast
-     x2<-Put (MkRouteKeyRef ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
+     x1<-Put (ref_init) (reconcile InitRoute) je  --forecast
+     x2<-Put (ref_init) (convMovekey $ reconcile InitRoute) je  --forecast
      
      
      --Show je     
      {-
-     Put (MkRouteKeyRef ref_init) (allocation InitRoute) je 
-     Put (MkRouteKeyRef ref_init) (convMovekey $ allocation InitRoute) je --je_dx
+     Put (MkRouteKeyRouteKey ref_init) (allocation InitRoute) je 
+     Put (MkRouteKeyRouteKey ref_init) (convMovekey $ allocation InitRoute) je --je_dx
      -}
      
      inventory_input_route <- NewRoute InitDate InventoryInputRouteT
@@ -532,7 +532,7 @@ toWhs (ConfirmOrder fx) = do
            Purchase => do
                new_r <- NewRoute (date fx) (MkOR po)
                SetFxData new_r fx
-               let route_key = MkRouteKeyRef new_r
+               let route_key = new_r
                doc<-Put route_key  (order po) fx_ev
                SetRouteNumber doc new_r
                -- toRouteDoc
@@ -540,7 +540,7 @@ toWhs (ConfirmOrder fx) = do
            Sale => do
                new_r <- NewRoute (date fx) (MkOR so)
                SetFxData new_r fx               
-               let route_key = MkRouteKeyRef new_r  
+               let route_key = new_r  
                doc<-Put route_key (order so) fx_ev               
                SetRouteNumber doc new_r               
                Pure new_r
@@ -558,7 +558,7 @@ toWhs (GetUserData) = do
        ret <- GetUserDataW
        Pure ret                      
 toWhs (Post ref key fx) = do
-      doc<-Put (MkRouteKeyRef ref) key fx
+      doc<-Put (ref) key fx
       Log (MkPost ref key fx)
       Pure doc
 toWhs (GetWhs key)= do
@@ -601,8 +601,8 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                         rec_route = MkRR (allocationMove rx) (allocationMove ry) Sale
                         
                     new_r <- NewRoute "?date" (MkReR rec_route)
-                    let route_ref : Ref
-                        route_ref = MkRouteKeyRef new_r
+                    let route_ref : RouteKey
+                        route_ref =  new_r
                         
                         alloc_doc : DocumentNumber
                         alloc_doc = RouteName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))

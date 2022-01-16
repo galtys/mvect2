@@ -73,7 +73,7 @@ namespace OwnerEventDo
        Close: (ref:RouteKey)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent String --Ref
        
-       ListRefs : OwnerEvent (List Ref)
+       ListRefs : OwnerEvent (List RouteKey)
        ListDocs : OwnerEvent (List DocumentNumber)
        --SetAE : Ref -> AllocationEntry -> OwnerEvent ()
        --GetAE : Ref -> OwnerEvent (Maybe AllocationEntry)
@@ -100,7 +100,7 @@ namespace WhsEventDo
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        SetRouteNumber : DocumentNumber->RouteKey-> WhsEvent ()
        GetRouteNumber : RouteKey -> WhsEvent (Maybe DocumentNumber)
-       ListRefs : WhsEvent (List Ref)
+       ListRefs : WhsEvent (List RouteKey)
        ListDocs : WhsEvent (List DocumentNumber)
        ListRoute : WhsEvent (List DocumentNumber)
        --SetAE : Ref -> AllocationEntry -> WhsEvent ()
@@ -114,7 +114,7 @@ namespace WhsEventDo
        GetUserDataW : WhsEvent UserDataMap       
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
-       Put   : Ref -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
+       Put   : RouteKey -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
        Get :   MoveKey -> WhsEvent (List WhsEntry)
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
@@ -148,7 +148,7 @@ namespace SystemState
       journal : List OwnerJournalEvent
       user_data : UserDataMap
       web_socket : Maybe WsSocket
-      allocentry : SortedMap Ref AllocationEntry
+      allocentry : SortedMap RouteKey AllocationEntry
       name2hash : SortedMap DocumentNumber H256
       hash2name : SortedMap H256 DocumentNumber
       counters : SortedMap DocumentType Int
