@@ -40,17 +40,6 @@ namespace QtyRatio
   abs_qtyratio (MkQr num den) = MkQr (abs num) (abs den)
 
 
-  --public export
-
-  {-
-  sub_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
-  sub_qtyratio x@(MkQr a b) y@(MkQr c d) = if ((is_whole x)&&(is_whole y)) && (b==d) then (MkQr (a-c) b) 
-                               else let ad=a*d
-                                        cb=c*b
-                                        ret = (MkQr (ad-cb) (b*d) ) in ret
-  -}
-
-
   public export
   mul_qtyratio : QtyRatio -> QtyRatio -> QtyRatio
   mul_qtyratio (MkQr a b) (MkQr c d) = (MkQr (a*c) (b*d) )
@@ -97,16 +86,19 @@ namespace QtyRatio
                   let g = gcd x y
                       xret = (div x g) 
                       yret = (div y g) in MkQr xret yret
-
-  public export
   partial
-  Show QtyRatio where
-      show q@(MkQr n d) = 
+  show_QtyRatio : QtyRatio -> String
+  show_QtyRatio q@(MkQr n d) = 
                     let eq = eval_qtyratio q
                         xx=num eq
                         x=show $ num eq
                         y=show $ den eq
                         ret = x++"/"++y in if (xx==0) then "0" else (if is_whole eq then x else ret)
+
+  public export
+  partial
+  Show QtyRatio where
+      show = show_QtyRatio
 
 
   public export
@@ -143,41 +135,26 @@ namespace QtyRatio
   Cast Double QtyRatio where
      cast x = (MkQr (cast $ abs (PRECISION*x)) (cast PRECISION))
 
-  public export
-  d1 : Double
-  d1 = 43.32
-
-  public export
-  r1 : QtyRatio
-  r1 = (MkQr 7 4)
-
-  public export
-  r2 : QtyRatio
-  r2 = (MkQr 2 3)
-
-  public export
-  r7 : QtyRatio
-  r7 = (MkQr 7 1)
-
-  public export
-  r4 : QtyRatio
-  r4 = (MkQr 4 1)
-
-  public export
-  r0 : QtyRatio
-  r0 = (MkQr 1 0)
 
 
 namespace TQty
   public export
   data T a = Debit a | Credit a
   %runElab derive "T" [Generic, Meta, Eq, Show,ToJSON,FromJSON]     
+  
+  public export
+  data DrCr = Dr | Cr
+  %runElab derive "DrCr" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
 
   public export
   TQty : Type
   TQty = T QtyRatio
 --  %runElab derive "TQty.TQty" [Generic, Meta, ToJSON,FromJSON]     
-    
+  
+  export
+  isDrCr : TQty -> DrCr    
+  isDrCr (Debit x) = Dr
+  isDrCr (Credit x) = Cr
   
   public export
   ToJSON TQty where
@@ -363,6 +340,12 @@ namespace EQty
   partial
   Show EQty where
        show = show . eval
+       
+  export
+  isDrCr : EQty -> DrCr    
+  isDrCr = (TQty.isDrCr) . eval
+
+       
 
   %runElab derive "EQty" [Generic, Meta, Show, ToJSON,FromJSON]     
 

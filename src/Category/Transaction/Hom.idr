@@ -251,70 +251,6 @@ applyHom2Tax h2 p = ret where
   ret : Hom1
   ret = (ev_ret1 ret1)
 
-{-
-export
-toDx : Product -> TProduct
-toDx (k,v) = (Debit k, v)
-export
-toCx : Product -> TProduct
-toCx (k,v) = (Credit k, v)
-
-export
-toTHom : Hom11 -> THom
-toTHom (MkH11 dx cx) = (map toDx dx)++(map toCx cx)
-export
-getDx : THom -> Hom1
-getDx [] = []
-getDx (((Debit x), y) :: xs) = [(x,y)]++(getDx xs)
-getDx (((Credit x), y) :: xs) = getDx xs
-export
-getCx : THom -> Hom1
-getCx [] = []
-getCx (((Debit x), y) :: xs) = getCx xs
-getCx (((Credit x), y) :: xs) = [(x,y)]++(getCx xs)
-export
-toHom11 : THom -> Hom11
-toHom11 th = MkH11 (getDx th) (getCx th)
-
-
-export
-addTHom : THom -> THom -> THom
-addTHom x y = x++y
-export
-negateTHom : THom -> THom
-negateTHom x = (map toDx dx)++(map toCx cx) where
-   dx : Hom1
-   dx = invHom1 $ getDx x
-   cx : Hom1
-   cx = invHom1 $ getCx x
-export
-export
-multTHom : THom -> THom -> THom
-multTHom x y = []
-export
-public export
-Num THom where
-   (+) = addTHom
-   (*) = multTHom
-   fromInteger x = map toDx (fromInteger x)
-   
-public export
-Neg THom where
-   (-) = diffTHom
-   negate = negateTHom
-
-export
-diffTHom : THom -> THom -> THom
-diffTHom x y = (map toDx dx)++(map toCx cx) where
-   dx : Hom1
-   dx = (getDx x)-(getDx y)
-   cx : Hom1
-   cx = (getCx x)-(getCx y)
-
-
--}
-
-
 
 export
 addHom11 : Hom11 -> Hom11 -> Hom11
@@ -354,6 +290,15 @@ export
 justCX : Hom11 -> Hom11
 justCX (MkH11 dx cx) = (MkH11 [] cx)
 
+export
+isDx : Hom11 -> Bool
+isDx (MkH11 dx []) = True
+isDx (MkH11 dx (x :: xs)) = False
+
+export
+isCx : Hom11 -> Bool
+isCx (MkH11 [] cx) = True
+isCx (MkH11 (x :: xs) cx) = False
 
 export
 filterZero : Hom1 -> Hom1

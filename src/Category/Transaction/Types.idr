@@ -138,11 +138,11 @@ show_document_number (DocName x) = x
 export
 Show DocumentNumber where
    show = show_document_number     
-
+{-
 public export
 data TreeB = Leaf String | Node TreeB String TreeB
 %runElab derive "TreeB" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
-
+-}
 public export
 data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
@@ -162,9 +162,6 @@ data Currency = GBP | EUR | CZK | USD
 public export
 data DxCx = DX | CX
 %runElab derive "DxCx" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
-public export
-data DrCr = Dr | Cr
-%runElab derive "DrCr" [Generic, Meta, Eq, Ord,Show, EnumToJSON,EnumFromJSON]
 
 export
 currencyAll : List Currency
@@ -264,12 +261,14 @@ data BoM32 : Type where
    Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,Ord,ToJSON,FromJSON]
 
-public export
-Product : Type
-Product = (ProdKey, EQty)
-public export
-Product2 : Type
-Product2 = (ProdKey, Product) --CurrencyProd)
+namespace Product
+
+  public export
+  Product : Type
+  Product = (ProdKey, EQty)
+  public export
+  Product2 : Type
+  Product2 = (ProdKey, Product) --CurrencyProd)
 
 public export
 record QLine where
