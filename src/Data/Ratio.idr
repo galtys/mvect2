@@ -10,6 +10,9 @@ import JSON
 
 ||| This is an unsafe version
 ||| also see https://rosettacode.org/wiki/Least_common_multiple#JavaScript
+export
+repeat_zeros : Int -> String
+repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
 
 namespace QtyRatio
   public export
@@ -86,20 +89,6 @@ namespace QtyRatio
                   let g = gcd x y
                       xret = (div x g) 
                       yret = (div y g) in MkQr xret yret
-  partial
-  show_QtyRatio : QtyRatio -> String
-  show_QtyRatio q@(MkQr n d) = 
-                    let eq = eval_qtyratio q
-                        xx=num eq
-                        x=show $ num eq
-                        y=show $ den eq
-                        ret = x++"/"++y in if (xx==0) then "0" else (if is_whole eq then x else ret)
-
-  public export
-  partial
-  Show QtyRatio where
-      show = show_QtyRatio
-
 
   public export
   Eq QtyRatio where
@@ -123,17 +112,72 @@ namespace QtyRatio
      (/) x y = {-eval_qtyratio $-} div_qtyratio x y
      recip x = {-eval_qtyratio $-} recip_qtyratio x
 
+  cast_QtyRatio_Double : QtyRatio -> Double
+  cast_QtyRatio_Double (MkQr num den) = if (den==0) then (cast num) else ((cast num)/(cast den))
+
   public export
   Cast QtyRatio Double where
-     cast (MkQr num den) = if (den==0) then 0 else ((cast num)/(cast den))
+     cast = cast_QtyRatio_Double
 
+  PRECISION2 : Double
+  PRECISION2 = 100
+  
+  export
+  toDecimal : QtyRatio -> QtyRatio
+  toDecimal x = ret where 
+       dbl : Double
+       dbl =  cast_QtyRatio_Double x
+       n :Qty
+       n = cast $ abs (PRECISION2*dbl)
+       d :Qty
+       d = cast PRECISION2         
+       ret : QtyRatio
+       ret = MkQr n d
+       
+       
+  partial
+  show_QtyRatio : QtyRatio -> String
+  show_QtyRatio q@(MkQr n d) = ret_1 where
+                    xx : Qty
+                    xx = num $ eval_qtyratio q
+                    eq1 : QtyRatio
+                    eq1 = eval_qtyratio q
+  
+                    eq : QtyRatio
+                    eq = if is_whole eq1 then eq1 else toDecimal $ eval_qtyratio q
+                    
+                    den_eq : Qty
+                    den_eq = den eq
+                    
+                    x:String
+                    x=show $ num eq
+                    y:String
+                    y=show $ den_eq
+                    
+                    ret:String
+                    ret = (show $ cast_QtyRatio_Double eq) --"\{x}/\{y}"
+                    
+                    ret_1 : String
+                    ret_1 = if (xx==0) then "0" 
+                                       else (if is_whole eq then x else ret)
+                                       
+                    
 
-  PRECISION : Double
-  PRECISION = 1000
+  public export
+  partial
+  Show QtyRatio where
+      show = show_QtyRatio
+
+       
+  {-
+  toDecimal x = (MkQr n d) where dbl       
+  -}
+  PRECISION3 : Double
+  PRECISION3 = 1000
 
   public export
   Cast Double QtyRatio where
-     cast x = (MkQr (cast $ abs (PRECISION*x)) (cast PRECISION))
+     cast x = (MkQr (cast $ abs (PRECISION3*x)) (cast PRECISION3))
 
 
 

@@ -113,9 +113,6 @@ eq_doc_nr _ _ = False
 
 --Eq DocumentNumber where
 --   (==) = eq_doc_nr 
-
-repeat_zeros : Int -> String
-repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
 with_zeros : DocumentType -> Int -> String
 with_zeros dt a = ret where
      str : String
