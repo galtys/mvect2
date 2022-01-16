@@ -168,17 +168,19 @@ bom_to_hom b32 = (variants_BoM32  (mult_BoM32 1 [b32]) )
 
 
 
-f : UserDataMap -> Product  -> Node Ev
-f udm (k,v) = tr [] [ c_pk,
+f__ : UserDataMap -> String -> Product  -> Node Ev
+f__ udm cls (k,v) = tr [] [ c_pk,
                       name,
-                      qty ]
+                      (qty (EQty.toDrCr v))]
       where c_pk : Node Ev
-            c_pk = td [class "bom-item"] [fromString $show k]
+            c_pk = td [class cls] [fromString $show k]
             name : Node Ev
-            name = td [class "bom-item"] [fromString $ fdsa $ lookup k (products udm) ]
-            qty : Node Ev
-            qty = td [class "bom-item"] [fromString $show v] --f2 k (show v)
-
+            name = td [class cls] [fromString $ fdsa $ lookup k (products udm) ]
+            
+            qty : DrCr -> Node Ev
+            qty Dr = td [class cls ] [fromString $show v] --f2 k (show v)
+            qty Cr = td [class (cls ++"-red")] [fromString $show v] --f2 k (show v)
+            
 show_Hom1 : UserDataMap  -> Hom1 -> Node Ev
 show_Hom1 udm dx1 =
   table [ class "unstriped hover" ]
@@ -188,35 +190,39 @@ show_Hom1 udm dx1 =
                    , th [] ["Description"]
                    , th []  ["Qty"] 
                     ]]
-        ,tbody [] (map (f udm) dx1)                       
+        ,tbody [] (map (f__ udm "td-item") dx1)                       
       ]
       
 show_Hom1_tbody : UserDataMap  -> Hom1 -> Node Ev
 show_Hom1_tbody udm dx1 =
   table [ class "unstriped hover" ]
-        [ tbody [] (map (f udm) dx1)                       
+        [ tbody [] (map (f__ udm "bom-item") dx1) 
         ]
+        
+show_qty : String -> EQty -> DrCr -> Node Ev
+show_qty cls q Dr = td [class cls] [fromString $show q]
+show_qty cls q Cr = td [class (cls++"-red")] [fromString $show q]
 
-fql : UserDataMap  -> QLine -> Node Ev
-fql udm (MkQL dxpk Nothing q cxpk price) = tr [] [td [] [fromString $show dxpk],
-                                              td [] [fromString $ fdsa $ lookup dxpk (products udm)], 
-                                              td [] [fromString $show q],
-                                          
-                                              td [] [fromString $show price],
-                                              td [] [fromString $show (q*price)],
-                                              td [] [fromString $show cxpk]]
-
-fql udm (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [] [fromString $show dxpk],
-                                              td [] [div [] [span [] [fromString $ fdsa $ lookup dxpk (products udm)]
+fql : UserDataMap  -> String -> QLine -> Node Ev
+fql udm cls (MkQL dxpk Nothing q cxpk price) = tr [] [td [class cls] [fromString $show dxpk],
+                                              td [class cls] [fromString $ fdsa $ lookup dxpk (products udm)], 
+                                              (show_qty cls q (EQty.toDrCr q) ),   
+                                              td [class cls] [fromString $show price],
+                                              td [class cls] [fromString $show (q*price)],
+                                              td [class cls] [fromString $show cxpk]] where
+              
+              
+fql udm cls (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [class cls] [fromString $show dxpk],
+                                              td [class cls] [div [] [span [] [fromString $ fdsa $ lookup dxpk (products udm)]
                                                              --p [] [fromString $ show $ bom_to_hom bom]
                                                              ,(show_Hom1_tbody udm (bom_to_hom bom))
                                                              ]], 
                                                      --unMaybe
-                                              td [] [fromString $show q],
+                                              (show_qty cls q (EQty.toDrCr q) ),
                                           
-                                              td [] [fromString $show price],
-                                              td [] [fromString $show (q*price)],
-                                              td [] [fromString $show cxpk]]
+                                              td [class cls] [fromString $show price],
+                                              td [class cls] [fromString $show (q*price)],
+                                              td [class cls] [fromString $show cxpk]]
 
 show_HomQLine : UserDataMap -> HomQLine -> Node Ev
 show_HomQLine udm xs = div [] [
@@ -230,7 +236,7 @@ show_HomQLine udm xs = div [] [
                    , th [] ["Subtotal"]
                    , th [] [""] ]
                 ]
-         , tbody [] (map (fql udm) (colimQLine xs) )        
+         , tbody [] (map (fql udm "td-item") (xs ) )        --colimQLine xs
         ]
    ]
    

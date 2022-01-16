@@ -224,7 +224,7 @@ namespace TQty
 
   show_TQty : TQty -> String
   show_TQty (Debit x) = show x
-  show_TQty (Credit x) = "M"++(show x)++"M"
+  show_TQty (Credit x) = show x --"("++(show x)++")"    --"(\{show x})"
 
   public export
   partial

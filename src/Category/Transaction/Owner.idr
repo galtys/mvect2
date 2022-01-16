@@ -95,8 +95,14 @@ new_po date1 dx1 supp invoice = do
      cx1 = (applyHom2 (h2 dx1) dx1)     
      h11_1 : Hom11
      h11_1 = MkH11 dx1 cx1          
+     
+     h121 : Hom121
+     h121 = MkH121 dx1 [] (h2 dx1) cx1 h11_1
      po1 : FxData
-     po1 = MkFx date1 Purchase factory1 factory1 (MkH121 dx1 [] (h2 dx1) cx1 h11_1)
+     po1 = MkFx date1 Purchase factory1 factory1 h121
+ 
+ Show "new_po QLine"
+ Show $ toQLine $ toHom12 h121
  
  new_rk <- ConfirmOrder po1
  r <- GetRoute new_rk
