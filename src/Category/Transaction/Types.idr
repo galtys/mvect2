@@ -102,15 +102,6 @@ data DocumentNumber : Type where
      DocName : String -> DocumentNumber     
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
 
-{-
-export
-toRouteDoc : DocumentNumber -> DocumentNumber
-toRouteDoc (DocNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
-toRouteDoc (DocName x) = (DocName x)
-toRouteDoc (RouteNr (MkDNI dt code number)) = (RouteNr (MkDNI dt code number))
---toRouteDoc (RouteName x) = (RouteName x)
--}
-
 repeat_zeros : Int -> String
 repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
 with_zeros : DocumentType -> Int -> String
@@ -129,9 +120,7 @@ show_dni (MkDNI dt (Just x) number) = (docPrefix dt)++x++(with_zeros dt number)
 export 
 show_document_number : DocumentNumber -> String
 show_document_number (DocNr dni) = show_dni dni
---show_document_number (RouteNr dni) = "Allocation "++(show_dni dni)
 show_document_number (AllocRoute dni x) = (show_dni dni)++" "++x
---show_document_number (RouteName x) = x
 show_document_number (DocName x) = x
 
 export
@@ -142,11 +131,9 @@ public export
 data TreeB = Leaf String | Node TreeB String TreeB
 %runElab derive "TreeB" [Generic, Meta, Eq, Ord, Show, ToJSON,FromJSON]
 
-
 public export
 data DirectionTag = Sale | Purchase
 %runElab derive "DirectionTag" [Generic, Meta, Eq,Ord, Show,EnumToJSON,EnumFromJSON]     
-
 
 public export
 data Ledger = OnHand | Forecast
@@ -175,7 +162,6 @@ export
 toCurrency : String -> Maybe Currency
 toCurrency s = lookup s [ (show x,x) | x <- currencyAll ] 
 
-
 namespace ProdKey
   export
   One : Maybe Bits8
@@ -193,8 +179,7 @@ namespace ProdKey
   show_v : Maybe Bits8 -> String
   show_v Nothing = ""
   show_v (Just x) = "^\{show x}"
-  
-  
+   
   show_pk : ProdKey -> String
   show_pk (PKCy dcx cy v) = "\{show cy}\{show_v v}"
   show_pk (PKUser dcx u v) ="\{u}\{show_v v}"
@@ -217,13 +202,11 @@ namespace ProdKey
   addBits8 (PK32 dcx pk v) y = (PK32 dcx pk (addM8 v y))
   addBits8 (PKPrice dcx cy tax v) y = (PKPrice dcx cy tax (addM8 v y))
   addBits8 (FromInteger dcx v) y = (FromInteger dcx (addM8 v y))
-  
-  
+    
   export
   PKIntOne : ProdKey
   PKIntOne = FromInteger DX One
   
-   --|PKAppl ProdKey Nat --ProdKey
   export
   pkFromInteger : Integer -> List (ProdKey,EQty) --Product
   pkFromInteger x = [(PKIntOne, (fromInteger x))]
@@ -242,14 +225,11 @@ namespace ProdKey
   pkPriceTA: Currency -> ProdKey
   pkPriceTA cy = ProdKey.PKPrice CX cy TAXAMOUNT ProdKey.One
   
-
   public export
   FromString ProdKey where
      fromString s = case toCurrency s of
            Nothing => PKUser DX s One
            Just cy => PKCy CX cy One
-
-
 
 export
 taxCodeFromKey : ProdKey -> TaxCode
@@ -258,15 +238,7 @@ taxCodeFromKey (PKUser x y v) = ERROR
 taxCodeFromKey (PK32 x y v) = ERROR
 taxCodeFromKey (PKPrice x y z v) = z
 taxCodeFromKey (FromInteger x v) = ERROR
-{-
-export
-currencyFromKey : ProdKey -> Maybe Currency
-currencyFromKey (PKCy x y) = Just y
-currencyFromKey (PKUser x y) = Nothing
-currencyFromKey (PK32 x y) = Nothing
-currencyFromKey (PKPrice x y z) = Just y
-currencyFromKey (FromInteger x) = Nothing
--}
+
 export
 toTaxAmountKey : ProdKey -> ProdKey
 toTaxAmountKey (PKCy x y v) = PKCy x y v
@@ -275,10 +247,8 @@ toTaxAmountKey (PK32 x y v) = PK32 x y v
 toTaxAmountKey (PKPrice x y z v) = PKPrice x y TAXAMOUNT v
 toTaxAmountKey (FromInteger x v) = FromInteger x v
 
-
 public export
 data BoM32 : Type where  
-  --Node32 : (qty:TQty) -> (sku:Bits32) -> (bid:Bits32)->(bom_id:Maybe Bits32)->(components:List BoM32) -> BoM32   
    Node32 : (qty:EQty) -> (sku:ProdKey) ->(components:List BoM32) -> BoM32   
 %runElab derive "BoM32" [Generic, Meta, Show, Eq,Ord,ToJSON,FromJSON]
 
@@ -300,7 +270,6 @@ record QLine where
   price : EQty
 %runElab derive "QLine" [Generic, Meta, Show, Eq,Ord,RecordToJSON,RecordFromJSON]
 
-
 public export
 HomQLine : Type
 HomQLine = List QLine
@@ -319,13 +288,6 @@ demoQL = ret where
           muf "sku3" 9 13,
           muf "sku1" 5 10, 
           muf "sku1" 2 12] 
-
-
-{-
-public export
-ProductLine : Type
-ProductLine = (QLine,EQty)
--}
 
 export  
 toINC20 : Double -> Product
@@ -351,12 +313,6 @@ Cast Product EQty where
 public export
 Hom1 : Type
 Hom1 = List Product
-{-
-public export
-THom : Type
-THom = List TProduct
--}
-
 
 public export
 Hom2 : Type
@@ -394,26 +350,4 @@ record Hom121 where
 
 export
 fromH121 : Hom121 -> Hom11
-fromH121 h121 = h11 h121 --(MkH11 (dx h121) (cx h121))
-
-
-------------- THIS WILL BE MOVED
-{-
-public export
-apply3' : Hom2 -> Hom1 -> Hom1
-apply3' h2 p = ret where
-  h2map : SortedMap ProdKey CurrencyProd --Product
-  h2map = fromList h2
-  
-  ret1 : List (Maybe CurrencyProd,EQty)
-  ret1 = [ (lookup (fst x) h2map,(snd x)) | x<-p ]
-  
-  ret2 : List (Maybe CurrencyProd,EQty) -> Hom1
-  ret2 [] = []
-  ret2 ((Nothing,q) ::xs) = (ret2 xs)
-  ret2 ((Just x,q) ::xs) = [(fst x, (snd (snd x))*q)]++ (ret2 xs)
-  
-  
-  ret : Hom1
-  ret = (ret2 ret1)
--}  
+fromH121 h121 = h11 h121 

@@ -359,6 +359,11 @@ filter_route_data : RouteData -> RouteKey -> RouteData
 filter_route_data (MkRD key dir lines m_rst) ref = (MkRD key dir (filter_route_lines lines ref) m_rst)
 
 -}
+{-
+filter_route : RouteKey -> List WhsEntry -> List WhsEntry
+filter_route x xs = ?filter_route_rhs
+
+-}
 
 export
 get_hom' : RouteKey -> OwnerEvent (RouteData) --(List WhsEntry) --HomQLine
@@ -366,10 +371,6 @@ get_hom' rk  = do
   
   let rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
       rl mk f oh = MkRL mk (f) (oh)
-      
-      --add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
-      --add_doct dt xs = [ (x,dt) | x<-xs]
-            
   
   m_rst <- GetRoute rk
   --user_data_map <- GetUserData

@@ -45,8 +45,8 @@ record FxData where
    constructor MkFx
    date:Date
    direction: DirectionTag
-   delivery:BrowseResPartner.RecordModel -- Delivery
-   invoice:BrowseResPartner.RecordModel  -- Invoice
+   delivery:BrowseResPartner.RecordModel
+   invoice:BrowseResPartner.RecordModel
    h3: Hom121
 %runElab derive "FxData" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
@@ -85,7 +85,7 @@ record OrderControlRoute where
 public export
 record ReconciliationRoute where 
    constructor MkRR
-   allocation : MoveKey  --allocation
+   allocation : MoveKey
    reconcile : MoveKey
    direction : DirectionTag 
 %runElab derive "ReconciliationRoute" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
@@ -107,24 +107,13 @@ allocationMove (MkOR (MkORrec allocation control order d)) = allocation
 allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
-{-
-public export
-data Ref =  MkRouteKeyRef RouteKey  --| MkAllocationRef AllocationRef 
-%runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
-
-
-export
-Ref : Type
-Ref = RouteKey
--}          
 public export
 record AllocationItem where
   constructor MkAI
   supplier : RouteKey
   customer: RouteKey
   fx : FxEvent
-  
-  
+    
 %runElab derive "AllocationItem" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 public export
 record AllocationEntry where
@@ -133,41 +122,20 @@ record AllocationEntry where
   moves : List AllocationItem
 %runElab derive "AllocationEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
-
-
 public export
 record WhsEntry where
      constructor MkWE
      ref : RouteKey   
      fx : FxEvent
-     move_key : MoveKey --doc : Types.DocumentType
+     move_key : MoveKey
 %runElab derive "WhsEntry" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
-{-
-public export
-record RouteMetaKey where
-   constructor MkRMK
-   --move : MoveKey
-   --ui_info   : List (DxCx,(DrCr,String) )
-   --location : Location
-   --dir : DirectionTag
-   --ledger : Ledger
-   move : MoveKey
-   dxcx : DxCx
-   drcr : DrCr
-   --doc : String
-   --whse : List WhsEntry
-%runElab derive "RouteMetaKey" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
--}
+
 public export
 record RouteLine where
    constructor MkRL
    move : MoveKey
-   whse_f : List (WhsEntry) --,DocumentType)
-   whse_oh : List (WhsEntry) --,DocumentType)
-   --doc_f : List DocumentType   
-   --doc_oh : List DocumentType   
-   --forecast : RouteDataLine
-   --onhand : RouteDataLine
+   whse_f : List WhsEntry
+   whse_oh : List WhsEntry
 %runElab derive "RouteLine" [Generic, Meta, Eq,Show,Ord,RecordToJSON,RecordFromJSON]   
 
 

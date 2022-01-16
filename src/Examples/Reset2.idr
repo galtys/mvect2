@@ -225,11 +225,10 @@ show_HomQLine udm xs = div [] [
                 [tr [] 
                    [ th [] [""]
                    , th [] ["Description"]
-                   , th []  ["Qty"] 
-                
-                   , th []  ["Price"]
-                   , th []  ["Subtotal"]
-                   , th []  [""] ]
+                   , th [] ["Qty"]                 
+                   , th [] ["Price"]
+                   , th [] ["Subtotal"]
+                   , th [] [""] ]
                 ]
          , tbody [] (map (fql udm) (colimQLine xs) )        
         ]
@@ -245,12 +244,6 @@ get_route_number ss rk@(MkRK date ref state) =
          (Just doc) => show doc
 
 show_ref : SystemState -> RouteKey -> Node Ev
-{-
-show_ref ss (MkAllocationRef ref) = tr [] [td [] ["Allocation"]
-                                       , td [] []
-                                       ,td [] [a [href "#",onClick (OpenAlloc ref)][fromString "\{ref}"]  ]
-                                       ]  
--}                                       
 show_ref ss route_ref@(rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
                                                           ,td [] [fromString "\{date}"]
                                                           ,td [] [a [href "#",onClick (OpenRoute rk)][ fromString $ get_route_number ss rk]] 
