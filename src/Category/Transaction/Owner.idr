@@ -113,7 +113,7 @@ new_po date1 dx1 supp invoice = do
                    bank_item : AllocationItem
                    bank_item = MkAI new_rk BankInputRouteKey (Fx11 date1 (justCX xfc) )
                
-               aref <- Allocate (MkAE Forecast [aitem,bank_item])       
+               aref <- Allocate date1 (MkAE Forecast [aitem,bank_item])       
                
                --Post rk transit_key (Fx11 date1 xfc)                         
                
@@ -169,7 +169,7 @@ receive_po_full rk date1 = do
                    aitem : AllocationItem
                    aitem = MkAI rk InventoryInputRouteKey fx11
                doc<-Post rk recv_key fx11
-               aref <- Allocate (MkAE OnHand [aitem])
+               aref <- Allocate date1 (MkAE OnHand [aitem])
                Pure ()
           (MkReR re) => Pure ()
           (MkAl lr) => Pure () 
@@ -191,7 +191,7 @@ reserve_so_full rk date1 = do
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
                    aitem = MkAI rk InventoryInputRouteKey fx11
-               aref <- Allocate (MkAE OnHand [aitem])               
+               aref <- Allocate date1 (MkAE OnHand [aitem])               
                Pure ()          
           (MkOR (MkORrec allocation control order Purchase)) => Pure ()                    
           (MkReR re) => Pure ()
@@ -303,7 +303,7 @@ new_so date1 dx cust cust_inv = do
                    bank_item : AllocationItem
                    bank_item = MkAI new_rk BankOutputRouteKey (Fx11 date1 (justCX xfc) )
                
-               rf<-Allocate (MkAE Forecast [aitem,bank_item])       
+               rf<-Allocate date1 (MkAE Forecast [aitem,bank_item])       
                Pure new_rk
 
           (MkOR (MkORrec allocation control order Purchase)) => Pure new_rk
@@ -583,7 +583,7 @@ toWhs (Get key) = do
 toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       
-toWhs (Allocate entry@(MkAE ledger moves) ) = do       
+toWhs (Allocate date1 entry@(MkAE ledger moves) ) = do       
        let muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (supplier ai)
@@ -601,7 +601,7 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                     let rec_route : ReconciliationRoute 
                         rec_route = MkRR (allocationMove rx) (allocationMove ry) Sale
                         
-                    new_r <- NewRoute "?date" (MkReR rec_route)
+                    new_r <- NewRoute date1 (MkReR rec_route)
                     let route_ref : RouteKey
                         route_ref =  new_r
                         

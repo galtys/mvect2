@@ -40,6 +40,23 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
           ret = case (lookup key m ) of
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
+                  
+filter_by_doc_nr : HasIO io => DocumentNumber -> List WhsEntry -> StateT SystemState io (List WhsEntry)
+filter_by_doc_nr x [] = pure []
+filter_by_doc_nr x (we@(MkWE ref fx move_key) :: xs) = do
+     ss <- get
+    
+     let  m_d : Maybe DocumentNumber
+          m_d = lookup ref (route_number ss)
+     
+     ret <- filter_by_doc_nr x xs
+     
+     case m_d of
+       Nothing => pure ([we]++ret)
+       Just doc => do
+          --printLn (show x ++ " " ++ (show doc) ++ " " ++(show (eq_doc_nr x doc)) )
+          if (eq_doc_nr x doc) then pure ([we]++ret) else pure ret
+          --pure ( we::ret)
 
 namespace MemoryMap
    export
@@ -232,11 +249,19 @@ namespace MemoryMap
         
    interpret (Get (Just rk) key) = do 
         ss <- get
-        let muf1 : Maybe (List WhsEntry)
+        let m_rk_doc : Maybe DocumentNumber
+            m_rk_doc = (lookup rk (route_number ss))
+            
+        
+            muf1 : Maybe (List WhsEntry)
             muf1 = (lookup key (jm ss))
-        case muf1 of
-           Just xs => pure xs
-           Nothing => pure []
+            
+        case (m_rk_doc,muf1) of
+           (Just rk_doc,Just xs) => do
+               ret <- filter_by_doc_nr rk_doc xs
+               pure ret           
+           (_,Just xs) => pure xs
+           (_,_) => pure []
            
    interpret (Get Nothing key) = do 
         ss <- get

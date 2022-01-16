@@ -98,21 +98,21 @@ data DocumentNumber : Type where
      DocNr : DocumentNumberItem -> DocumentNumber
      AllocRoute : DocumentNumberItem -> String ->  DocumentNumber
      DocName : String -> DocumentNumber     
---%runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
+--%runElab derive "DocumentNumber" [Generic, Meta, Show, Ord,ToJSON,FromJSON]
 
 export
 eq_doc_nr : DocumentNumber -> DocumentNumber -> Bool
 eq_doc_nr (AllocRoute x y) (DocNr z) = (x==z)
 eq_doc_nr (AllocRoute x y) (DocName z) = (y==z)
-eq_doc_nr (DocNr z) (AllocRoute x y) = (x==z)
-eq_doc_nr (DocName z) (AllocRoute x y) = (y==z)
+eq_doc_nr (DocNr z) (AllocRoute x y) = (z==x)
+eq_doc_nr (DocName z) (AllocRoute x y) = (z==y)
 eq_doc_nr (DocNr x) (DocNr y) = (x==y)
 eq_doc_nr (DocName x) (DocName y) = (x==y)
 eq_doc_nr _ _ = False
 
-Eq DocumentNumber where
-   (==) = eq_doc_nr 
+--Eq DocumentNumber where
+--   (==) = eq_doc_nr 
 
 repeat_zeros : Int -> String
 repeat_zeros x = if x<=0 then "" else concat [ "0" | u<- [0..x]]
