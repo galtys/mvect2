@@ -581,11 +581,7 @@ toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       
 toWhs (Allocate entry@(MkAE ledger moves) ) = do       
-       let a_cnt = encode entry
-           a_ref : String --Ref
-           a_ref = (sha256 a_cnt)   --(MkAllocationRef (sha256 a_cnt))
-                      
-           muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
+       let muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do
                rf <- GetRoute (supplier ai)
                rt <- GetRoute (customer ai)
@@ -606,30 +602,21 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                     let route_ref : RouteKey
                         route_ref =  new_r
                         
-                        alloc_doc : Maybe DocumentNumber -> String -> DocumentNumber
-                        alloc_doc Nothing z = (DocName "Nothing")
-                        alloc_doc (Just (DocNr x)) z  = (AllocRoute x z)
-                        alloc_doc (Just (AllocRoute x y)) z= (AllocRoute x y)
-                        alloc_doc (Just (DocName x)) z = (DocName x) 
+                        alloc_doc : DocumentNumber -> DocumentNumber -> DocumentNumber
+                        alloc_doc (DocNr x) (DocName z)  = (AllocRoute x z)
+                        alloc_doc (AllocRoute x y) z= (AllocRoute x y)
+                        alloc_doc (DocName x) z = (DocName x)
+                        alloc_doc (DocNr x) z = (DocNr x)
                         
-                        alloc_doc1 : DocumentNumber
-                        alloc_doc1 = alloc_doc f_doc (unMaybe $ map show t_doc )
-                        
-                        --alloc_doc = ?alloc_doc_rhs
-                        --alloc_doc = RouteName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
-                        --alloc_doc = DocName ( (unMaybe $ map show f_doc)++"->"++(unMaybe $ map show t_doc ))
-                        
-                    SetRouteNumber alloc_doc1 new_r
-                    
+                    case (f_doc,t_doc) of
+                      (Just fd, Just td) => SetRouteNumber (alloc_doc fd td) new_r
+                      (_, _) => Pure ()
+                      
                     doc1<-Put route_ref (allocationMove rx) fe
                     doc2<-Put route_ref (allocationMove ry) fe
                     Pure ()
                   OnHand => do
                     Pure ()
-                    {-
-                    Put a_ref (convMovekey $allocationMove rx) fe
-                    Put a_ref (convMovekey $allocationMove ry) fe
-                    -}     
            
            allocate : List AllocationItem -> WhsEvent ()
            allocate [] = Pure ()
@@ -641,9 +628,9 @@ toWhs (Allocate entry@(MkAE ledger moves) ) = do
                 allocate xs
        allocate moves
        Log (MkAEntry entry)
-       --SetAE a_ref entry
+       --SetAE a_ref entry       
+       Pure True
        
-       Pure a_ref
 toWhs (ListRefs) = do
       rfs <- ListRefs
       Pure rfs 

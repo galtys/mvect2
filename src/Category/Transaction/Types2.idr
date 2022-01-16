@@ -71,7 +71,7 @@ namespace OwnerEventDo
        GetWhs : MoveKey -> OwnerEvent (List WhsEntry)       
               
        Close: (ref:RouteKey)  -> OwnerEvent ()       
-       Allocate : AllocationEntry -> OwnerEvent String --Ref
+       Allocate : AllocationEntry -> OwnerEvent Bool 
        
        ListRefs : OwnerEvent (List RouteKey)
        ListDocs : OwnerEvent (List DocumentNumber)
