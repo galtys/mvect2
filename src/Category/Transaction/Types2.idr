@@ -68,7 +68,7 @@ namespace OwnerEventDo
             
        Get : MoveKey -> OwnerEvent Hom11
        --Get : MoveKey -> OwnerEvent (List WhsEntry)       
-       GetWhs : MoveKey -> OwnerEvent (List WhsEntry)       
+       GetWhs : (Maybe RouteKey) -> MoveKey -> OwnerEvent (List WhsEntry)       
               
        Close: (ref:RouteKey)  -> OwnerEvent ()       
        Allocate : AllocationEntry -> OwnerEvent Bool 
@@ -115,7 +115,7 @@ namespace WhsEventDo
        CloseRoute : (ref:RouteKey) -> WhsEvent () 
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
        Put   : RouteKey -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
-       Get :   MoveKey -> WhsEvent (List WhsEntry)
+       Get :   (Maybe RouteKey) -> MoveKey -> WhsEvent (List WhsEntry)
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty

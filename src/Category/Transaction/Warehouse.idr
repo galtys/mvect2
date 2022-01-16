@@ -230,8 +230,15 @@ namespace MemoryMap
         ss <- get
         pure (keys (route_key ss))
         
-   interpret (Get key) = do 
-        --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get
+   interpret (Get (Just rk) key) = do 
+        ss <- get
+        let muf1 : Maybe (List WhsEntry)
+            muf1 = (lookup key (jm ss))
+        case muf1 of
+           Just xs => pure xs
+           Nothing => pure []
+           
+   interpret (Get Nothing key) = do 
         ss <- get
         let muf1 : Maybe (List WhsEntry)
             muf1 = (lookup key (jm ss))
@@ -374,7 +381,7 @@ namespace DirMap
                       retx<-DirectoryMap.insert mkey ret ROUTE_JOURNAL_DIR
                       pure (DocName "interpret_d")
                 
-   interpret_d (Get mkey) = do 
+   interpret_d (Get rk mkey) = do 
         --(MkSS fx_map routes led_map rjm j user_data)<-get
         mp_x <- lookup_typeptr mkey
         case mp_x of
