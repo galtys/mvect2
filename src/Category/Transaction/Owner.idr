@@ -331,7 +331,7 @@ new_so date1 dx cust cust_inv = do
  -}
  Pure new_r
  -}
-
+{-
 export
 filter_whs_dt : List WhsEntry -> RouteKey->List WhsEntry
 filter_whs_dt [] x = []
@@ -358,17 +358,18 @@ export
 filter_route_data : RouteData -> RouteKey -> RouteData
 filter_route_data (MkRD key dir lines m_rst) ref = (MkRD key dir (filter_route_lines lines ref) m_rst)
 
-
+-}
 
 export
 get_hom' : RouteKey -> OwnerEvent (RouteData) --(List WhsEntry) --HomQLine
 get_hom' rk  = do
   
-  let add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
-      add_doct dt xs = [ (x,dt) | x<-xs]
-      
-      rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
+  let rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
       rl mk f oh = MkRL mk (f) (oh)
+      
+      --add_doct : DocumentType -> List WhsEntry -> List (WhsEntry,DocumentType)
+      --add_doct dt xs = [ (x,dt) | x<-xs]
+            
   
   m_rst <- GetRoute rk
   --user_data_map <- GetUserData
