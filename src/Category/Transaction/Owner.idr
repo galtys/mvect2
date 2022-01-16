@@ -371,6 +371,8 @@ get_hom' rk  = do
   
   let rl : MoveKey -> List WhsEntry -> List WhsEntry -> RouteLine
       rl mk f oh = MkRL mk (f) (oh)
+      
+      
   
   m_rst <- GetRoute rk
   --user_data_map <- GetUserData
@@ -416,7 +418,7 @@ get_hom' rk  = do
                r_oh <- GetWhs $ convMovekey reconcile
                let ret2 : RouteData
                    ret2 = MkRD rk Sale [rl reconcile r_t r_oh,
-                                             rl allocation a_t a_oh] m_rst
+                                        rl allocation a_t a_oh] m_rst
                Pure (ret2)
           (MkReR (MkRR allocation reconcile Purchase)) => do
                a_t <- GetWhs allocation
@@ -425,7 +427,7 @@ get_hom' rk  = do
                r_oh <- GetWhs $ convMovekey reconcile
                let ret2 : RouteData
                    ret2 = MkRD rk Purchase [rl allocation a_t a_oh,
-                                             rl reconcile r_t r_oh] m_rst
+                                            rl reconcile r_t r_oh] m_rst
                
                Pure (ret2)
           (MkAl (MkListR allocation lst direction)) => do
