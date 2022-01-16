@@ -323,7 +323,6 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
   
   show_Ref : RouteKey -> String
-  --show_Ref (MkAllocationRef x) = " Allocation: \{x}"
   show_Ref (this_rk@(MkRK date ref state)) = "  \{this_ref}" where
      this_ref : String
      this_ref = unMaybe $ map show (lookup this_rk (route_number ss))
@@ -334,19 +333,18 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   show_whsentry : (WhsEntry) -> Node Ev
   show_whsentry ( we@(MkWE ref (Fx121 date y) mk)) = 
                          div [class "callout"] [
-                                span  [] [fromString date ]
-                                ,span [class "doc-ref"] [fromString $ show_Ref ref]
-                                ,h4 [class "h4-center"]  [fromString $ show (getDocumentType we)] --, " ",fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n)] 
-                                ,h6 [class "h4-center"]  [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]
+                                span  []                   [fromString date ]
+                                ,span [class "doc-ref"]    [fromString $ show_Ref ref]
+                                ,h4   [class "h4-center"]  [fromString $ show (getDocumentType we)]
+                                ,h6   [class "h4-center"]  [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
-
                          ]
   show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = 
                          div [class "callout"] [
-                                span  [] [fromString date]
-                                , span [class "doc-ref"] [fromString $ show_Ref ref]                                
-                                ,h4 [class "h4-center"] [fromString $ show (getDocumentType we)] --, " ",fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n)] 
-                                ,h6 [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
+                                span  []                  [fromString date]
+                                ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
+                                ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
+                                ,h6   [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
                                 ,((show_Hom1 udm) $ toHom1 y)
                          ]
   
