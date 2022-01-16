@@ -196,9 +196,9 @@ namespace TQty
 --  %runElab derive "TQty.TQty" [Generic, Meta, ToJSON,FromJSON]     
   
   export
-  isDrCr : TQty -> DrCr    
-  isDrCr (Debit x) = Dr
-  isDrCr (Credit x) = Cr
+  toDrCr : TQty -> DrCr    
+  toDrCr (Debit x) = Dr
+  toDrCr (Credit x) = Cr
   
   public export
   ToJSON TQty where
@@ -386,8 +386,8 @@ namespace EQty
        show = show . eval
        
   export
-  isDrCr : EQty -> DrCr    
-  isDrCr = (TQty.isDrCr) . eval
+  toDrCr : EQty -> DrCr    
+  toDrCr = (TQty.toDrCr) . eval
 
        
 

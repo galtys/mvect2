@@ -2,10 +2,8 @@ module Category.Transaction.Types
 
 import Category.Transaction.Qty
 import Data.SortedMap
---import Control.Monad.State
 import Crypto.Hash.SHA256
 import Data.Ratio
---import Libc.Time
 
 import Generics.Derive
 import JSON
@@ -48,7 +46,6 @@ data DocumentType = SaleOrder
                   | SaleAllocation 
                   | GoodsReceipt 
 
---| RouteDoc |RouteDocInv
 %runElab derive "DocumentType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 export
@@ -78,8 +75,6 @@ docPrefix SaleReservation = "SORES"
 docPrefix PurchaseAllocation = "POAL"
 docPrefix SaleAllocation = "SOAL"
 docPrefix GoodsReceipt = "GRC"
---docPrefix RouteDoc = "RD"
---docPrefix RouteDocInv = "RDI"
 
 export
 docDigits : DocumentType -> Int
@@ -263,6 +258,13 @@ namespace Product
   public export
   Product : Type
   Product = (ProdKey, EQty)
+  
+  export
+  toDrCr : Product -> DrCr
+  toDrCr (pk,eq) = EQty.toDrCr eq
+  
+  
+  
   public export
   Product2 : Type
   Product2 = (ProdKey, Product) --CurrencyProd)
@@ -317,10 +319,26 @@ public export
 Cast Product EQty where
   cast (x,y) = y
   
-           
-public export
-Hom1 : Type
-Hom1 = List Product
+namespace Hom1
+                      
+  public export
+  Hom1 : Type
+  Hom1 = List Product
+  
+  export
+  toDrCr : List Product -> DrCr
+  toDrCr xs = ret where
+     ret1 : List DrCr
+     ret1 = map Product.toDrCr xs
+     n : Int
+     n = cast$length ret1
+     --n_dr : Int --List DrCr
+     --n_dr = cast $length $filter (\d => (d==Dr)) ret1
+     n_cr : Int --List DrCr
+     n_cr = cast $length $filter (\d => (d==Cr)) ret1
+     
+     ret : DrCr
+     ret = if ( (n==n_cr) && (not (n==0)) ) then Cr else Dr
 
 public export
 Hom2 : Type

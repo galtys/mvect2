@@ -190,8 +190,6 @@ toQLine (MkHom12 dx appl bom) = ret where
 public export
 colimQLine : HomQLine -> HomQLine --List (List QLine)
 colimQLine xs_in = concat ret6 where
-
-
    eqx : QLine -> QLine -> Bool
    eqx a b = ((dxpk a)==(dxpk b)) && ((cxpk a)==(cxpk b))
    eqp : QLine -> QLine -> Bool
@@ -296,6 +294,12 @@ isDx (MkH11 dx []) = True
 isDx (MkH11 dx (x :: xs)) = False
 
 export
+toDxCx : Hom11 -> DxCx
+toDxCx (MkH11 dx []) = DX
+toDxCx (MkH11 [] cx) = CX
+toDxCx (MkH11 dx cx) = DX
+
+export
 isCx : Hom11 -> Bool
 isCx (MkH11 [] cx) = True
 isCx (MkH11 (x :: xs) cx) = False
@@ -304,7 +308,6 @@ export
 filterZero : Hom1 -> Hom1
 filterZero [] = []
 filterZero ((x, y) :: xs) = if (y==0) then (filterZero xs) else [(x,y)]++(filterZero xs)
-
 
 export
 evalHom11 : Hom11 -> Hom11
