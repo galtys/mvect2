@@ -580,8 +580,8 @@ toWhs (Close ref) = do
        Log (MkClose ref)       
 toWhs (Allocate entry@(MkAE ledger moves) ) = do       
        let a_cnt = encode entry
-           a_ref : Ref
-           a_ref = (MkAllocationRef (sha256 a_cnt))
+           a_ref : String --Ref
+           a_ref = (sha256 a_cnt)   --(MkAllocationRef (sha256 a_cnt))
                       
            muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do
@@ -636,9 +636,11 @@ toWhs (ListRefs) = do
       Pure rfs 
 --toWhs (SetAE ref ae) = do
 --       SetAE ref ae
+{-
 toWhs (GetAE ref) = do
        ae <- GetAE ref
        Pure ae
+-}       
 toWhs ListDocs = do
       dcs <- ListDocs
       Pure dcs   

@@ -502,7 +502,7 @@ getDocumentType (MkWE ref fx move_key) = getDxDocumentType move_key
 
 
 getRouteKey : WhsEntry -> Maybe RouteKey
-getRouteKey (MkWE (MkAllocationRef x) fx move_key) = Nothing
+--getRouteKey (MkWE (MkAllocationRef x) fx move_key) = Nothing
 getRouteKey (MkWE (MkRouteKeyRef rk) fx move_key) = Just rk
 
 

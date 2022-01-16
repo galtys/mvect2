@@ -71,12 +71,12 @@ namespace OwnerEventDo
        GetWhs : MoveKey -> OwnerEvent (List WhsEntry)       
               
        Close: (ref:RouteKey)  -> OwnerEvent ()       
-       Allocate : AllocationEntry -> OwnerEvent Ref
+       Allocate : AllocationEntry -> OwnerEvent String --Ref
        
        ListRefs : OwnerEvent (List Ref)
        ListDocs : OwnerEvent (List DocumentNumber)
        --SetAE : Ref -> AllocationEntry -> OwnerEvent ()
-       GetAE : Ref -> OwnerEvent (Maybe AllocationEntry)
+       --GetAE : Ref -> OwnerEvent (Maybe AllocationEntry)
        
        Show : (Show ty) => ty -> OwnerEvent ()
        Pure : ty -> OwnerEvent ty
@@ -103,8 +103,8 @@ namespace WhsEventDo
        ListRefs : WhsEvent (List Ref)
        ListDocs : WhsEvent (List DocumentNumber)
        ListRoute : WhsEvent (List DocumentNumber)
-       SetAE : Ref -> AllocationEntry -> WhsEvent ()
-       GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
+       --SetAE : Ref -> AllocationEntry -> WhsEvent ()
+       --GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        
        
        SetFxData : RouteKey -> FxData -> WhsEvent ()

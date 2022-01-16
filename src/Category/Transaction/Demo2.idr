@@ -150,20 +150,23 @@ demo_po_so = do
 
 export
 read_ref_data : Ref -> OwnerEvent (Maybe RouteData,UserDataMap)
+{-
 read_ref_data (MkAllocationRef x) = do
        u <- GetUserData
        Pure (Nothing,u) --?open_ref_rhs_0
+-}       
 read_ref_data (MkRouteKeyRef x) = do
        user_data_map <- GetUserData
        rd <- get_hom' x
        Pure (Just rd, user_data_map)
+{-
 export
 read_allocation : AllocationRef -> OwnerEvent (Maybe AllocationEntry,UserDataMap)
 read_allocation ref = do
        u <- GetUserData
        ma <- GetAE (MkAllocationRef ref)
        Pure (ma,u)
-       
+-}       
        
 export
 read_route1 : RouteKey -> OwnerEvent ( List1 (RouteData,UserDataMap) )

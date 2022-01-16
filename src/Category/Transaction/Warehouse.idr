@@ -44,6 +44,7 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
 namespace MemoryMap
    export
    interpret : HasIO io => WhsEvent a -> StateT SystemState io a       
+   {-
    interpret  (SetAE ref entry) = do
                 --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 ss <- get
@@ -61,6 +62,7 @@ namespace MemoryMap
               let ret : Maybe AllocationEntry
                   ret = lookup ref (allocentry ss)
               pure ret
+   -}              
    interpret  (ListRefs) = do
               --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get
               ss <- get
@@ -336,6 +338,7 @@ namespace DirMap
    
    export
    interpret_d : HasIO io=>MonadError DBError io=>WhsEvent a->StateT SystemState io a--io a
+   {-
    interpret_d  (SetAE ref entry) = do
                 --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get             
                 --let ae' : SortedMap Ref AllocationEntry
@@ -343,14 +346,16 @@ namespace DirMap
                     
                 --put (MkSS fx_map routes led_map rjm j user_data ws ae')
                 pure ()
-   interpret_d   ListRefs = pure []
-   interpret_d ListDocs = pure []
       
    interpret_d  (GetAE ref) = do
               --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get                                        
               --let ret : Maybe AllocationEntry
               --    ret = lookup ref ae
               pure Nothing
+                
+   -}
+   interpret_d   ListRefs = pure []
+   interpret_d ListDocs = pure []
    
    interpret_d (Put ref mkey@(MkMK f t ledger) je) = do   
                 --(MkSS fx_map routes led_map rjm j user_data)<-get             

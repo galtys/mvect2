@@ -108,7 +108,7 @@ allocationMove (MkReR (MkRR allocation reconcile d)) = allocation
 allocationMove (MkAl (MkListR allocation lst d)) = allocation
 
 public export
-data Ref =  MkRouteKeyRef RouteKey  | MkAllocationRef AllocationRef 
+data Ref =  MkRouteKeyRef RouteKey  --| MkAllocationRef AllocationRef 
 %runElab derive "Ref" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]   
             
 public export
