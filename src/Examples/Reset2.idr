@@ -208,7 +208,8 @@ fql udm cls (MkQL dxpk Nothing q cxpk price) = tr [] [td [class cls] [fromString
                                               td [class cls] [fromString $ fdsa $ lookup dxpk (products udm)], 
                                               (show_qty cls q (EQty.toDrCr q) ),   
                                               td [class cls] [fromString $show price],
-                                              td [class cls] [fromString $show (q*price)],
+--                                              td [class cls] [fromString $show (q*price)],
+                                              (show_qty cls (q*price) (EQty.toDrCr (q*price) ) ),
                                               td [class cls] [fromString $show cxpk]] where
               
               
@@ -221,7 +222,8 @@ fql udm cls (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [class cls] [fromStr
                                               (show_qty cls q (EQty.toDrCr q) ),
                                           
                                               td [class cls] [fromString $show price],
-                                              td [class cls] [fromString $show (q*price)],
+                                              --td [class cls] [fromString $show (q*price)],
+                                              (show_qty cls (q*price) (EQty.toDrCr (q*price) ) ),
                                               td [class cls] [fromString $show cxpk]]
 
 show_HomQLine : UserDataMap -> HomQLine -> Node Ev

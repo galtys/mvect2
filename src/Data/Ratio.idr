@@ -224,7 +224,7 @@ namespace TQty
 
   show_TQty : TQty -> String
   show_TQty (Debit x) = show x
-  show_TQty (Credit x) = show x --"("++(show x)++")"    --"(\{show x})"
+  show_TQty (Credit x) = "(\{show x})"  --show x --"("++(show x)++")" 
 
   public export
   partial
@@ -266,7 +266,7 @@ namespace TQty
   Num TQty where
       (+) = add_TQty
       (*) = mul_TQty
-      fromInteger x = if (x >= 0) then (Debit (fromWhole x)) else (Credit (fromWhole x))
+      fromInteger x = if (x >= 0) then (Debit (fromWhole (abs x) )) else (Credit (fromWhole (abs x)))
 
   eq_TQty : TQty -> TQty -> Bool
   eq_TQty  x y = ((dr x)+(cr y)) == ((cr x)+(dr y))
