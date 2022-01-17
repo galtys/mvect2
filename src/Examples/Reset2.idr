@@ -366,8 +366,8 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
                            div [class "large-11 cell"] [nd]
                            ,div [class "large-1 cell"] [] ]
           muf2 CX nd = div [class "grid-x"] [
-                           div [class "large-1 cell"] []
-                           ,div [class "large-11 cell"] [nd] ]
+                           div [class "large-7 cell"] []
+                           ,div [class "large-5 cell"] [nd] ]
                            
   show_route_grid_item : RouteLineGridItem -> Node Ev
   show_route_grid_item (MkLoc x) = (show_Location x)
