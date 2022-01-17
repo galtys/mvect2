@@ -176,7 +176,7 @@ namespace MemoryMap
                     next = cnt + 1
                     
                     new_doc_nr : DocumentNumber
-                    new_doc_nr = DocNr (MkDNI doc_type Nothing next)
+                    new_doc_nr = DocNr (MkDNI doc_type Nothing whs_h next)
                     --key : MoveKey                 
                     --key = (MkMK f t ledger)
                     counters' : SortedMap DocumentType Int

@@ -98,7 +98,7 @@ record DocumentNumberItem where
     constructor MkDNI
     dt:DocumentType
     code:Maybe String
-    
+    h256:H256
     number:Int
 %runElab derive "DocumentNumberItem" [Generic, Meta, Eq, Show,Ord,RecordToJSON,RecordFromJSON]
 
@@ -135,8 +135,8 @@ with_zeros dt a = ret where
 
 export
 show_dni : DocumentNumberItem -> String
-show_dni (MkDNI dt Nothing number) = (docPrefix dt)++(with_zeros dt number)
-show_dni (MkDNI dt (Just x) number) = (docPrefix dt)++x++(with_zeros dt number)
+show_dni (MkDNI dt Nothing h256 number) = (docPrefix dt)++(with_zeros dt number)
+show_dni (MkDNI dt (Just x) h256 number) = (docPrefix dt)++x++(with_zeros dt number)
 
 export 
 show_document_number : DocumentNumber -> String
