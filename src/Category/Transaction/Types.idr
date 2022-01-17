@@ -16,7 +16,20 @@ Date = String --DateTime --String
 
 namespace DocumentRouteType
   public export
-  data DocumentRouteType = SaleRoute | PurchaseRoute | InitRoute | FxRoute | BankRoute | StockInputRoute | StockOutputRoute | ListSale | ListPurchase |NA |StockLossRoute|TaxSaleRoute |TaxPurchaseRoute | Allocation
+  data DocumentRouteType = SaleRoute 
+                          | PurchaseRoute 
+                          | InitRoute 
+                          | FxRoute 
+                          | BankRoute 
+                          | StockInputRoute 
+                          | StockOutputRoute 
+                          | ListSale 
+                          | ListPurchase 
+                          | NA 
+                          | StockLossRoute
+                          | TaxSaleRoute 
+                          | TaxPurchaseRoute 
+                          | Allocation
   %runElab derive "DocumentRouteType" [Generic, Meta, Eq,Show,Ord,EnumToJSON,EnumFromJSON]
 
 public export
@@ -85,14 +98,17 @@ record DocumentNumberItem where
     constructor MkDNI
     dt:DocumentType
     code:Maybe String
+    
     number:Int
 %runElab derive "DocumentNumberItem" [Generic, Meta, Eq, Show,Ord,RecordToJSON,RecordFromJSON]
 
 public export
 data DocumentNumber : Type where
-     DocNr : DocumentNumberItem -> DocumentNumber
-     AllocRoute : DocumentNumberItem -> String ->  DocumentNumber
-     DocName : String -> DocumentNumber     
+     DocNr : (docnr:DocumentNumberItem) -> DocumentNumber
+     --DocNrWithOrigin : (docNr:DocumentNumberItem) -> (originNr:DocumentNumberItem) -> DocumentNumber
+     
+     AllocRoute : (routeNr:DocumentNumberItem) -> (route:String) ->  DocumentNumber
+     DocName : (doc:String) -> DocumentNumber          
 %runElab derive "DocumentNumber" [Generic, Meta, Eq, Ord,ToJSON,FromJSON]
 --%runElab derive "DocumentNumber" [Generic, Meta, Show, Ord,ToJSON,FromJSON]
 
