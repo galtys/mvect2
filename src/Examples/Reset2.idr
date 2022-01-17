@@ -209,8 +209,9 @@ fql udm cls (MkQL dxpk Nothing q cxpk price) = tr [] [td [class cls] [fromString
                                               (show_qty cls q (EQty.toDrCr q) ),   
                                               td [class cls] [fromString $show price],
 --                                              td [class cls] [fromString $show (q*price)],
-                                              (show_qty cls (q*price) (EQty.toDrCr (q*price) ) ),
-                                              td [class cls] [fromString $show cxpk]] where
+                                              td [class cls] [fromString $show cxpk,
+                                              (show_qty cls (q*price) (EQty.toDrCr (q*price) ) )
+                                              ]] where
               
               
 fql udm cls (MkQL dxpk (Just bom) q cxpk price) = tr [] [td [class cls] [fromString $show dxpk],
