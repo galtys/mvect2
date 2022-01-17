@@ -51,7 +51,7 @@ emptyUserData = (MkUD [] [] [] [])
 
 export
 initState : SystemState --(RouteMap,LocationMap,RouteJournalMap)
-initState = (MkSS empty empty empty empty [] (userDataToMap emptyUserData) Nothing empty empty empty empty empty empty empty)
+initState = (MkSS empty empty empty [] (userDataToMap emptyUserData) Nothing empty empty empty empty empty empty empty)
 
 export
 StockMoveMap : Type
@@ -421,7 +421,7 @@ init_self_whs = do
          to_bank = justCX $ h11 h121 
          
      ref_init <- NewRoute InitDate InitRouteT       
-     SetFxData (ref_init) fx
+     --SetFxData (ref_init) fx
      
      
      let bank_item : AllocationItem
@@ -464,7 +464,7 @@ toWhs (ConfirmOrder fx) = do
        case (direction fx) of
            Purchase => do
                new_r <- NewRoute (date fx) (MkOR po)
-               SetFxData new_r fx
+               --SetFxData new_r fx
                let route_key = new_r
                doc<-Put route_key  (order po) fx_ev
                SetRouteNumber doc new_r
@@ -472,14 +472,16 @@ toWhs (ConfirmOrder fx) = do
                Pure new_r
            Sale => do
                new_r <- NewRoute (date fx) (MkOR so)
-               SetFxData new_r fx               
+               --SetFxData new_r fx               
                let route_key = new_r  
                doc<-Put route_key (order so) fx_ev               
                SetRouteNumber doc new_r               
                Pure new_r
+{-               
 toWhs (GetFxData key) = do
        r <- GetFxData key
        Pure r
+-}       
 toWhs (GetRoute key) = do
        r <- GetRoute key
        Pure r

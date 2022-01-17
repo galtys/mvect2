@@ -62,7 +62,7 @@ namespace OwnerEventDo
        GetUserData : OwnerEvent UserDataMap
        
        ConfirmOrder : (fx:FxData) -> OwnerEvent RouteKey
-       GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
+       --GetFxData : (key:RouteKey) -> OwnerEvent (Maybe FxData)       
        GetRoute : (key:RouteKey) -> OwnerEvent (Maybe RouteSumT)
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent DocumentNumber
             
@@ -107,8 +107,8 @@ namespace WhsEventDo
        --GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
        
        
-       SetFxData : RouteKey -> FxData -> WhsEvent ()
-       GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
+       --SetFxData : RouteKey -> FxData -> WhsEvent ()
+       --GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
 
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap       
@@ -141,7 +141,7 @@ namespace SystemState
    public export
    record SystemState where
       constructor MkSS
-      fx_map : SortedMap RouteKey FxData
+      --fx_map : SortedMap RouteKey FxData
       routes : SortedMap RouteKey RouteSumT
       led_map : LocationMap
       jm   : RouteJournalMap

@@ -107,14 +107,14 @@ namespace MemoryMap
 
                 put (record {routes=routes'} ss) --(MkSS fx_map routes' led_map rjm j user_data ws ae)
                 pure r_k
-
+   {-
    interpret  (SetFxData r_k fx) = do
                 --(MkSS fx_map routes led_map rjm j user_data ws ae)<-get                          
                 ss <- get
                 let fx_map' : SortedMap RouteKey FxData
                     fx_map' = insert r_k fx (fx_map ss)
                 put (record {fx_map=fx_map'} ss)--(MkSS fx_map' routes led_map rjm j user_data ws ae)
-
+   -}
    interpret (UpdateUserData user_data ) = do
                 --(MkSS fx_map routes led_map rjm j udm ws ae)<-get
                 ss <- get
@@ -143,11 +143,12 @@ namespace MemoryMap
                      --put (MkSS fx_map routes'' led_map rjm j user_data_map ws ae)
 
                pure ()
+   {-
    interpret (GetFxData rk) = do
                --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                ss <- get
                pure (lookup rk (fx_map ss) )
-
+   -}
    interpret (GetRoute rk) = do
                --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                ss <- get
@@ -306,10 +307,12 @@ lookup_route_st : HasIO io=>MonadError DBError io=>RouteKey->io (Maybe RouteSumT
 lookup_route_st rk = do
      x<-DirectoryMap.lookup rk ROUTE_DIR
      pure x
+{-
 lookup_fxdata : HasIO io=>MonadError DBError io=>RouteKey->io (Maybe FxData)
 lookup_fxdata rk = do
      x<-DirectoryMap.lookup rk FX_DIR
      pure x
+-}
 lookup_typeptr : HasIO io=>MonadError DBError io=>MoveKey->io (Maybe TypePtr)
 lookup_typeptr mk = do
      x<-DirectoryMap.lookup mk ROUTE_JOURNAL_DIR
@@ -442,11 +445,12 @@ namespace DirMap
                 ret<-DirectoryMap.insert r_k route ROUTE_DIR
                 --put (MkSS fx_map routes' led_map rjm j user_data)
                 pure r_k
-
+   {-
    interpret_d  (SetFxData r_k fx) = do
                 ret<-DirectoryMap.insert r_k fx FX_DIR           
                 --put (MkSS fx_map' routes led_map rjm j user_data)
                 pure ()
+   -}
    interpret_d (UpdateUserData user_data ) = do
      ret<-DirectoryMap.insert "UserData" user_data STATE_DIR
      {-
@@ -490,10 +494,11 @@ namespace DirMap
                        ret<-DirectoryMap.insert new_ref r ROUTE_DIR
                        ret<-DirectoryMap.delete route_ref ROUTE_DIR                       
                        pure ()
+   {-
    interpret_d (GetFxData rk) = do
                ret <- lookup_fxdata rk
                pure ret --(lookup rk fx_map)
-
+   -}
    interpret_d (GetRoute rk) = do
                m_r <- lookup_route_st rk
                pure m_r --(lookup rk routes)
