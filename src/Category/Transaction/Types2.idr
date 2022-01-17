@@ -37,16 +37,16 @@ record UserDataMap where
 
 
 public export
-data OwnerJournalEvent : Type where
-     --MkInit : OwnerJournalEvent
-     MkUserUpdate : UserData -> OwnerJournalEvent
-     MkNewRoute : RouteSumT -> FxEvent -> OwnerJournalEvent
-     MkOpen : FxData -> OwnerJournalEvent
-     MkClose : RouteKey -> OwnerJournalEvent
-     MkError : String -> OwnerJournalEvent
-     MkAEntry : AllocationEntry -> OwnerJournalEvent
-     MkPost : RouteKey -> MoveKey ->  FxEvent -> OwnerJournalEvent     
-%runElab derive "OwnerJournalEvent" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
+data JournalLog : Type where
+     --MkInit : JournalLog
+     MkUserUpdate : UserData -> JournalLog
+     MkNewRoute : RouteSumT -> FxEvent -> JournalLog
+     MkOpen : FxData -> JournalLog
+     --MkClose : RouteKey -> JournalLog
+     MkError : String -> JournalLog
+     MkAEntry : AllocationEntry -> JournalLog
+     MkPost : RouteKey -> MoveKey ->  FxEvent -> JournalLog     
+%runElab derive "JournalLog" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
 
 
@@ -120,7 +120,7 @@ namespace WhsEventDo
        Put   : RouteKey -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
        Get :   (Maybe RouteKey) -> MoveKey -> WhsEvent (List WhsEntry)
        
-       Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
+       Log : JournalLog -> WhsEvent () --Log state affecting events
        
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
@@ -152,7 +152,7 @@ namespace SystemState
       routes : SortedMap RouteKey RouteSumT
       --led_map : LocationMap
       jm   : SortedMap MoveKey (List WhsEntry)
-      journal : List OwnerJournalEvent
+      journal : List JournalLog
       user_data : UserDataMap
       web_socket : Maybe WsSocket
       allocentry : SortedMap RouteKey AllocationEntry

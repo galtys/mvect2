@@ -337,7 +337,7 @@ lookup_userdata = do
 namespace DirMap
    export
    lt_oje : HType
-   lt_oje = toType "OwnerJournalEvent"
+   lt_oje = toType "JournalLog"
    lt_whse : HType
    lt_whse = toType "WhsEntry"
    
@@ -351,8 +351,8 @@ namespace DirMap
    new_list lt = do
          x <- DBListStr.new lt 
          Pure x
-   append_OwnerJournalEvent : TypePtr ->OwnerJournalEvent->HCommand TypePtr
-   append_OwnerJournalEvent p_h oje = do
+   append_JournalLog : TypePtr ->JournalLog->HCommand TypePtr
+   append_JournalLog p_h oje = do
                 let cnt : String
                     cnt = encode oje
                 head <- Read p_h
@@ -434,7 +434,7 @@ namespace DirMap
         case p_head of
            Nothing => pure ()
            Just p_x => do
-               ret <- runHCommandST (append_OwnerJournalEvent p_x x) JOURNAL_DIR
+               ret <- runHCommandST (append_JournalLog p_x x) JOURNAL_DIR
                ret<-DirectoryMap.insert "journal_head" ret STATE_DIR
                pure ()   
    
