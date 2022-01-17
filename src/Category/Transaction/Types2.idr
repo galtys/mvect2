@@ -64,7 +64,7 @@ namespace OwnerEventDo
        GetRoute : (key:RouteKey) -> OwnerEvent (Maybe RouteSumT)
        Post : RouteKey -> MoveKey -> FxEvent -> OwnerEvent DocumentNumber
             
-       Get : MoveKey -> OwnerEvent Hom11
+       --Get : MoveKey -> OwnerEvent Hom11
        --Get : MoveKey -> OwnerEvent (List WhsEntry)       
        GetWhs : (Maybe RouteKey) -> MoveKey -> OwnerEvent (List WhsEntry)       
               

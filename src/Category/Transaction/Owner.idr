@@ -58,6 +58,25 @@ StockMoveMap : Type
 StockMoveMap = SortedMap (Bits32,Bits32) (List BrowseStockMove.RecordModel)
 
 export
+whs_getH11 : MoveKey -> OwnerEvent Hom11
+whs_getH11 key = do
+      whs_xs <- GetWhs Nothing key
+      let xs = (map fx whs_xs)
+          fxToH11 : FxEvent -> Hom11
+          fxToH11 (Fx121 date h121) = fromH121 h121
+          fxToH11 (Fx11 date h11) = h11          
+          sum_ : Hom11
+          sum_ = sumHom11 $ map fxToH11 xs
+      Pure sum_
+{-
+toWhs (Close ref) = do
+       CloseRoute ref
+       Log (MkClose ref)       
+-}       
+
+
+
+export
 moveMap : List BrowseStockMove.RecordModel -> StateT StockMoveMap IO ()
 moveMap [] = pure ()
 moveMap (x:: xs) = do
@@ -112,7 +131,7 @@ new_po date1 dx1 supp invoice = do
       case rt of
           (MkOR (MkORrec allocation control order Sale)) => Pure new_rk       
           (MkOR (MkORrec allocation control order Purchase)) => do               
-               xfc <- Get order 
+               xfc <- whs_getH11 order 
                let aitem : AllocationItem
                    aitem = MkAI new_rk InventoryInputRouteKey (Fx11 date1 (justDX xfc) )
                    
@@ -139,7 +158,7 @@ transit_po_full rk date1 = do
           (MkOR (MkORrec allocation control order Sale)) => Pure ()
           (MkOR (MkORrec allocation control order Purchase)) => do
                let transit_key  = convMovekey order                   
-               xfc <- Get order --transit_fcast_key
+               xfc <- whs_getH11 order --transit_fcast_key
                doc<-Post rk transit_key (Fx11 date1 xfc)                         
                Pure ()
           (MkReR re) => Pure ()
@@ -156,7 +175,7 @@ receive_po_full rk date1 = do
           (MkOR (MkORrec allocation control order Purchase)) => do
                let po_invoice_key = control
                    recv_key  = convMovekey po_invoice_key  
-               x <- Get po_invoice_key               
+               x <- whs_getH11 po_invoice_key               
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
@@ -179,7 +198,7 @@ reserve_so_full rk date1 = do
                let so_demand_key = allocation
                    reservation_key  = convMovekey so_demand_key
                      
-               x <- Get so_demand_key                             
+               x <- whs_getH11 so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                    aitem : AllocationItem
@@ -201,7 +220,7 @@ deliver_so_full rk date1 = do
                let so_invoice_key = control 
                    so_demand_key = allocation 
                    so_delivery_key  = convMovekey so_invoice_key  
-               x <- Get so_demand_key                             
+               x <- whs_getH11 so_demand_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                doc<-Post rk so_delivery_key fx11
@@ -222,7 +241,7 @@ invoice_so_full rk date1 = do
           (MkOR (MkORrec allocation control order Sale)) => do --Pure ()
                let so_invoice_key = control --so
                    so_delivery_key  = convMovekey so_invoice_key  
-               x <- Get so_delivery_key                             
+               x <- whs_getH11 so_delivery_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                doc<-Post rk so_invoice_key fx11
@@ -243,7 +262,7 @@ shipping_done_so_full rk date1 = do
                    so_delivery_key  = convMovekey so_invoice_key 
                    so_sale_order_key = order --so
                    so_shipping_key =  convMovekey so_sale_order_key                    
-               x <- Get so_delivery_key                             
+               x <- whs_getH11 so_delivery_key                             
                let fx11 : FxEvent
                    fx11 =  (Fx11 date1 x)       
                doc<-Post rk so_shipping_key fx11
@@ -289,7 +308,7 @@ new_so date1 dx cust cust_inv = do
    Just rt => do
       case rt of
           (MkOR (MkORrec allocation control order Sale)) => do
-               xfc <- Get order 
+               xfc <- whs_getH11 order 
                let aitem : AllocationItem
                    aitem = MkAI new_rk InventoryOutputRouteKey (Fx11 date1 (justDX xfc) )
                    
@@ -500,20 +519,6 @@ toWhs (GetWhs rk key)= do
       ret <- Get rk key
       Pure ret
 
-toWhs (Get key) = do
-      whs_xs <- Get Nothing key
-      let xs = (map fx whs_xs)
-          fxToH11 : FxEvent -> Hom11
-          fxToH11 (Fx121 date h121) = fromH121 h121
-          fxToH11 (Fx11 date h11) = h11          
-          sum_ : Hom11
-          sum_ = sumHom11 $ map fxToH11 xs
-      Pure sum_
-{-
-toWhs (Close ref) = do
-       CloseRoute ref
-       Log (MkClose ref)       
--}       
 toWhs (Allocate date1 entry@(MkAE ledger moves) ) = do       
        let muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do
