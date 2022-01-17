@@ -332,6 +332,8 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   h2n : SortedMap H256 DocumentNumber
   h2n = (hash2name ss)
   
+  
+  
   show_whsentry : (WhsEntry) -> Node Ev
   show_whsentry ( we@(MkWE ref (Fx121 date y) mk)) = 
                          div [class "callout"] [
