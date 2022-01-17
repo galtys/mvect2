@@ -244,7 +244,7 @@ show_HomQLine udm xs = div [] [
    ]
    
 
-data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry) | MkOwn RouteTypes.Location
+data RouteLineGridItem = MkLoc RouteTypes.Location | MkWE (List WhsEntry) |MkWEOH (List WhsEntry) | MkOwn RouteTypes.Location
 
 get_route_number : SystemState -> RouteKey -> String
 get_route_number ss rk@(MkRK date ref state) = 
@@ -321,8 +321,8 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   
   route_grid_items : (List RouteLine) -> List RouteLineGridItem
   route_grid_items [] = []
-  route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh,    MkOwn (to move),MkLoc (to move)]
-  route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWE oh]++(route_grid_items xs)
+  route_grid_items ((MkRL move f oh)::[]) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWEOH oh,    MkOwn (to move),MkLoc (to move)]
+  route_grid_items ((MkRL move f oh)::xs) = [MkOwn (from move),MkLoc (from move),  MkWE f,MkWEOH oh]++(route_grid_items xs)
   
   show_Ref : RouteKey -> String
   show_Ref (this_rk@(MkRK date ref state)) = "  \{this_ref}" where
@@ -332,7 +332,11 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   h2n : SortedMap H256 DocumentNumber
   h2n = (hash2name ss)
   
+  get_whs_cls : WhsEntry -> String
+  get_whs_cls (MkWE ref (Fx121 x y) move_key) = "route-item"
+  get_whs_cls (MkWE ref (Fx11 x y) move_key) = "route-item-onhand"
   
+  --muf32 : List WhsEntry -> List (List1 String)
   
   show_whsentry : (WhsEntry) -> Node Ev
   show_whsentry ( we@(MkWE ref (Fx121 date y) mk)) = 
@@ -374,7 +378,10 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   show_route_grid_item : RouteLineGridItem -> Node Ev
   show_route_grid_item (MkLoc x) = (show_Location x)
   show_route_grid_item (MkOwn x) = (show_Owner x)
-  show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)
+  show_route_grid_item (MkWEOH xs) = div [class "route-item-onhand"] (map show_whsentry xs)
+  show_route_grid_item (MkWE xs) = div [class "route-item"] (map show_whsentry xs)  
+         
+--         cls_ = concat (drop_duplicates (map get_whs_cls xs))
   
 
 export

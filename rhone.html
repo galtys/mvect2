@@ -41,8 +41,8 @@
 
      /* .route-data {display: inline-grid; grid-template-columns: [from] 1fr [forecast] 5fr [onhand] 4fr; grid-gap: 0.5em} */
      .route-data {display: grid;
-		  grid-template-columns: 5fr 4fr;
-		  /*grid-auto-rows: 2em 30rem;*/
+		  grid-template-columns: 4fr 4fr;
+		  grid-auto-rows: 2em 30em;
 		  grid-auto-rows: 1rf 6rf;
 		  grid-gap: 0.4em}
      
@@ -51,13 +51,15 @@
  		  margin: 0.5em;
 		  padding-left:2em;
  		  padding-right:2em;
+   	          overflow-y:auto;
 		  flex-direction:column;
 		 }
      .route-item-onhand {display:flex;
-		  background-color: #ffff00; 
+		  background-color: #f9f9f9; /* #ffffe5;  */
  		  margin: 0.5em;
 		  padding-left:2em;
  		  padding-right:2em;
+ 		       overflow-y:auto;
 		  flex-direction:column;
 		  }
      
@@ -66,7 +68,7 @@
 		       background-color: #c0c0c0; 
 		       border-radius: 1px;
 /*		       box-shadow: 5px 10px #d9ecff;  #c0dfff; #edf9fd; 
-		       grid-columns: 1/2; overflow-y:auto;
+		       grid-columns: 1/2; 
 		       grid-rows:1/2; */
 		      }
      .route-item-head-onhand {display:flex;

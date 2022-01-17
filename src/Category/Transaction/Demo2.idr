@@ -84,7 +84,7 @@ run_demo_so = do
 
   --so2 <- new_so date2 dx2 hilton hilton --RouteKey
   
-  --reserve_so_full so1 "2021-11-02"
+  reserve_so_full so1 "2021-11-02"
   --deliver_so_full so1 "2021-11-03"
   --invoice_so_full so1 "2021-11-04"
   
