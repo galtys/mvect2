@@ -126,7 +126,7 @@ namespace MemoryMap
                 --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                 ss <- get
                 pure (user_data ss)
-
+   {-
    interpret (CloseRoute route_ref@(MkRK date ref state)   ) = do     
                --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                ss <- get
@@ -144,7 +144,7 @@ namespace MemoryMap
                      --put (MkSS fx_map routes'' led_map rjm j user_data_map ws ae)
 
                pure ()
-   {-
+
    interpret (GetFxData rk) = do
                --(MkSS fx_map routes led_map rjm j user_data_map ws ae)<-get
                ss <- get
@@ -485,6 +485,7 @@ namespace DirMap
               _ => pure (userDataToMap (MkUD [] [] [] []))
         _ => pure (userDataToMap (MkUD [] [] [] []))
       -}
+   {-
    interpret_d (CloseRoute route_ref@(MkRK date ref state)   ) = do     
                m_r <- lookup_route_st route_ref
                case m_r of
@@ -495,7 +496,7 @@ namespace DirMap
                        ret<-DirectoryMap.insert new_ref r ROUTE_DIR
                        ret<-DirectoryMap.delete route_ref ROUTE_DIR                       
                        pure ()
-   {-
+   
    interpret_d (GetFxData rk) = do
                ret <- lookup_fxdata rk
                pure ret --(lookup rk fx_map)

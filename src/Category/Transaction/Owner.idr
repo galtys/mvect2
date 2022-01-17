@@ -509,10 +509,11 @@ toWhs (Get key) = do
           sum_ : Hom11
           sum_ = sumHom11 $ map fxToH11 xs
       Pure sum_
-
+{-
 toWhs (Close ref) = do
        CloseRoute ref
        Log (MkClose ref)       
+-}       
 toWhs (Allocate date1 entry@(MkAE ledger moves) ) = do       
        let muf2 : AllocationItem -> WhsEvent (Maybe (RouteSumT,RouteKey,RouteSumT,RouteKey,FxEvent))
            muf2 ai =  do

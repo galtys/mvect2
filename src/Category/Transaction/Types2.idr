@@ -56,6 +56,7 @@ namespace OwnerEventDo
        --Init : RouteSumT ->  FxEvent -> UserData -> OwnerEvent RouteKey --just sugar post event
        --Init : OwnerEvent ()
        NewRoute : Date -> RouteSumT -> OwnerEvent RouteKey
+       --Close: (ref:RouteKey)  -> OwnerEvent ()              
        SetRouteNumber : DocumentNumber->RouteKey-> OwnerEvent ()
        
        UpdateUserData : UserData -> OwnerEvent ()       
@@ -70,7 +71,7 @@ namespace OwnerEventDo
        --Get : MoveKey -> OwnerEvent (List WhsEntry)       
        GetWhs : (Maybe RouteKey) -> MoveKey -> OwnerEvent (List WhsEntry)       
               
-       Close: (ref:RouteKey)  -> OwnerEvent ()       
+
        Allocate : Date->AllocationEntry -> OwnerEvent Bool 
        
        ListRefs : OwnerEvent (List RouteKey)
@@ -98,7 +99,7 @@ namespace WhsEventDo
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
-       CloseRoute : (ref:RouteKey) -> WhsEvent ()        
+       --CloseRoute : (ref:RouteKey) -> WhsEvent ()        
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
        
        SetRouteNumber : DocumentNumber->RouteKey-> WhsEvent ()
