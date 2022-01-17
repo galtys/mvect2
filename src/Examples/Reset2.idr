@@ -290,11 +290,11 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   div [] [
      section [] [
        div [class "grid-y grid-padding-x"] [ 
-         div [class "large-1 cell"] [
+         div [class "large-2 cell"] [
            h5 [] [fromString $ show_route_dt m_rst dir   ]
            ,p [] [fromString $ show_RouteKeyX rk]
          ]
-       ,div [class "route-data large-11 cell"] (map show_route_grid_item (route_grid_items lines) )    
+       ,div [class "route-data large-10 cell"] (map show_route_grid_item (route_grid_items lines) )    
        ]
      ]
      ,section [] [
