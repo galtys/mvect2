@@ -41,7 +41,7 @@ data JournalLog : Type where
      MkNewRoute : RouteSumT -> FxEvent -> JournalLog
      MkOpen : FxData -> JournalLog
      MkError : String -> JournalLog
-     --MkAEntry : AllocationEntry -> JournalLog
+     MkAEntry : AllocationEntry -> JournalLog
      MkPost : RouteKey -> MoveKey ->  FxEvent -> JournalLog     
 %runElab derive "JournalLog" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
