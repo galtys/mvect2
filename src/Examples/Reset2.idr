@@ -84,11 +84,11 @@ lbl txt cl = label [classes [widgetLabel, cl]] [Text txt]
 -}
 show_ResPartner : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_ResPartner x Nothing = 
-     div [class "grid-x route-item-head callout"] [
+     div [class "grid-x route-item-head-onhand"] [
         h6 [class "large-12 cell h4-right"] [fromString x]
      ]
 show_ResPartner x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
-    div [class "grid-x route-item-head callout"] [
+    div [class "grid-x route-item-head-onhand"] [
         p  [class "large-12 cell para-padding h4-right"] [fromString $ (unMaybe street)++", "++(unMaybe street2)++", "++unMaybe zip]
       
     ]
@@ -99,17 +99,17 @@ show_route_doc_type (Just rst) = show $ getDocRouteType rst
 
 show_Name : String -> Maybe BrowseResPartner.RecordModel -> Node Ev
 show_Name x Nothing = 
-      div [class "grid-x route-item-head callout"] [
+      div [class "grid-x route-item-head"] [
                  p [class "large-2 cell"] []
                  ,h6 [class "large-2 cell h4-left"] [fromString x]
                  
       ]
 show_Name x (Just (MkRecordModel pk name use_parent_address active street contract city zip country_id parent_id child_ids email street2)) = 
-     div [class "grid-x route-item-head callout"] [
-        h4 [class "large-2 cell h4-left"] [fromString name]
-        ,h6 [class "large-1 cell"] [fromString x]        
-        ,p [class "large-7 cell"] []        
-        ,p [class "large-2 cell h4-right"] [fromString email]        
+     div [class "grid-x route-item-head"] [
+        span [class "large-4 cell h4-left"] [fromString name]
+        --,h6 [class "large-1 cell"] [fromString x]        
+        ,span [class "large-4 cell"] [fromString x]        
+        ,span [class "large-4 cell h4-right"] [fromString email]        
      ]
 
 
@@ -343,7 +343,7 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
   show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = muf2 (toDxCx y) (muf1 (toDxCx y)) where
           muf1 : DxCx -> Node Ev
           muf1 DX =  
-            div [class "callout primary"] [
+            div [class "callout"] [
                span  []                  [fromString date]
                ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
                ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
@@ -351,7 +351,7 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
                ,((show_Hom1 udm) $ toHom1 y)
              ]
           muf1 CX =  
-            div [class "callout warning"] [
+            div [class "callout"] [
                span  []                  [fromString date]
                ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
                ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
@@ -362,11 +362,11 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
              
           muf2 : DxCx -> (Node Ev) -> (Node Ev)
           muf2 DX nd = div [class "grid-x"] [
-                           div [class "large-9 cell"] [nd]
-                           ,div [class "large-3 cell"] [] ]
+                           div [class "large-11 cell"] [nd]
+                           ,div [class "large-1 cell"] [] ]
           muf2 CX nd = div [class "grid-x"] [
-                           div [class "large-3 cell"] []
-                           ,div [class "large-9 cell"] [nd] ]
+                           div [class "large-1 cell"] []
+                           ,div [class "large-11 cell"] [nd] ]
                            
   show_route_grid_item : RouteLineGridItem -> Node Ev
   show_route_grid_item (MkLoc x) = (show_Location x)
