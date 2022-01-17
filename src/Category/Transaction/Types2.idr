@@ -32,19 +32,16 @@ record UserDataMap where
   products : SortedMap ProdKey  BrowseProduct.RecordModel
   templates : SortedMap ProdKey BrowseProductTemplate.RecordModel
   boms_m : SortedMap ProdKey (List BrowseBoM.RecordModel)  
-   --toBoM_map --SortedMap Bits32 BrowseBoM.RecordModel
   taxes : SortedMap Bits32 BrowseOrderTax.RecordModel
 
 
 public export
 data JournalLog : Type where
-     --MkInit : JournalLog
      MkUserUpdate : UserData -> JournalLog
      MkNewRoute : RouteSumT -> FxEvent -> JournalLog
      MkOpen : FxData -> JournalLog
-     --MkClose : RouteKey -> JournalLog
      MkError : String -> JournalLog
-     MkAEntry : AllocationEntry -> JournalLog
+     --MkAEntry : AllocationEntry -> JournalLog
      MkPost : RouteKey -> MoveKey ->  FxEvent -> JournalLog     
 %runElab derive "JournalLog" [Generic, Meta, Eq,Show,Ord,ToJSON,FromJSON]
 
@@ -96,8 +93,6 @@ namespace WhsEventDo
 
   public export
   data WhsEvent : Type -> Type where
-       --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
-       --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
        --CloseRoute : (ref:RouteKey) -> WhsEvent ()        
        GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
@@ -107,12 +102,6 @@ namespace WhsEventDo
        ListRefs : WhsEvent (List RouteKey)
        ListDocs : WhsEvent (List DocumentNumber)
        ListRoute : WhsEvent (List DocumentNumber)
-       --SetAE : Ref -> AllocationEntry -> WhsEvent ()
-       --GetAE : Ref -> WhsEvent (Maybe AllocationEntry)
-       
-       
-       --SetFxData : RouteKey -> FxData -> WhsEvent ()
-       --GetFxData : (ref:RouteKey) -> WhsEvent (Maybe FxData) 
 
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap       
@@ -136,15 +125,6 @@ namespace WhsEventDo
 
 
 namespace SystemState
-   {-
-   public export
-   LocationMap  : Type
-   LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
-
-   public export
-   RouteJournalMap  : Type
-   RouteJournalMap = SortedMap MoveKey (List WhsEntry)
-   -}
    public export
    record SystemState where
       constructor MkSS
