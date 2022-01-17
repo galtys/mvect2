@@ -340,16 +340,26 @@ show_route ss ( rd@(MkRD  rk dir lines m_rst) ) =
                                 ,h6   [class "h4-center"]  [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]
                                 ,( (show_HomQLine udm) $ toQLine $ toHom12 y)
                          ]
-  show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = muf2 (toDxCx y) muf1  where
-          muf1 : Node Ev
-          muf1 =  
-            div [class "callout"] [
+  show_whsentry ( we@(MkWE ref (Fx11 date y) mk)) = muf2 (toDxCx y) (muf1 (toDxCx y)) where
+          muf1 : DxCx -> Node Ev
+          muf1 DX =  
+            div [class "callout primary"] [
                span  []                  [fromString date]
                ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
                ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
                ,h6   [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
                ,((show_Hom1 udm) $ toHom1 y)
              ]
+          muf1 CX =  
+            div [class "callout warning"] [
+               span  []                  [fromString date]
+               ,span [class "doc-ref"]   [fromString $ show_Ref ref]                                
+               ,h4   [class "h4-center"] [fromString $ show (getDocumentType we)] 
+               ,h6   [class "h4-center"] [fromString $ unMaybe $ map show (lookup (sha256 $ encode we) h2n) ]                                
+               ,((show_Hom1 udm) $ toHom1 y)
+             ]
+             
+             
           muf2 : DxCx -> (Node Ev) -> (Node Ev)
           muf2 DX nd = div [class "grid-x"] [
                            div [class "large-9 cell"] [nd]
