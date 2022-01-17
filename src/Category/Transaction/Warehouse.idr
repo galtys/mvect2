@@ -29,6 +29,7 @@ import Control.Monad.Either
 
 
 --%language ElabReflection
+{-
 public export
 update_ledger : (Location, Ledger) -> Hom1 -> LocationMap -> LocationMap 
 update_ledger k [] m = m
@@ -40,7 +41,7 @@ update_ledger k@(ct,l) ( (pk,eq)::xs) m = ret where
           ret = case (lookup key m ) of
                   (Just q) => (update_ledger k xs (insert key (eq+q) m) )
                   Nothing => (update_ledger k xs  (insert key eq m)     )
-                  
+-}                  
 filter_by_doc_nr : HasIO io => DocumentNumber -> List WhsEntry -> StateT SystemState io (List WhsEntry)
 filter_by_doc_nr x [] = pure []
 filter_by_doc_nr x (we@(MkWE ref fx move_key) :: xs) = do
@@ -191,7 +192,7 @@ namespace MemoryMap
                     
                     docs' : SortedMap H256 WhsEntry
                     docs' = insert whs_h whs_e (docs ss)
-                    
+                    {-
                     kf : (Location, Ledger)
                     kf = (f,ledger)
                     kt : (Location, Ledger)
@@ -206,24 +207,24 @@ namespace MemoryMap
                        led2' = update_ledger kt (invHom1 $ dx h11) led1''
                        led2'' : LocationMap
                        led2'' = update_ledger kt (cx h11) led2'
-
+                    
                     je2lm : FxEvent -> LocationMap
                     je2lm (Fx121 d h121 ) = Hom11_2_LM ( fromH121 h121 ) --(MkH11 (dx h121) (cx h121) )
                     je2lm (Fx11  d h11 ) = Hom11_2_LM h11
 
                     led' : LocationMap
                     led' = je2lm fe
-
+                    -}
                 case (lookup key (jm ss) ) of
                    Nothing => do
                       let rjm' = insert key [whs_e] (jm ss) --rjm
                       
-                      put (record {led_map=led', jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
+                      put (record {jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
                       --put (MkSS fx_map routes led' rjm' j user_data ws ae)
 
                    Just je_list => do
                       let rjm' = insert key (whs_e::je_list) (jm ss) --rjm
-                      put (record {led_map=led', jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
+                      put (record {jm=rjm', name2hash=name2hash',hash2name=hash2name',counters=counters'} ss)
                       --put (MkSS fx_map routes led' rjm' j user_data ws ae)
                 pure new_doc_nr
    --interpret Get = Get               

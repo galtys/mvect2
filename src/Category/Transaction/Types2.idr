@@ -98,6 +98,9 @@ namespace WhsEventDo
        --NewFxRoute : FxData -> RouteSumT -> WhsEvent RouteKey
        --Init : WhsEvent ()
        NewRoute : Date -> RouteSumT -> WhsEvent RouteKey
+       CloseRoute : (ref:RouteKey) -> WhsEvent ()        
+       GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
+       
        SetRouteNumber : DocumentNumber->RouteKey-> WhsEvent ()
        GetRouteNumber : RouteKey -> WhsEvent (Maybe DocumentNumber)
        ListRefs : WhsEvent (List RouteKey)
@@ -112,11 +115,12 @@ namespace WhsEventDo
 
        UpdateUserData : UserData -> WhsEvent ()
        GetUserDataW : WhsEvent UserDataMap       
-       CloseRoute : (ref:RouteKey) -> WhsEvent () 
-       GetRoute : (ref:RouteKey) -> WhsEvent (Maybe RouteSumT)
+       
        Put   : RouteKey -> MoveKey -> FxEvent -> WhsEvent DocumentNumber
        Get :   (Maybe RouteKey) -> MoveKey -> WhsEvent (List WhsEntry)
+       
        Log : OwnerJournalEvent -> WhsEvent () --Log state affecting events
+       
        Show : (Show ty) => ty -> WhsEvent ()
        Pure : ty -> WhsEvent ty
        Bind : WhsEvent a -> (a -> WhsEvent b) -> WhsEvent b
@@ -131,20 +135,22 @@ namespace WhsEventDo
 
 
 namespace SystemState
+   {-
    public export
    LocationMap  : Type
    LocationMap = SortedMap (Location, Ledger, ProdKey) EQty
+
    public export
    RouteJournalMap  : Type
    RouteJournalMap = SortedMap MoveKey (List WhsEntry)
-
+   -}
    public export
    record SystemState where
       constructor MkSS
       --fx_map : SortedMap RouteKey FxData
       routes : SortedMap RouteKey RouteSumT
-      led_map : LocationMap
-      jm   : RouteJournalMap
+      --led_map : LocationMap
+      jm   : SortedMap MoveKey (List WhsEntry)
       journal : List OwnerJournalEvent
       user_data : UserDataMap
       web_socket : Maybe WsSocket
