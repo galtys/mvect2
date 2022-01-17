@@ -1,6 +1,6 @@
 module UserDataDemo
 
-import Libc.Time
+import Libc.DateTypes
 import Data.Ratio
 import Category.Transaction.Types
 import Odoo.Schema.PJBRecDef

@@ -511,7 +511,7 @@ showSchemaRecDef s = Def [showImports, showPrimRecDef s, showRelDefRec s] where
                      Line 0 "import JSON",Sep,
                      Line 0 "import Config",
                      Line 0 "import Control.Monad.Either",Sep,
-                     Line 0 "import Libc.Time",Sep,                     
+                     Line 0 "import Libc.DateTypes",Sep,                     
                      Line 0 "%language ElabReflection"]
 
 export
@@ -552,6 +552,6 @@ showSchemaDef s = Def [showImports, showTableDef, showColumnDef s, showPrimDef s
            Line 0 "import JSON",Sep,
            Line 0 "import Config",
            Line 0 "import Control.Monad.Either",Sep,
-           Line 0 "import Libc.Time",Sep,                                           
+           Line 0 "import Libc.DateTypes",Sep,                                           
            Line 0 "import Odoo.Schema.PJBRecDef",Sep,
            Line 0 "%language ElabReflection"]

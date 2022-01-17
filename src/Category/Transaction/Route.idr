@@ -1,6 +1,6 @@
 module Category.Transaction.Route
 
-import Libc.Time
+import Libc.DateTypes
 import Category.Transaction.Types
 import Category.Transaction.Hom
 import Category.Transaction.RouteTypes

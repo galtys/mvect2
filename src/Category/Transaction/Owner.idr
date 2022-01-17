@@ -4,7 +4,8 @@ import Data.Zippable
 import Generics.Derive
 import Data.SortedMap
 import Control.Monad.State
-import Libc.Time
+import Libc.DateTypes
+
 
 import JSON
 

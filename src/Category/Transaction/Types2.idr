@@ -10,7 +10,7 @@ import Data.Ratio
 import Generics.Derive
 import JSON
 import Odoo.Schema.PJBRecDef
-import Libc.Time
+import Libc.DateTypes
 import Browser.WebSocket
 import Browser.WS2
 

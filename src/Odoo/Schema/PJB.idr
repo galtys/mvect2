@@ -15,7 +15,7 @@ import JSON
 import Config
 import Control.Monad.Either
 
-import Libc.Time
+import Libc.DateTypes
 
 import Odoo.Schema.PJBRecDef
 

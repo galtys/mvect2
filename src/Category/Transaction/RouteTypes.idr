@@ -2,7 +2,7 @@ module Category.Transaction.RouteTypes
 
 import Data.SnocList
 import Category.Transaction.Types
-import Libc.Time
+import Libc.DateTypes
 import Category.Transaction.Qty
 import Data.SortedMap
 --import Control.Monad.State
