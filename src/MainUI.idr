@@ -9,7 +9,7 @@ import Text.Html
 covering
 main : IO ()
 main = do
-   consoleLog "ocas"
+   consoleLog "ocas32"
    consoleLog $ sha256 "ocas"
    consoleLog $ render content
-   runJS . ignore $ reactimateDomIni "table" "select" ui
+   runJS . ignore $ reactimateDomIni "table" "select" Selector.ui32

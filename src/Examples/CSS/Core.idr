@@ -36,6 +36,11 @@ public export
 relatedRoutesDiv : ElemRef HTMLDivElement
 relatedRoutesDiv = Id Div "related_routes"
 
+public export
+offCanvas : ElemRef HTMLDivElement
+offCanvas = Id Div "off_canvas"
+
+
 
 
 

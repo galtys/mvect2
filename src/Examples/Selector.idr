@@ -39,6 +39,9 @@ content1 =
            ,div [class "large-10 cell", ref formContentDiv] []      
            ]
       ]
+<button class="close-button" aria-label="Close menu" type="button" data-close>
+      <span aria-hidden="true">&times;</span>
+    </button>            
 -}      
 export
 content : Node String
@@ -51,17 +54,32 @@ content =
          , li [] [a [href "#",onClick "performance"]["Performance"]]
          , li [] [a [href "#",onClick "fractals"]["Fractals"]]
          , li [] [a [href "#",onClick "balls"]["Balls"]]
-         , li [] [a [href "#",onClick "math"]["Math Game"]] ]
+         , li [] [a [href "#",onClick "math"]["Math Game4"]] ]
+
     ]
+--    ,button [class "close-button",Str "aria-label" "Toggle", Str "type" "button", Str "data-toggle" ""] [span [Str "aria-hidden" "true"]["&times;"]]
+    
     , div [class "grid-x"] [
-           div [class "large-4 cell", ref exampleDiv] []
+           div [class "large-4 cell",ref exampleDiv] []
+  
            ,div [class "large-8 cell", ref formContentDiv] []      
            ]
+    {-           
     , div [class "grid-x"] [
            div [class "large-4 cell", ref relatedRouteListDiv ] []
            ,div [class "large-8 cell", ref relatedRoutesDiv ] []      
            ]
-           
+    
+
+    , div [class "off-canvas position-left",ref offCanvas,Str "data-off-canvas" ""] [
+           div [class "large-4 cell", ref exampleDiv] []
+           ,div [class "large-8 cell", ref formContentDiv] []      
+           ]
+    , div [class "off-canvas-content", Str "data-off-canvas-content" ""] [
+           div [class "large-4 cell", ref relatedRouteListDiv ] []
+           ,div [class "large-8 cell", ref relatedRoutesDiv ] []      
+           ]
+      -}     
  ]
 cleanup : LiftJSIO io => (clean : JSIO ()) -> io ()
 cleanup = liftJSIO
@@ -79,8 +97,8 @@ msf = feedback (pure ()) ( par [arrM cleanup, arrM select] >>> swap )
         select _             = pure (pure ())
 
 export
-ui : MSel (MSF MSel String (), JSIO ())
-ui = do
+ui32 : MSel (MSF MSel String (), JSIO ())
+ui32 = do
   rawInnerHtmlAt appStyle allRules
   innerHtmlAt contentDiv content
   pure (msf, pure ())

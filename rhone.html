@@ -25,17 +25,23 @@
    
    <style id='appstyle'></style>
    <style>
-     .top-bar { background: #454343;}
-     .top-bar-left { background: #454343;}
+     /*
+*/
+     .top-bar { background: #fbfbfb;}
+     .top-bar-left { background: #fbfbfb;}
+
      .menu { background: #454343;}
 
-     /*.menu li {background: #333;}*/
-     .menu:hover li:hover {background: #777; }
 
-     tbody td {padding: 0.3rem;}
+     .menu:hover li:hover {background: #777; }
+/*     .dropdown .menu {background: #777; } */
+
      
      .menu a {color: #fff;}
-
+     
+     /*.menu li {background: #333;}*/
+     
+     tbody td {padding: 0.3rem;}
      .row {max-width: 100rem;}
 
 
@@ -155,9 +161,10 @@
  <body id='content'>
    <!--<script type='text/javascript' src='js/rhonejs.js'></script> -->
    <script type='text/javascript' src='src/js/sha256.js'></script>
+
    <script type='text/javascript' src='build/exec/ui.js'></script>
    
-   
+   <script type='text/javascript' src='src/js/app.js'></script>      
    
  </body>
 </html>

@@ -289,7 +289,16 @@ show_route : SystemState -> RouteData -> Node Ev
 show_route ss ( rd@(MkRD  rk dir lines m_rst) ) = 
   div [] [
      section [] [
-       div [class "grid-y grid-padding-x"] [ 
+       div [class "top-bar"] [
+            div [class "top-bar-left"] [
+              ul [class "dropdown menu", Str "data-dropdown-menu" ""] [
+                  li [class "menu-text"] ["Site Title"]
+                 ,li [class "menu-text"] ["Ocas"]
+                 ]
+             ]
+        ]
+          
+       ,div [class "grid-y grid-padding-x"] [ 
          div [class "large-2 cell"] [
            h5 [] [fromString $ show_route_dt m_rst dir   ]
            ,p [] [fromString $ show_RouteKeyX rk]

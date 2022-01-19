@@ -14,6 +14,7 @@ mvect2: mvect2.ipkg
 ui: ui.ipkg
 	idris2 --build ui.ipkg
 	cp /home/jan/github.com/foundation-zurb-template/dist/assets/css/app.css src/css/app.css
+	cp /home/jan/github.com/foundation-zurb-template/dist/assets/js/app.js src/js/app.js
 pjbgen: pjbgen.ipkg
 	idris2 --build pjbgen.ipkg
 
