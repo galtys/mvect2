@@ -10,10 +10,16 @@ import Text.CSS
 
 ||| ID of the `<body>` element. The page content will
 ||| be placed here.
+
 public export
 contentDiv : ElemRef HTMLBodyElement
-contentDiv = Id Body "content"
+contentDiv = Id Body "content2"
 
+{-
+public export
+contentDiv : ElemRef HTMLDivElement
+contentDiv = Id Div "content2"
+-}
 ||| The page consists of a static heading with a title an
 ||| (eventually) a short description of the project.
 ||| This is followed by a selection box, where visitors can
@@ -40,7 +46,9 @@ public export
 offCanvas : ElemRef HTMLDivElement
 offCanvas = Id Div "off_canvas"
 
-
+public export
+staticTable : ElemRef HTMLTableElement
+staticTable = Id Table "spreadsheet"
 
 
 

@@ -51,6 +51,7 @@ content =
        ul [class "menu"] 
          [ li [] [a [href "#",onClick "reset"]["Counting Clicks"]]
          , li [] [a [href "#",onClick "table"]["Table"]]
+         , li [] [a [href "#",onClick "sheet"]["Sheet"]]         
          , li [] [a [href "#",onClick "performance"]["Performance"]]
          , li [] [a [href "#",onClick "fractals"]["Fractals"]]
          , li [] [a [href "#",onClick "balls"]["Balls"]]
@@ -90,6 +91,7 @@ msf = feedback (pure ()) ( par [arrM cleanup, arrM select] >>> swap )
   where select : String -> MSel (JSIO ())
         --select "reset"       = reactimateInDomIni (const (-8)) Reset2.ui
         select "table"       = reactimateInDomIni Ocas Reset2.ui2        
+        select "sheet"       = reactimateInDomIni Ocas Reset2.ui3        
         select "performance" = reactimateInDom Performance2.ui
         select "fractals"    = reactimateInDom Fractals.ui
         select "balls"       = reactimateInDom Balls2.ui

@@ -65,7 +65,7 @@ import Category.Transaction.Warehouse
 public export
 data EvWS = Msg BrowserEvent | Open BrowserEvent | Ocas | OpenRoute RouteKey | OpenAlloc AllocationRef | OpenRef RouteKey --Open BrowserEvent
 
-     
+     --  
 namespace JSMem
    export 
    interpret_js : LiftJSIO m => WhsEvent ta -> StateT SystemState m ta       
@@ -141,7 +141,10 @@ show_Owner (Transit x y) = show_Name "Transit \{show x}" (Just y)
 show_Owner (Taxman x) = show_Name "Taxman" (Just x)
 show_Owner (Bank x) = show_Name "Bank" (Just x)
 
+--ZmIyNTMzODFmMGFlNGQ5MmRiYzljNGZlODVjMTY2ZmI5Zjc2ODUzYTRjM2RiNDkwZDNkZjQzZjdkZmQyMjAwNWZmZTQwYTQ1NWYyZjJhMzI2NzRiZTY2ZTUxZjU2NjBkNzhjNzQ1ZTgwNTRlMzFlYWM5ZGU5ZTY2NzgwZWUwNzgsZXlKdVlXMWxJam9pZEhKdmJHVnlJaXdpWkdGMFpTSTZNVFkwTlRJeU9EZ3dNQ3dpWkc5dFlXbHVJanBiSWlJc0lteHZZMkZzYUc5emRDSmRMQ0p3YkdGdUlqb3dMQ0p6WTI5d1pTSTZXeUoyTnlJc0luWTRJbDE5
 
+--   honzi77
+--   p0S2VzpQiohs
 btn :  (r : ElemRef Button)
     -> {auto 0 _ : ById r}
     -> Ev
@@ -251,15 +254,7 @@ get_route_number ss rk@(MkRK date ref state) =
        case (lookup rk (route_number ss)) of
          Nothing => ref
          (Just doc) => show doc
-
-show_ref : SystemState -> RouteKey -> Node Ev
-show_ref ss route_ref@(rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
-                                                          ,td [] [fromString "\{date}"]
-                                                          ,td [] [a [href "#",onClick (OpenRoute rk)][ fromString $ get_route_number ss rk]] 
-                                                        ] where
-                     route : Maybe RouteSumT
-                     route = lookup rk (routes ss)
-
+         
 show_refs : List RouteKey -> SystemState -> Node Ev
 show_refs xs ss = section [] [table [class "hover"] 
                                     [thead []
@@ -271,7 +266,36 @@ show_refs xs ss = section [] [table [class "hover"]
                                           ]
                                      , tbody [] (map (show_ref ss) xs)
                                      ]     
-                             ] 
+                             ]  where 
+
+   show_ref : SystemState -> RouteKey -> Node Ev
+   show_ref ss route_ref@(rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
+                                                            ,td [] [fromString "\{date}"]
+                                                            ,td [] [a [href "#",onClick (OpenRoute rk)][ fromString $ get_route_number ss rk]] 
+                                                          ] where
+                     route : Maybe RouteSumT
+                     route = lookup rk (routes ss)
+
+show_refs_static : List RouteKey -> SystemState -> Node Ev
+show_refs_static xs ss = section [] [table [class "hover"] 
+                                    [thead []
+                                          [tr []
+                                             [ th [] ["Type"],
+                                               th [] ["Date"],
+                                               th [] ["RouteKey"]
+                                             ]
+                                          ]
+                                     , tbody [] (map (show_ref ss) xs)
+                                     ]     
+                             ]  where 
+
+   show_ref : SystemState -> RouteKey -> Node Ev
+   show_ref ss route_ref@(rk@(MkRK date ref state)) = tr [] [td  [] [fromString $ show_route_doc_type route]
+                                                            ,td [] [fromString "\{date}"]
+                                                            ,td [] [a [href "#"][ fromString $ get_route_number ss rk]] 
+                                                          ] where
+                     route : Maybe RouteSumT
+                     route = lookup rk (routes ss)
 
 
 drop_duplicates : Eq ty=>Ord ty=>List ty -> List ty
@@ -283,7 +307,10 @@ drop_duplicates xs = ret where
     ret = (map head gs)
 
 show_refs_udm : (List RouteKey,UserDataMap) -> SystemState -> Node Ev
-show_refs_udm (xx, y) ss = show_refs xx ss
+show_refs_udm (xx, y) ss = show_refs xx ss where 
+
+show_refs_udm_static : (List RouteKey,UserDataMap) -> SystemState -> Node Ev
+show_refs_udm_static (xx, y) ss = show_refs_static xx ss where 
 
 show_route : SystemState -> RouteData -> Node Ev
 show_route ss ( rd@(MkRD  rk dir lines m_rst) ) = 
@@ -473,6 +500,55 @@ ui2 = do
   --pure (feedback initState (fromState msf2),pure () ) --   pure ()
 
 
+LIC : String
+LIC = "ZmIyNTMzODFmMGFlNGQ5MmRiYzljNGZlODVjMTY2ZmI5Zjc2ODUzYTRjM2RiNDkwZDNkZjQzZjdkZmQyMjAwNWZmZTQwYTQ1NWYyZjJhMzI2NzRiZTY2ZTUxZjU2NjBkNzhjNzQ1ZTgwNTRlMzFlYWM5ZGU5ZTY2NzgwZWUwNzgsZXlKdVlXMWxJam9pZEhKdmJHVnlJaXdpWkdGMFpTSTZNVFkwTlRJeU9EZ3dNQ3dpWkc5dFlXbHVJanBiSWlJc0lteHZZMkZzYUc5emRDSmRMQ0p3YkdGdUlqb3dMQ0p6WTI5d1pTSTZXeUoyTnlJc0luWTRJbDE5"
+
+%foreign "browser:lambda: (sheet) => jspreadsheet(document.getElementById(sheet))"
+prim__jspreadsheet : String -> PrimIO ()
+
+%foreign "browser:lambda: (lic) => jspreadsheet.setLicense(lic)"
+prim__setLicense : String -> PrimIO ()
+
+
+jspreadsheet : HasIO io => String -> io ()
+jspreadsheet s = primIO $ prim__jspreadsheet s
+
+setLicense : HasIO io => String -> io ()
+setLicense l = primIO $ prim__setLicense l 
+
+export
+ui3 : M (MSF M Ev (), JSIO ())
+ui3 = do
+  
+  w_sock <- ws_new "ws://localhost:8000/websocket"  
+  h_open   <- map Control.Monad.Dom.DomIO.DomEnv.handler DomIO.env  
+  op <-  addEventListenerBE "open"  w_sock (h_open . Open)
+  
+  h_msg   <- DomEnv.handler <$> DomIO.env
+  msg <-  addEventListenerBE "message"  w_sock (h_open . Msg)  
+  --msg <-  addEventListenerBE "open"  ws h_msg
+  --msg <- ws_on_message ws (h_msg . Msg)
+  --innerHtmlAt exampleDiv (content EN)
+  (sstate,we) <- runStateT initState (JSMem.interpret_js (toWhs   demo_po_so)   )   
+  
+  
+  (sstate,refs) <- runStateT sstate (JSMem.interpret_js (toWhs   list_refs )   )   
+  
+  innerHtmlAt exampleDiv (show_refs_udm_static  refs sstate)
+  
+  setLicense LIC
+  
+  --jspreadsheet "spreadsheet"
+  
+  --innerHtmlAt formContentDiv (show_route_maybe we)    
+  --ini <- randomGame EN
+  --ws_send ws "Test message"
+  --pure (feedback initState (fromState msf2),liftIO msg ) --   pure ()
+  let new_sstate : SystemState
+      new_sstate = record {web_socket = (Just w_sock) } sstate
+      
+  pure (feedback new_sstate (fromState msf2),pure () ) --   pure ()
+  --pure (feedback initState (fromState msf2),pure () ) --   pure ()
 
 
 
