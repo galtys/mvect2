@@ -701,8 +701,8 @@ mutual
      nm <- get NoMangleMap
      --(lambdaArgs nm xs <+>) . block <$> stmt y
      kky <- stmt y
-     let lam_expr = (lambdaArgs nm xs) <+> "__local_fun"<+>(paren (fArgs nm xs))
-         loc_fun = function "__local_fun" (map (var nm) xs) (kky)
+     let lam_expr = (lambdaArgs nm xs) <+> "__local_fun"<+>(shown no)<+>(paren (fArgs nm xs))
+         loc_fun = function ("__local_fun"<+>(shown no)) (map (var nm) xs) (kky)
      pure (vcat [lam_expr,loc_fun])
          
   exp (EApp x xs) = do

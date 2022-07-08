@@ -30,7 +30,7 @@ shown a = Text (show a)
 export
 FromString Doc where
   fromString = Text
-
+  
 export
 isMultiline : Doc -> Bool
 isMultiline []         = False

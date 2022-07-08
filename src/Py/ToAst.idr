@@ -119,7 +119,8 @@ mutual
           go ns (NmLam _  n x) = go (n :: ns) x
           go ns x              = do
             vs <- traverse registerLocal (reverse ns)
-            ELam 1 vs <$> stmt Returns x
+            elam_py <- nextElam
+            ELam elam_py vs <$> stmt Returns x
 
   -- convert a `NamedCExp` to a sequence of statements.
   export
@@ -173,7 +174,9 @@ mutual
     (mbx, vx) <- liftFun x
     pure . prepend mbx $ assign e (EApp vx [])
 
-  stmt e (NmDelay _ _ x) = assign e . ELam 1 [] <$> stmt Returns x
+  stmt e (NmDelay _ _ x) = do
+    elam_py <- nextElam
+    assign e . ELam elam_py [] <$> stmt Returns x
 
   -- No need for a `switch` if we only have a single branch.
   -- It's still necessary to lift the scrutinee, however,

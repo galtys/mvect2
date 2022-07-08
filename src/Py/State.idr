@@ -88,6 +88,9 @@ record ESSt where
   ||| Current local variable index
   loc      : Int
 
+  ||| Curent ELambda index (for pygen)
+  elam_py : Int
+  
   ||| Current global variable index
   ref      : Int
 
@@ -117,6 +120,14 @@ record ESSt where
 export
 addLocal : { auto c : Ref ESs ESSt } -> Name -> Minimal -> Core ()
 addLocal n v = update ESs $ { locals $= insert n v }
+
+export
+nextElam : { auto c : Ref ESs ESSt } -> Core Int
+nextElam = do
+  st <- get ESs
+  put ESs $ { elam_py $= (+1) } st
+  pure $ st.elam_py
+
 
 ||| Get and bump the local var index
 export
@@ -237,10 +248,10 @@ init :  (mode  : CGMode)
      -> (noMangle : NoMangleMap)
      -> ESSt
 init mode isArg isFun ccs noMangle =
-  MkESSt mode isArg isFun 0 0 empty empty empty ccs noMangle
+  MkESSt mode isArg isFun 0 0 0 empty empty empty ccs noMangle
 
 ||| Reset the local state before defining a new toplevel
 ||| function.
 export
 reset : {auto c : Ref ESs ESSt} -> Core ()
-reset = update ESs $ { loc := 0, locals := empty }
+reset = update ESs $ { loc := 0, elam_py:= 0, locals := empty }
