@@ -134,7 +134,9 @@ mutual
   -- a function name gets registered or resolved
   stmt e (NmRef _ n) = assign e . EMinimal . MVar <$> getOrRegisterRef n
 
-  stmt e (NmLam _ n x) = assign e <$> lambda n x
+  stmt e (NmLam _ n x) = do
+      
+      assign e <$> lambda n x
 
   -- in case of a let expression, we just generate two
   -- blocks of statements and concatenate them.

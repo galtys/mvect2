@@ -71,12 +71,13 @@ mutual
     ||| Lambda expression
     |||
     ||| An empty argument list represents a delayed computation
+    --ELam      : Int -> List Var -> Stmt (Just Returns) -> Exp
     ELam      : Int -> List Var -> Stmt (Just Returns) -> Exp
 
     ||| Function application.
     |||
     ||| In case of a zero-argument list, we might also be
-    ||| dealing with forcing a delayed computation.
+    ||| dealing with forcing a delayed computation.    
     EApp      : Exp -> List Exp -> Exp
 
     ||| Saturated construtor application.

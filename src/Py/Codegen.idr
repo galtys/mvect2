@@ -140,7 +140,7 @@ parameters (noMangle : NoMangleMap)
 
   minimal : Minimal -> Doc
   minimal (MVar v)          = var v
-  minimal (MProjection n v) = minimal v <+> "['a" <+> shown n <+>"']"
+  minimal (MProjection n v) = minimal v <+> ".get('a" <+> shown n <+>"')"
 
 tag2es : Either Int Name -> Doc
 tag2es (Left x)  = shown x
@@ -259,14 +259,18 @@ fromInt k = if useBigInt k then fromBigInt else id
 -- converts a character (in JS, a string of length 1)
 -- to an integer.
 jsIntOfChar : IntKind -> Doc -> Doc
-jsIntOfChar k s = toInt k $ s <+> ".codePointAt(0)"
+--jsIntOfChar k s = toInt k $ s <+> ".codePointAt(0)"
+jsIntOfChar k s = toInt k $ ( "ord(" <+> s <+> "[0])")
 
 -- converts a floating point number to an integer.
 jsIntOfDouble : IntKind -> Doc -> Doc
 jsIntOfDouble k = toInt k . callFun1 "Math.trunc"
 
+--jsAnyToString : Doc -> Doc
+--jsAnyToString s = "(''+" <+> s <+> ")"
+
 jsAnyToString : Doc -> Doc
-jsAnyToString s = "(''+" <+> s <+> ")"
+jsAnyToString s = "str(" <+> s <+> ")"
 
 -- converts an integer (`Number` or `BigInt`) to a character
 -- by calling `_truncToChar` from the preamble.
@@ -666,14 +670,17 @@ switch sc alts def =
 -- creates an argument list for a (possibly multi-argument)
 -- anonymous function. An empty argument list is treated
 -- as a delayed computation (prefixed by `() =>`).
-{-
+--SSe = lambda b : lambda a : lambda SSf : SS10 lambda: SS11 : __local_fun2(b,a,SSf,SS10,SS11)
+
 lambdaArgs : (noMangle : NoMangleMap) -> List Var -> Doc
-lambdaArgs noMangle [] = "()" <+> lambdaArrow
-lambdaArgs noMangle xs = hcat $ (<+> lambdaArrow) . var noMangle <$> xs
--}
-lambdaArgs : (noMangle : NoMangleMap) -> List Var -> Doc
-lambdaArgs noMangle [] = " lambda :"
-lambdaArgs noMangle xs = "lambda " <+> (hcat (intersperse "," ((var noMangle) <$> xs))) <+> ":"
+lambdaArgs noMangle [] = "lambda :"
+lambdaArgs noMangle xs = hcat $ map (<+>" :") ( ("lambda "<+> ) . (var noMangle)  <$> xs)
+
+
+--lambdaArgs : (noMangle : NoMangleMap) -> List Var -> Doc
+--lambdaArgs noMangle [] = " lambda :"
+--lambdaArgs noMangle xs = hcat $ (<+> lambdaArrow) . var noMangle <$> xs
+--lambdaArgs noMangle xs = "lambda " <+> (hcat (intersperse "," ((var noMangle) <$> xs))) <+> ":"
 
 fArgs : (noMangle : NoMangleMap) -> List Var -> Doc
 --fArgs noMangle [] = " lambda____:"
@@ -683,6 +690,12 @@ fArgs noMangle xs = (hcat (intersperse "," ((var noMangle) <$> xs)))
 insertBreak : (r : Effect) -> (Doc, Doc) -> (Doc, Doc)
 insertBreak Returns x = x
 insertBreak (ErrorWithout _) (pat, exp) = (pat, exp)--(pat, vcat [exp, "break;"])
+
+hasELamStmt : Exp -> Maybe (Int, List Var, Stmt (Just Returns))
+hasELamStmt (ELam no xs (Return $ y@(ECon _ _ _))) = Nothing
+hasELamStmt (ELam no xs (Return $ y)) = Nothing
+hasELamStmt (ELam no xs y) = Just (no,xs,y)
+hasELamStmt _ = Nothing
 
 mutual
   -- converts an `Exp` to JS code
@@ -697,13 +710,17 @@ mutual
   exp (ELam no xs (Return $ y)) = do
      nm <- get NoMangleMap
      (lambdaArgs nm xs <+> ) <$> exp y
-  exp (ELam no xs y) = do
+     
+  exp el@(ELam no xs y) = do
      nm <- get NoMangleMap
      --(lambdaArgs nm xs <+>) . block <$> stmt y
      kky <- stmt y
      let lam_expr = (lambdaArgs nm xs) <+> "__local_fun"<+>(shown no)<+>(paren (fArgs nm xs))
          loc_fun = function ("__local_fun"<+>(shown no)) (map (var nm) xs) (kky)
-     pure (vcat [lam_expr,loc_fun])
+     case (hasELamStmt el) of
+        Nothing => pure (vcat [lam_expr])
+        (Just (nox,xsx,yx)) => pure (vcat [lam_expr])
+     --pure lam_expr
          
   exp (EApp x xs) = do
     o    <- exp x
@@ -724,24 +741,45 @@ mutual
        -> Stmt e
        -> Core Doc
   --stmt (Return y) = (\e => "return" <++> e <+> ";") <$> exp y
-  stmt (Return y) = (\e => "return" <++> e <+> "") <$> exp y
+  stmt (Return y) = do
+         resx <- ((\e => "return" <++> e <+> "") <$> exp y)
+         pure (vcat ["#RET1",resx])
   stmt (Const v x) = do
     nm <- get NoMangleMap
-    constant (var nm v) <$> exp x
+    resx <- (constant (var nm v) <$> exp x)
+    --pure (vcat ["#CONST",resx])
+    case (hasELamStmt x) of
+      (Just (no,xs,y)) => do
+          kky <- stmt y          
+          let loc_fun = function ("__local_fun"<+>(shown no)) (map (var nm) xs) (kky)
+          pure (vcat ["#CONST_JUST",loc_fun, resx])
+      Nothing => do
+          pure (vcat ["#CONST_NOTHING", resx])
+    
   stmt (Declare v s) = do
     nm <- get NoMangleMap
     --(\d => vcat ["let" <++> var nm v <+> ";",d]) <$> stmt s
     (\d => vcat [var nm v <+> "=None",d]) <$> stmt s
   stmt (Assign v x) = do
     nm <- get NoMangleMap
-    (\d => hcat [var nm v,softEq,d]) <$> exp x
-
+    let res_e = (\d => hcat [var nm v,softEq,d]) <$> exp x
+    resx <- res_e  
+    --pure (vcat ["#ASSIGN_X", resx])
+    
+    case (hasELamStmt x) of
+      (Just (no,xs,y)) => do
+          kky <- stmt y          
+          let loc_fun = function ("__local_fun"<+>(shown no)) (map (var nm) xs) (kky)
+          pure (vcat ["#ASSIGN1",loc_fun, resx])
+      Nothing => do
+          pure (vcat ["#ASSIGN2", resx])
+    
   stmt (ConSwitch r sc alts def) = do
     as <- traverse (map (insertBreak r) . alt) alts
     d  <- traverseOpt stmt def
     nm <- get NoMangleMap
     --pure $ switch (minimal nm sc <+> ".h") as d
-    pure $ switch (minimal nm sc <+> "['h_x']") as d
+    pure $ switch (minimal nm sc <+> ".get('h_x')") as d
     where
         alt : {r : _} -> EConAlt r -> Core (Doc,Doc)
         alt (MkEConAlt _ RECORD b)  = ("undefined",) <$> stmt b
@@ -823,6 +861,16 @@ validJSName name =
     validNameChar : Char -> Bool
     validNameChar c = isAlphaNum c || c == '_' || c == '$'
 
+
+py_preamble : String
+py_preamble = """
+import py_support
+_idrisworld=None
+undefined=None
+def BigInt(x):
+  return x
+"""
+
 ||| Compiles the given `ClosedTerm` for the list of supported
 ||| backends to JS code.
 export
@@ -884,4 +932,4 @@ compileToES c cg tm ccTypes = do
   --pure $ fastUnlines [pre,allDecls,main]
   --putStrLn main
   --pure $ fastUnlines []
-  pure $ fastUnlines [pre,allDecls,mainName++"()"]
+  pure $ fastUnlines [py_preamble, allDecls,mainName++"()"]

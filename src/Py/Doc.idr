@@ -65,9 +65,9 @@ export
 paren : Doc -> Doc
 paren d = "(" <+> d <+> ")"
 
---export
---lambdaArrow : Doc
---lambdaArrow = SoftSpace <+> "=>" <+> SoftSpace
+export
+lambdaArrow : Doc
+lambdaArrow = SoftSpace <+> "=>" <+> SoftSpace
 
 export
 softComma : Doc
