@@ -136,8 +136,8 @@ mainExpr = MN "__mainExpression" 0
 parameters (noMangle : NoMangleMap)
   var : Var -> Doc
   var (VName x) = jsNameDoc noMangle x
-  var (VLoc x)  = Text $ "SS" ++ asHex (cast x)
-  var (VRef x)  = Text $ "SSR" ++ asHex (cast x)
+  var (VLoc x)  = Text $ "VAR" ++ asHex (cast x)
+  var (VRef x)  = Text $ "VAR_R" ++ asHex (cast x)
 
   minimal : Minimal -> Doc
   minimal (MVar v)          = var v
@@ -148,7 +148,7 @@ tag2es (Left x)  = shown x
 tag2es (Right x) = jsStringDoc $ show x
 
 constant : Doc -> Doc -> Doc
-constant n d = n <+> softEq <+> d <+> ""
+constant n d = n <+> softEq <+> d --<+> ""
 --constant n d = "const" <++> n <+> softEq <+> d <+> ";"
 
 applyList : (lparen : Doc) -> (rparen : Doc) -> (sep : Doc) -> List Doc -> Doc
@@ -517,7 +517,7 @@ makeForeign n x = do
   --coreLift $ putStrLn $show (ty,def)
   case ty of
     "lambda" => pure . constant nd . paren $ Text def
-    "pygen" => pure . constant nd . paren $ Text def
+--    "pygen" => pure . constant nd . paren $ Text def
     "support" => do
       let (name, lib) = breakDrop1 ',' def
       lib_code <- readDataFile ("js/" ++ lib ++ ".js")
