@@ -456,7 +456,8 @@ jsOp (EQ ty) [x, y] = pure $ boolOp "==" x y
 jsOp (GTE ty) [x, y] = pure $ boolOp ">=" x y
 jsOp (GT ty) [x, y] = pure $ boolOp ">" x y
 jsOp StrLength [x] = pure $ x <+> ".length"
-jsOp StrHead [x] = pure $ "(" <+> x <+> ".charAt(0))"
+--jsOp StrHead [x] = pure $ "(" <+> x <+> ".charAt(0))"
+jsOp StrHead [x] = pure $ "(" <+> x <+> "[0])"
 jsOp StrTail [x] = pure $ "(" <+> x <+> ".slice(1))"
 jsOp StrIndex [x, y] = pure $ "(" <+> x <+> ".charAt(" <+> y <+> "))"
 jsOp StrCons [x, y] = pure $ binOp "+" x y
@@ -893,7 +894,8 @@ def __tailRec(f,ini):
       return obj['a1']
     else:
       obj = f(obj);
-
+_truncInt32 = lambda a:a
+_add32s = lambda a,b : a+b
 """
 
 ||| Compiles the given `ClosedTerm` for the list of supported
