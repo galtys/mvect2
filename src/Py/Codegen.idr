@@ -51,7 +51,8 @@ jsString s = "'" ++ (concatMap okchar (unpack s)) ++ "'"
                             '"' => "\\\""
                             '\r' => "\\r"
                             '\n' => "\\n"
-                            other => "test_as_hex"--            "\\u{" ++ asHex (cast c) ++ "}"
+                            --other => "r"<+>"\\x" ++ asHex (cast c) 
+                            other => "\\x" ++ asHex (cast c) 
 
 ||| Alias for Text . jsString
 jsStringDoc : String -> Doc
@@ -340,7 +341,7 @@ jsConstant (B16 i)  = show i
 jsConstant (B32 i)  = show i
 jsConstant (B64 i)  = show i ++ ""
 jsConstant (Str s)  = jsString s
-jsConstant (Ch c)   = jsString $ singleton c
+jsConstant (Ch c)   = "r"<+>(jsString $ singleton c)
 jsConstant (Db f)   = show f
 jsConstant (PrT t)  = jsPrimType t
 jsConstant WorldVal = esName "idrisworld"
@@ -732,7 +733,7 @@ mutual
   exp (EOp x xs) = traverseVect exp xs >>= jsOp x
   exp (EExtPrim x xs) = traverse exp xs >>= jsPrim x
   exp (EPrimVal x) = pure . Text $ jsConstant x
-  exp EErased = pure "py_support.erased"
+  exp EErased = pure "py_support_erased"
 
   -- converts a `Stmt e` to JS code.
   stmt :  {e : _}
@@ -741,9 +742,18 @@ mutual
        -> Stmt e
        -> Core Doc
   --stmt (Return y) = (\e => "return" <++> e <+> ";") <$> exp y
-  stmt (Return y) = do
-         resx <- ((\e => "return" <++> e <+> "") <$> exp y)
-         pure (vcat ["#RET1",resx])
+  stmt (Return xe) = do
+    resx <- ((\e => "return" <++> e <+> "") <$> exp xe)
+    --pure (vcat ["#RET1",resx])
+    nm <- get NoMangleMap
+    case (hasELamStmt xe) of
+      (Just (no,xs,y)) => do
+          kky <- stmt y          
+          let loc_fun = function ("__local_fun"<+>(shown no)) (map (var nm) xs) (kky)
+          pure (vcat ["#RET_JUST",loc_fun, resx])
+      Nothing => do
+          pure (vcat ["#RET_NOTHING", resx])
+         
   stmt (Const v x) = do
     nm <- get NoMangleMap
     resx <- (constant (var nm v) <$> exp x)
@@ -864,11 +874,26 @@ validJSName name =
 
 py_preamble : String
 py_preamble = """
-import py_support
+py_support_erased=None
+#py_support_idrisworld=None
+def py_support_fastUnpack(x):
+    acc = {'h_x':0}
+    for i in x:
+        acc = {'a1':i, 'a2':acc}
+    return acc
+
 _idrisworld=None
 undefined=None
 def BigInt(x):
   return x
+def __tailRec(f,ini):
+  obj = ini
+  while True:
+    if (obj.get('h_x')==0):
+      return obj['a1']
+    else:
+      obj = f(obj);
+
 """
 
 ||| Compiles the given `ClosedTerm` for the list of supported
@@ -925,7 +950,7 @@ compileToES c cg tm ccTypes = do
 
   -- main preamble containing primops implementations
   --static_preamble <- readDataFile ("js/support.js")
-  let static_preamble = "import py_support"
+  let static_preamble = ""
   -- complete preamble, including content from additional
   -- support files (if any)
   let pre = showSep "\n" $ static_preamble :: (values $ preamble st)
