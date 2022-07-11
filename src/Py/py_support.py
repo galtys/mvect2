@@ -1,6 +1,7 @@
-erased=None
+py_support_erased=None
+undefined=None
 _idrisworld=None #?symbol?
-def fastUnpack(x):
+def py_support_fastUnpack(x):
     acc = {'h_x':0}
     for i in x:
         acc = {'a1':i, 'a2':acc}
@@ -15,7 +16,15 @@ def __lazy(thunk):
         thunk=undefined
         return res
     return f
-
+def __tailRec(f,ini):
+  obj = ini
+  while True:
+    if (obj.get('h_x')==0):
+      return obj['a1']
+    else:
+      obj = f(obj);
+      
+BigInt = lambda x:x
 
 def __prim_js2idris_aray(x):
     acc={'h_x':0}
@@ -39,7 +48,7 @@ def __prim_stringIteratorNext(str, it):
 #?
 
 def _crashExp(x):
-    raise (ValueError x)
+    raise #(ValueError x)
 
 def _bigIntOfString(s):
     return long(s)
@@ -126,7 +135,7 @@ _shl32s = lambda a,b: _truncInt32(a<<b)
 _shr32s = lambda a,b: _truncInt32(a>>b)
 
 def _truncBigInt64(x):
-  res = x & 0xffffffffffffffffn;
+  res = x & 0xffffffffffffffff;
   if (res >= 0x8000000000000000):
       return (res - 0x10000000000000000)
   else:
