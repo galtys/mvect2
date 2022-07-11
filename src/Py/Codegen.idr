@@ -875,27 +875,6 @@ validJSName name =
 
 py_preamble : String
 py_preamble = """
-py_support_erased=None
-#py_support_idrisworld=None
-def py_support_fastUnpack(x):
-    acc = {'h_x':0}
-    for i in x:
-        acc = {'a1':i, 'a2':acc}
-    return acc
-
-_idrisworld=None
-undefined=None
-def BigInt(x):
-  return x
-def __tailRec(f,ini):
-  obj = ini
-  while True:
-    if (obj.get('h_x')==0):
-      return obj['a1']
-    else:
-      obj = f(obj);
-_truncInt32 = lambda a:a
-_add32s = lambda a,b : a+b
 """
 
 ||| Compiles the given `ClosedTerm` for the list of supported
@@ -951,12 +930,12 @@ compileToES c cg tm ccTypes = do
   st <- get ESs
 
   -- main preamble containing primops implementations
-  --static_preamble <- readDataFile ("js/support.js")
-  let static_preamble = ""
+  static_preamble <- readDataFile ("py/py_support.py")
+  --let static_preamble = ""
   -- complete preamble, including content from additional
   -- support files (if any)
   let pre = showSep "\n" $ static_preamble :: (values $ preamble st)
   --pure $ fastUnlines [pre,allDecls,main]
   --putStrLn main
   --pure $ fastUnlines []
-  pure $ fastUnlines [py_preamble, allDecls,mainName++"()"]
+  pure $ fastUnlines [pre, allDecls,mainName++"()"]
