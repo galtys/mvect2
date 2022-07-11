@@ -455,28 +455,29 @@ jsOp (LTE ty) [x, y] = pure $ boolOp "<=" x y
 jsOp (EQ ty) [x, y] = pure $ boolOp "==" x y
 jsOp (GTE ty) [x, y] = pure $ boolOp ">=" x y
 jsOp (GT ty) [x, y] = pure $ boolOp ">" x y
-jsOp StrLength [x] = pure $ x <+> ".length"
+jsOp StrLength [x] = pure $ "len" <+> paren x --<+> ".length"
 --jsOp StrHead [x] = pure $ "(" <+> x <+> ".charAt(0))"
 jsOp StrHead [x] = pure $ "(" <+> x <+> "[0])"
 jsOp StrTail [x] = pure $ "(" <+> x <+> ".slice(1))"
-jsOp StrIndex [x, y] = pure $ "(" <+> x <+> ".charAt(" <+> y <+> "))"
+jsOp StrIndex [x, y] = pure $ "("<+>x<+>"["<+>y+<+>"]"
+--pure $ "(" <+> x <+> ".charAt(" <+> y <+> "))"
 jsOp StrCons [x, y] = pure $ binOp "+" x y
 jsOp StrAppend [x, y] = pure $ binOp "+" x y
 jsOp StrReverse [x] = pure $ callFun1 (esName "strReverse") x
 jsOp StrSubstr [offset, len, str] =
   pure $ callFun (esName "substr") [offset,len,str]
-jsOp DoubleExp [x]     = pure $ callFun1 "Math.exp" x
-jsOp DoubleLog [x]     = pure $ callFun1 "Math.log" x
-jsOp DoublePow [x, y]  = pure $ callFun "Math.pow" [x, y]
-jsOp DoubleSin [x]     = pure $ callFun1 "Math.sin" x
-jsOp DoubleCos [x]     = pure $ callFun1 "Math.cos" x
-jsOp DoubleTan [x]     = pure $ callFun1 "Math.tan" x
-jsOp DoubleASin [x]    = pure $ callFun1 "Math.asin" x
-jsOp DoubleACos [x]    = pure $ callFun1 "Math.acos" x
-jsOp DoubleATan [x]    = pure $ callFun1 "Math.atan" x
-jsOp DoubleSqrt [x]    = pure $ callFun1 "Math.sqrt" x
-jsOp DoubleFloor [x]   = pure $ callFun1 "Math.floor" x
-jsOp DoubleCeiling [x] = pure $ callFun1 "Math.ceil" x
+jsOp DoubleExp [x]     = pure $ callFun1 "math.exp" x
+jsOp DoubleLog [x]     = pure $ callFun1 "math.log" x
+jsOp DoublePow [x, y]  = pure $ callFun "math.pow" [x, y]
+jsOp DoubleSin [x]     = pure $ callFun1 "math.sin" x
+jsOp DoubleCos [x]     = pure $ callFun1 "math.cos" x
+jsOp DoubleTan [x]     = pure $ callFun1 "math.tan" x
+jsOp DoubleASin [x]    = pure $ callFun1 "math.asin" x
+jsOp DoubleACos [x]    = pure $ callFun1 "math.acos" x
+jsOp DoubleATan [x]    = pure $ callFun1 "math.atan" x
+jsOp DoubleSqrt [x]    = pure $ callFun1 "math.sqrt" x
+jsOp DoubleFloor [x]   = pure $ callFun1 "math.floor" x
+jsOp DoubleCeiling [x] = pure $ callFun1 "math.ceil" x
 
 jsOp (Cast StringType DoubleType) [x] = pure $ jsNumberOfString x
 jsOp (Cast ty StringType) [x] = pure $ jsAnyToString x
@@ -563,12 +564,13 @@ foreignDecl n ccs = do
 -- implementations for external primitive functions.
 jsPrim : {auto c : Ref ESs ESSt} -> Name -> List Doc -> Core Doc
 jsPrim nm docs = case (dropAllNS nm, docs) of
-  (UN (Basic "prim__newIORef"), [_,v,_]) => pure $ hcat ["({value:", v, "})"]
-  (UN (Basic "prim__readIORef"), [_,r,_]) => pure $ hcat ["(", r, ".value)"]
-  (UN (Basic "prim__writeIORef"), [_,r,v,_]) => pure $ hcat ["(", r, ".value=", v, ")"]
-  (UN (Basic "prim__newArray"), [_,s,v,_]) => pure $ hcat ["(Array(", s, ").fill(", v, "))"]
-  (UN (Basic "prim__arrayGet"), [_,x,p,_]) => pure $ hcat ["(", x, "[", p, "])"]
-  (UN (Basic "prim__arraySet"), [_,x,p,v,_]) => pure $ hcat ["(", x, "[", p, "]=", v, ")"]
+  (UN (Basic "prim__newIORef"), [_,v,_]) => pure $ hcat ["({'value':", v, "})"]
+  (UN (Basic "prim__readIORef"), [_,r,_]) => pure $ hcat ["(", r, "['value'])"]
+  (UN (Basic "prim__writeIORef"), [_,r,v,_]) => pure $ hcat ["(", r, "['value']=", v, ")"]
+  (UN (Basic "prim__newArray"), [_,s,v,_]) => pure $ hcat ["newArray(",s,",",v,")"]
+  --pure $ hcat ["(Array(", s, ").fill(", v, "))"]
+  (UN (Basic "prim__arrayGet"), [_,x,p,_]) => pure $ hcat ["(array_dict[", x, "][", p, "])"]
+  (UN (Basic "prim__arraySet"), [_,x,p,v,_]) => pure $ hcat ["(array_dict[", x, "][", p, "]=", v, ")"]
   (UN (Basic "void"), [_, _]) => pure . jsCrashExp $ jsStringDoc "Error: Executed 'void'"
   (UN (Basic "prim__void"), [_, _]) => pure . jsCrashExp $ jsStringDoc "Error: Executed 'void'"
   (UN (Basic "prim__codegen"), []) => do

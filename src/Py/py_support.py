@@ -1,11 +1,23 @@
+import math
+
 py_support_erased=None
 undefined=None
 _idrisworld=None #?symbol?
+array_count=0
+array_dict = {}
+
 def py_support_fastUnpack(x):
     acc = {'h_x':0}
     for i in x:
         acc = {'a1':i, 'a2':acc}
     return acc
+def newArray(s,v):
+    ret=range(s)
+    for i in range(s):
+        ret[i]=v
+    array_count += 1
+    array_dict[array_count]=ret
+    return array_count
 
 def __lazy(thunk):
     res=None
@@ -25,6 +37,7 @@ def __tailRec(f,ini):
       obj = f(obj);
       
 BigInt = lambda x:x
+Number = lambda x:x
 
 def __prim_js2idris_aray(x):
     acc={'h_x':0}
@@ -48,7 +61,7 @@ def __prim_stringIteratorNext(str, it):
 #?
 
 def _crashExp(x):
-    raise #(ValueError x)
+    raise x#(ValueError x)
 
 def _bigIntOfString(s):
     return long(s)
@@ -56,7 +69,6 @@ def _bigIntOfString(s):
 def _numberOfString(s):
     return int(s)
 
-import math
 
 _intOfString = lambda s: math.trunc(_numberOfString(s))
 
