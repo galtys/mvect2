@@ -52,7 +52,7 @@ jsString s = "'" ++ (concatMap okchar (unpack s)) ++ "'"
                             '\r' => "\\r"
                             '\n' => "\\n"
                             --other => "r"<+>"\\x" ++ asHex (cast c) 
-                            other => "\\x" ++ asHex (cast c) 
+                            other => "\x" ++ asHex (cast c) 
 
 ||| Alias for Text . jsString
 jsStringDoc : String -> Doc
@@ -459,7 +459,7 @@ jsOp StrLength [x] = pure $ "len" <+> paren x --<+> ".length"
 --jsOp StrHead [x] = pure $ "(" <+> x <+> ".charAt(0))"
 jsOp StrHead [x] = pure $ "(" <+> x <+> "[0])"
 jsOp StrTail [x] = pure $ "(" <+> x <+> ".slice(1))"
-jsOp StrIndex [x, y] = pure $ "("<+>x<+>"["<+>y+<+>"]"
+jsOp StrIndex [x, y] = pure $ "("<+>x<+>"["<+>y<+>"]"
 --pure $ "(" <+> x <+> ".charAt(" <+> y <+> "))"
 jsOp StrCons [x, y] = pure $ binOp "+" x y
 jsOp StrAppend [x, y] = pure $ binOp "+" x y

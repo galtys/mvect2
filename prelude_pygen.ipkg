@@ -1,6 +1,0 @@
-package prelude_pygen
-version = 0.5.1
-
---opts = "--ignore-missing-ipkg --no-prelude"
-sourcedir = "src"
-modules = Prelude.Types
